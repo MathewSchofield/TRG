@@ -3,11 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Data files and plots
+# Data files
 *.csv
 *.dat
-*.png
-*.pdf
 
 # C extensions
 *.so
