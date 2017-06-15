@@ -1,9 +1,19 @@
-
 import numpy as np
+import sys
 import gatspy
 from gatspy.periodic import LombScargleFast
 import matplotlib.pyplot as plt
 from astropy.stats import mad_std
+from astropy.convolution import Gaussian1DKernel, convolve
+from scipy.interpolate import interp1d
+
+"""
+References:
+(1)  Scargle, J, D. (1982) 'Studies in astronomical time series analysis. II -
+     Statistical aspects of spectral analysis of unevenly spaced data'
+(2)  Jake Vanderplas 2017 'Understanding the Lomb-Scargle Periodogram'
+"""
+
 
 class Dataset(object):
     def __init__(self, epic, data_file):
@@ -73,7 +83,7 @@ class Dataset(object):
             The # points at which to start the selection of points
 
         length: Int
-            The # points to have in the selection of points.
+            The # points to have in the selection of points.    def read_timeseries(self, verbose=False, sigma_clip=4, start=0, length=-1,\
 
         bandpass: Float
             Adjusts the bandpass of the flux
@@ -227,43 +237,66 @@ class Dataset(object):
         >>> star.power_spectrum()
 
         '''
+        # read the timeseries data WITHOUT adding noise in the time domain
+        # add noise and change the length of the dataset in the frequency doamin
         if len(self.time) < 1:
-            self.read_timeseries(verbose=False, start=start, length=length)
+            self.read_timeseries(verbose=False, start=start, \
+                bandpass=0.85, noise=0, length=-1)
 
-        print len(self.time_fix[self.sel]), len(self.time_fix)
+        dtav = np.mean(np.diff(self.time_fix))  # mean value of time differences
+        dtmed = np.median(np.diff(self.time_fix))  # median value of time differences
+        if dtmed == 0:  dtmed = dtav
 
-        if noise > 0.0:
-            self.flux_fix[self.sel] += np.random.randn(len(self.time_fix[self.sel])) * noise
+        # compute periodogram from regular frequency values
+        fmin = 0  # minimum frequency
+        N = len(self.time_fix)  # n-points
+        df = 1./(dtmed*N)  # bin width (1/Tobs)
+        model = LombScargleFast().fit(self.time_fix, self.flux_fix, np.ones(N))
+        power = model.score_frequency_grid(fmin, df, N/2)  # signal-to-noise ratio, (1) eqn 9
+        freqs = fmin + df * np.arange(N/2)  # the periodogram was computed over these freqs
 
-        dtav = np.mean(np.diff(self.time_fix[self.sel]))
-        dtmed = np.median(np.diff(self.time_fix[self.sel]))
-        if dtmed == 0:
-            dtmed = dtav
+        # the variance of the flux
+        if madVar:  var = mad_std(self.flux_fix)**2
+        else:       var = np.std(self.flux_fix)**2
 
-        fmin = 0
-        N = len(self.time_fix[self.sel]) #n-points
-        df = 1.0 / dtmed / N #bw
-        model = LombScargleFast().fit(self.time_fix[self.sel], \
-                                    self.flux_fix[self.sel], \
-                                      np.ones(N))
-        power = model.score_frequency_grid(fmin, df, N/2)
-        freqs = fmin + df * np.arange(N/2)
+        # convert to PSD, see (1) eqn 1, 8, 9 & (2)
+        power /= np.sum(power)  # make the power sum to unity
+        power *= var  # periodogram gives SNR. so multiply by var get power due to signal (ppm)
+        power /= df * 1e6  # convert to ppm^2 muHz^-1
 
-        if madVar:
-            var = mad_std(self.flux_fix[self.sel])**2
-        else:
-            var = np.std(self.flux_fix[self.sel])**2
+        if len(freqs) < len(power):  power = power[0:len(freqs)]
+        if len(freqs) > len(power):  freqs = freqs[0:len(power)]
 
-        power /= np.sum(power)
-        power *= var
-        power /= df * 1e6
-        if len(freqs) < len(power):
-            power = power[0:len(freqs)]
-        if len(freqs) > len(power):
-            freqs = freqs[0:len(power)]
-        self.freq = freqs * 1e6
+        # Smooth the data using a convolve function to remove chi^2 2 DOF noise
+        g = Gaussian1DKernel(stddev=5)
+        power = convolve(power, g, boundary='extend')
+
+        kp_noise = np.mean(power[-100:]) # estimate of Kepler noise level at high frequencies
+        power -= kp_noise  # subtract Kepler noise
+        if noise > 0.0:  power += noise  # add TESS noise to get 'limit' spectrum
+
+
+        #plt.plot(freqs, power + kp_noise - noise, 'r--')
+        #plt.plot(freqs, power)
+        #plt.show()
+
+
+
+        """ reduce the data set length to 27 days. linear interpolation """
+        print length
+        sys.exit()
+
+        fvals = [0,1,2,3] # frequency values for the shorter TESS timeseries
+        yinterp = np.interp(xvals, x, y)
+        fe = interp1d(freqs, power)
+        f_e = extrap1d(fe)
+        print f_e
+        sys.exit()
+
+        self.freq = freqs * 1e6  # mu Hz
         self.power = power
-        self.bin_width = freqs[1] - freqs[0]
+        self.bin_width = freqs[1] - freqs[0]  # bin width of periodogram
+
         if verbose:
             print("Frequency resolution : {}".format(self.freq[1]))
             print("Nyquist : ~".format(self.freq.max()))

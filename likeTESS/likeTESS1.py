@@ -23,7 +23,7 @@ from K2data import Dataset
 if __name__ == "__main__":
     start = timeit.default_timer()
 
-    # the time-series file directories and epic numbers
+    # the time-series file directories, epic numbers & parameters
     ts = glob.glob(TRG + 'GetData' + os.sep + '20Stars' + os.sep + '*.dat')
     epic = [x.split('kplr')[1].split('_llc')[0] for x in ts]
     params = pd.read_csv(TRG + 'GetData' + os.sep + '20Stars' + os.sep + '20stars.csv')
