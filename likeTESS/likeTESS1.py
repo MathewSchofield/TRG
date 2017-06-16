@@ -37,9 +37,9 @@ if __name__ == "__main__":
         noise = star.calc_noise(imag=info['kic_kepmag'].as_matrix(), exptime=30.*60., teff=info['Teff'].as_matrix())
         noise = noise*1e6  # total noise in units of ppm
 
-        # length: 27 days. Kepler FFI cadence = 30 mins (48 observations per day)
-        #star.read_timeseries(start=0, length=27*48, bandpass=0.85, noise=noise)
-        #star.plot_timeseries()
+        # length: days. Kepler FFI cadence = 30 mins (48 observations per day)
+        star.read_timeseries(start=0, length=27*48, bandpass=0.85, noise=noise)
+        star.plot_timeseries()
 
 
 
@@ -48,9 +48,9 @@ if __name__ == "__main__":
         #print star.flux
         #print star.flux_fix
 
-
-        star.power_spectrum(start=0, length=27*48, noise=noise, madVar=True)
-        star.plot_power_spectrum()
+        # length: days
+        #star.power_spectrum(start=0, length=27, noise=noise, madVar=True)
+        #star.plot_power_spectrum()
         #print star.time
 
         sys.exit()

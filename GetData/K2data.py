@@ -83,7 +83,7 @@ class Dataset(object):
             The # points at which to start the selection of points
 
         length: Int
-            The # points to have in the selection of points.    def read_timeseries(self, verbose=False, sigma_clip=4, start=0, length=-1,\
+            The # points to have in the selection of points.
 
         bandpass: Float
             Adjusts the bandpass of the flux
@@ -106,13 +106,39 @@ class Dataset(object):
 
         '''
         data = np.genfromtxt(self.data_file)
-        self.time = (data[:,0] - data[0,0]) * 24.0 * 3600.0
+        self.time = (data[:,0] - data[0,0])# * 24.0 * 3600.0  # start time at 0 secs
         self.flux = data[:,1]
+
+        self.flux = self.flux[np.argsort(self.time)]
+        self.time = self.time[np.argsort(self.time)]
+
+        #print len(self.time)
+        #sys.exit()
+
+        # remove data gaps
         self.time = self.time[np.isfinite(self.flux)]
         self.flux = self.flux[np.isfinite(self.flux)]
+        self.time = self.time[self.flux != 0]
+        self.flux = self.flux[self.flux != 0]
 
-        self.time = self.time[self.flux != 0]  # remove data gaps
-        self.flux = self.flux[self.flux != 0]  # remove data gaps
+        """ find the 27 days in the timeseries with the minimum time gaps """
+        print len(self.time)
+        print np.diff(self.time)
+        print self.time
+        print np.min(np.sum(np.diff(self.time)))
+
+        print length
+        for i, item in enumerate(self.time):
+            print i, item
+            print self.time[i:i+27]
+            sys.exit()
+
+        #plt.plot(self.time[0:-1], np.diff(self.time))
+        #plt.plot(np.diff(self.time))
+        #plt.show()
+        sys.exit()
+
+
 
         self.flux = self.flux[np.argsort(self.time)]
         self.time = self.time[np.argsort(self.time)]
@@ -243,17 +269,17 @@ class Dataset(object):
             self.read_timeseries(verbose=False, start=start, \
                 bandpass=0.85, noise=0, length=-1)
 
-        dtav = np.mean(np.diff(self.time_fix))  # mean value of time differences
-        dtmed = np.median(np.diff(self.time_fix))  # median value of time differences
+        dtav = np.mean(np.diff(self.time_fix))  # mean value of time differences (s)
+        dtmed = np.median(np.diff(self.time_fix))  # median value of time differences (s)
         if dtmed == 0:  dtmed = dtav
 
         # compute periodogram from regular frequency values
         fmin = 0  # minimum frequency
         N = len(self.time_fix)  # n-points
-        df = 1./(dtmed*N)  # bin width (1/Tobs)
+        df = 1./(dtmed*N)  # bin width (1/Tobs) (in Hz)
         model = LombScargleFast().fit(self.time_fix, self.flux_fix, np.ones(N))
         power = model.score_frequency_grid(fmin, df, N/2)  # signal-to-noise ratio, (1) eqn 9
-        freqs = fmin + df * np.arange(N/2)  # the periodogram was computed over these freqs
+        freqs = fmin + df * np.arange(N/2)  # the periodogram was computed over these freqs (Hz)
 
         # the variance of the flux
         if madVar:  var = mad_std(self.flux_fix)**2
@@ -267,6 +293,8 @@ class Dataset(object):
         if len(freqs) < len(power):  power = power[0:len(freqs)]
         if len(freqs) > len(power):  freqs = freqs[0:len(power)]
 
+        #plt.plot(freqs*1e6, power)
+
         # Smooth the data using a convolve function to remove chi^2 2 DOF noise
         g = Gaussian1DKernel(stddev=5)
         power = convolve(power, g, boundary='extend')
@@ -275,27 +303,26 @@ class Dataset(object):
         power -= kp_noise  # subtract Kepler noise
         if noise > 0.0:  power += noise  # add TESS noise to get 'limit' spectrum
 
+        # reduce the data set length
+        tbw = 1./(length*86400)  # binwidth of reduced dataset (Hz; obs. length in days)
+        tfreqs = np.arange(0., freqs[-1], tbw)  # frequency bins for TESS dataset
+        tpower = np.interp(tfreqs, freqs, power)  # power values at these freqs
 
-        #plt.plot(freqs, power + kp_noise - noise, 'r--')
-        #plt.plot(freqs, power)
+        #plt.plot(freqs*1e6, power)
+        #plt.plot(freqs, power + kp_noise - noise, 'r--', alpha=0.4)
+        #plt.plot(tfreqs*1e6, tpower)
+        #plt.xscale('log')
+        #plt.yscale('log')
         #plt.show()
+        #sys.exit()
 
+        # add chi^2 2 DOF noise
+        s = np.random.uniform(low=0.0, high=1.0, size=len(tpower))
+        tpower = -tpower * np.log(s)
 
-
-        """ reduce the data set length to 27 days. linear interpolation """
-        print length
-        sys.exit()
-
-        fvals = [0,1,2,3] # frequency values for the shorter TESS timeseries
-        yinterp = np.interp(xvals, x, y)
-        fe = interp1d(freqs, power)
-        f_e = extrap1d(fe)
-        print f_e
-        sys.exit()
-
-        self.freq = freqs * 1e6  # mu Hz
-        self.power = power
-        self.bin_width = freqs[1] - freqs[0]  # bin width of periodogram
+        self.freq = tfreqs * 1e6  # mu Hz
+        self.power = tpower
+        self.bin_width = tbw  # bin width (Hz)
 
         if verbose:
             print("Frequency resolution : {}".format(self.freq[1]))
