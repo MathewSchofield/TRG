@@ -106,14 +106,12 @@ class Dataset(object):
 
         '''
         data = np.genfromtxt(self.data_file)
-        self.time = (data[:,0] - data[0,0])# * 24.0 * 3600.0  # start time at 0 secs
+        #self.time = (data[:,0] - data[0,0]) * 24.0 * 3600.0  # start time at 0 secs
+        self.time = (data[:,0] - data[0,0]) # start time at 0 days
         self.flux = data[:,1]
 
         self.flux = self.flux[np.argsort(self.time)]
         self.time = self.time[np.argsort(self.time)]
-
-        #print len(self.time)
-        #sys.exit()
 
         # remove data gaps
         self.time = self.time[np.isfinite(self.flux)]
@@ -121,25 +119,30 @@ class Dataset(object):
         self.time = self.time[self.flux != 0]
         self.flux = self.flux[self.flux != 0]
 
-        """ find the 27 days in the timeseries with the minimum time gaps """
-        print len(self.time)
-        print np.diff(self.time)
-        print self.time
-        print np.min(np.sum(np.diff(self.time)))
+        """ find the 27 days in the timeseries (inc. gaps) with the minimum time gaps """
+        Tobs = (length/48)  # observation length (days). length=obs length (points)
+        diffs = np.full(len(self.time), np.inf)
 
-        print length
+        # the data gaps over the reduced length of data
         for i, item in enumerate(self.time):
-            print i, item
-            print self.time[i:i+27]
-            sys.exit()
 
-        #plt.plot(self.time[0:-1], np.diff(self.time))
-        #plt.plot(np.diff(self.time))
-        #plt.show()
-        sys.exit()
+            if len(self.time[i:i+Tobs]) == Tobs:  # don't go beyond the end of the data
+                diffs[i] = np.sum(np.diff(self.time[i:i+Tobs]))
+
+        mn = np.where(diffs==np.min(diffs))[0][0]  # the data with minimum gap lengths
+        strt = abs(Tobs - self.time[mn:mn+length][-1]) # the start time to get 'days' length dataset
+        idx = (np.abs(self.time-strt)).argmin()  # index of adjusted start time
+        #print self.time[idx]  # the start time in the dataset closest to 'days' length
+        #print self.time[mn:mn+length][-1]  # the stop time of the dataset
+
+        self.time_fix = self.time[idx:mn+length]  # cut the data down
+        self.flux_fix = self.flux[idx:mn+length]  # cut the data down
+
+        self.time = self.time * 86400.            # convert from days to seconds
+        self.time_fix = self.time_fix * 86400.    # convert from days to seconds
 
 
-
+        """
         self.flux = self.flux[np.argsort(self.time)]
         self.time = self.time[np.argsort(self.time)]
 
@@ -147,9 +150,6 @@ class Dataset(object):
         sel = np.where(np.abs(self.flux_fix) < mad_std(self.flux_fix) * sigma_clip)
         self.flux_fix = self.flux_fix[sel]  # remove extreme values
         self.time_fix = self.time[sel]      # remove extreme values
-
-        if bandpass != 1.:  # adjust the bandpass
-            self.flux_fix = self.flux_fix * bandpass
 
         if verbose:
             print("Read file {}".format(self.data_file))
@@ -160,16 +160,24 @@ class Dataset(object):
             b = len(self.time_fix)
         else:
             b = start + length
+
+            # if more data is selected than is available, take the data at the end
             if b > len(self.time_fix):
                 b = len(self.time_fix)
-                a = len(self.time_fix) - length
+                a = len(self.time_fix) - length  # move the start time
         self.sel = range(a, b, 1)  # the range to cut the data down to
 
         self.time_fix = self.time_fix[self.sel]  # cut the data down
         self.flux_fix = self.flux_fix[self.sel]  # cut the data down
+        """
+
+        if bandpass != 1.:  # adjust the bandpass
+            self.flux_fix = self.flux_fix * bandpass
 
         if noise > 0.0:  # add noise in the time domain
             self.flux_fix += np.random.randn(len(self.time_fix)) * noise
+
+        self.just_ps(self, noise=0.0, length=-1, start=0, madVar=True)
 
 
     def read_psd(self):
@@ -221,53 +229,61 @@ class Dataset(object):
         else:
             print("File type not supported!")
 
-    def power_spectrum(self, verbose=False, noise=0.0, \
-                       length=-1, start=0, madVar=False):
-        ''' This function computes the power spectrum from the timeseries.
 
-        The function checks to see if the timeseries has been read in, and if not it calls the read_timeseries function.
-
-        The properties of the power spectrum can be altered for a given timeseries via the noise, and length parameters.
-
-        The frequency and power are stored in the object atributes self.freq and self.power.
-
-        Parameters
-        ----------------
-        verbose: Bool(False)
-            Provide verbose output if set to True.
-
-        noise: Float
-            If noise is not zero then additional noise is added to the timeseries where the value of noise is the standard deviation of the additional noise.
-
-        length: Int
-            If length is not -1 then a subset of the timeseries is selected when n points will equal length.
-
-        start: Int
-            The points to use on the transform will be taken from [start:start+length]
-
-        madVar: Bool
-            the Median Absolute Deviation (robust variance of input data)
-
-        Returns
-        ----------------
-
-        NA
-
-        Examples
-        ----------------
-
-        To read in a data set and create the power spectrum one need only run:
-
-        >>> import K2data
-        >>> star = K2data.Dataset(2001122017, '/home/davies/Data/ktwo_2001122017_llc.pow')
-        >>> star.power_spectrum()
-
+    def just_ts(self, verbose=False, sigma_clip=4, start=0, length=-1,\
+        bandpass=1.):
+        '''  Reads in a timeseries from the file stored in data file ONLY.
+        All data modification is to be done in the frequency domain.
         '''
-        # read the timeseries data WITHOUT adding noise in the time domain
-        # add noise and change the length of the dataset in the frequency doamin
-        if len(self.time) < 1:
-            self.read_timeseries(verbose=False, start=start, \
-                bandpass=0.85, noise=0, length=-1)
+
+        data = np.genfromtxt(self.data_file)
+        self.time = (data[:,0] - data[0,0]) * 24.0 * 3600.0  # start time at 0 secs
+        self.flux = data[:,1]
+
+        self.flux = self.flux[np.argsort(self.time)]
+        self.time = self.time[np.argsort(self.time)]
+
+        # remove data gaps
+        self.time = self.time[np.isfinite(self.flux)]
+        self.flux = self.flux[np.isfinite(self.flux)]
+        self.time = self.time[self.flux != 0]
+        self.flux = self.flux[self.flux != 0]
+
+        self.flux = self.flux[np.argsort(self.time)]
+        self.time = self.time[np.argsort(self.time)]
+
+        self.flux_fix = self.flux
+        sel = np.where(np.abs(self.flux_fix) < mad_std(self.flux_fix) * sigma_clip)
+        self.flux_fix = self.flux_fix[sel]  # remove extreme values
+        self.time_fix = self.time[sel]      # remove extreme values
+
+        if verbose:
+            print("Read file {}".format(self.data_file))
+            print("Data points : {}".format(len(self.time)))
+
+        a = start
+        if length == -1:
+            b = len(self.time_fix)
+        else:
+            b = start + length
+
+            # if more data is selected than is available, take the data at the end
+            if b > len(self.time_fix):
+                b = len(self.time_fix)
+                a = len(self.time_fix) - length  # move the start time
+        self.sel = range(a, b, 1)  # the range to cut the data down to
+
+        self.time_fix = self.time_fix[self.sel]  # cut the data down
+        self.flux_fix = self.flux_fix[self.sel]  # cut the data down
+
+        if bandpass != 1.:  # adjust the bandpass
+            self.flux_fix = self.flux_fix * bandpass
+
+
+    def just_ps(self, verbose=False, noise=0.0, length=-1, start=0, madVar=False):
+        """ This function computes the power spectrum from the timeseries ONLY.
+        All data modification is alredy done in the time series.
+        """
 
         dtav = np.mean(np.diff(self.time_fix))  # mean value of time differences (s)
         dtmed = np.median(np.diff(self.time_fix))  # median value of time differences (s)
@@ -292,6 +308,86 @@ class Dataset(object):
 
         if len(freqs) < len(power):  power = power[0:len(freqs)]
         if len(freqs) > len(power):  freqs = freqs[0:len(power)]
+
+        self.freq = freqs * 1e6  # mu Hz
+        self.power = power
+        self.bin_width = df  # bin width (Hz)
+
+
+    def power_spectrum(self, verbose=False, noise=0.0, bandpass=1.,\
+                       length=-1, start=0, madVar=False):
+        ''' This function computes the power spectrum from the timeseries.
+
+        The function checks to see if the timeseries has been read in, and if not it calls the read_timeseries function.
+
+        The properties of the power spectrum can be altered for a given timeseries via the noise, and length parameters.
+
+        The frequency and power are stored in the object atributes self.freq and self.power.
+
+        Parameters
+        ----------------
+        verbose: Bool(False)
+            Provide verbose output if set to True.
+
+        noise: Float
+            If noise is not zero then additional noise is added to the timeseries where the value of noise is the standard deviation of the additional noise.
+
+        length: Int (days)
+            If length is not -1 then a subset of the timeseries is selected when n points will equal length.
+
+        start: Int
+            The points to use on the transform will be taken from [start:start+length]
+
+        madVar: Bool
+            the Median Absolute Deviation (robust variance of input data)
+
+        Returns
+        ----------------
+
+        NA
+
+        Examples
+        ----------------
+
+        To read in a data set and create the power spectrum one need only run:
+
+        >>> import K2data
+        >>> star = K2data.Dataset(2001122017, '/home/davies/Data/ktwo_2001122017_llc.pow')
+        >>> star.power_spectrum()
+
+        '''
+        # read the timeseries data WITHOUT adding noise in the time domain
+        # add noise and change the length of the dataset in the frequency domain
+        if len(self.time) < 1:
+            self.just_ts(verbose=False, start=start, \
+                bandpass=1, length=-1)
+
+        dtav = np.mean(np.diff(self.time_fix))  # mean value of time differences (s)
+        dtmed = np.median(np.diff(self.time_fix))  # median value of time differences (s)
+        if dtmed == 0:  dtmed = dtav
+
+        # compute periodogram from regular frequency values
+        fmin = 0  # minimum frequency
+        N = len(self.time_fix)  # n-points
+        df = 1./(dtmed*N)  # bin width (1/Tobs) (in Hz)
+        model = LombScargleFast().fit(self.time_fix, self.flux_fix, np.ones(N))
+        power = model.score_frequency_grid(fmin, df, N/2)  # signal-to-noise ratio, (1) eqn 9
+        freqs = fmin + df * np.arange(N/2)  # the periodogram was computed over these freqs (Hz)
+
+        # the variance of the flux
+        if madVar:  var = mad_std(self.flux_fix)**2
+        else:       var = np.std(self.flux_fix)**2
+
+        # convert to PSD, see (1) eqn 1, 8, 9 & (2)
+        power /= np.sum(power)  # make the power sum to unity
+        power *= var  # periodogram gives SNR. so multiply by var get power due to signal (ppm)
+        power /= df * 1e6  # convert to ppm^2 muHz^-1
+
+        if len(freqs) < len(power):  power = power[0:len(freqs)]
+        if len(freqs) > len(power):  freqs = freqs[0:len(power)]
+
+        if bandpass != 1.:  # adjust the bandpass
+            power *= bandpass**2
 
         #plt.plot(freqs*1e6, power)
 
