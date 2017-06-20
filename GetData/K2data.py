@@ -12,6 +12,7 @@ References:
 (1)  Scargle, J, D. (1982) 'Studies in astronomical time series analysis. II -
      Statistical aspects of spectral analysis of unevenly spaced data'
 (2)  Jake Vanderplas 2017 'Understanding the Lomb-Scargle Periodogram'
+(3)  Kp magnitude conversion: https://keplerscience.arc.nasa.gov/the-kepler-space-telescope.html
 """
 
 
@@ -53,9 +54,10 @@ class Dataset(object):
         self.smoo_freq = []
         self.smoo_power = []
         self.bin_width = []
+        self.noise = []
 
     def read_timeseries(self, verbose=False, sigma_clip=4, start=0, length=-1,\
-        bandpass=1., noise=0):
+        bandpass=1.):
         '''  Reads in a timeseries from the file stored in data file.
         This works for ascii files that can be read by np.genfromtxt. The
         function assumes that time is in the zero column and flux is in the
@@ -106,14 +108,16 @@ class Dataset(object):
 
         '''
         data = np.genfromtxt(self.data_file)
+        data[:,1] = data[np.argsort(data[:,0]),1]  # re-order flux by time
+        data[:,0] = data[np.argsort(data[:,0]),0]  # re-order time
+
         #self.time = (data[:,0] - data[0,0]) * 24.0 * 3600.0  # start time at 0 secs
         self.time = (data[:,0] - data[0,0]) # start time at 0 days
         self.flux = data[:,1]
 
+        # remove data gaps
         self.flux = self.flux[np.argsort(self.time)]
         self.time = self.time[np.argsort(self.time)]
-
-        # remove data gaps
         self.time = self.time[np.isfinite(self.flux)]
         self.flux = self.flux[np.isfinite(self.flux)]
         self.time = self.time[self.flux != 0]
@@ -174,10 +178,10 @@ class Dataset(object):
         if bandpass != 1.:  # adjust the bandpass
             self.flux_fix = self.flux_fix * bandpass
 
-        if noise > 0.0:  # add noise in the time domain
-            self.flux_fix += np.random.randn(len(self.time_fix)) * noise
+        if self.noise > 0.0:  # add noise in the time domain
+            self.flux_fix += np.random.randn(len(self.time_fix)) * self.noise
 
-        self.just_ps(self, noise=0.0, length=-1, start=0, madVar=True)
+        self.just_ps(self, length=-1, start=0, madVar=True)
 
 
     def read_psd(self):
@@ -280,7 +284,7 @@ class Dataset(object):
             self.flux_fix = self.flux_fix * bandpass
 
 
-    def just_ps(self, verbose=False, noise=0.0, length=-1, start=0, madVar=False):
+    def just_ps(self, verbose=False, length=-1, start=0, madVar=False):
         """ This function computes the power spectrum from the timeseries ONLY.
         All data modification is alredy done in the time series.
         """
@@ -314,7 +318,7 @@ class Dataset(object):
         self.bin_width = df  # bin width (Hz)
 
 
-    def power_spectrum(self, verbose=False, noise=0.0, bandpass=1.,\
+    def power_spectrum(self, verbose=False, bandpass=1.,\
                        length=-1, start=0, madVar=False):
         ''' This function computes the power spectrum from the timeseries.
 
@@ -397,7 +401,7 @@ class Dataset(object):
 
         kp_noise = np.mean(power[-100:]) # estimate of Kepler noise level at high frequencies
         power -= kp_noise  # subtract Kepler noise
-        if noise > 0.0:  power += noise  # add TESS noise to get 'limit' spectrum
+        if self.noise > 0.0:  power += self.noise  # add TESS noise to get 'limit' spectrum
 
         # reduce the data set length
         tbw = 1./(length*86400)  # binwidth of reduced dataset (Hz; obs. length in days)
@@ -471,7 +475,7 @@ class Dataset(object):
         noise1 = np.sqrt(noise_star**2.0 + noise_sky**2.0 + noise_ro**2.0)
         noise2 = np.sqrt(noise_star**2.0 + noise_sky**2.0 + noise_ro**2.0 + noise_sys**2.0)
 
-        return noise2
+        self.noise = noise2 * 1e6  # in ppm
 
     def plot_power_spectrum(self, smoo=0, plog=True):
         ''' Plots the power spectrum '''
