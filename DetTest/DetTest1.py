@@ -12,6 +12,7 @@ import os
 import glob
 import sys
 import timeit
+import matplotlib.pyplot as plt
 
 TRG = os.getcwd().split('DetTest')[0]
 sys.path.insert(0, TRG + 'GetData' + os.sep)
@@ -28,7 +29,7 @@ if __name__ == "__main__":
 
     for i, fdir in enumerate(ts):
 
-        star = Dataset(epic[i], fdir)  # create the object
+        star = Dataset(epic[i], fdir, bandpass=0.85, Tobs=27)  # create the object
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
@@ -39,16 +40,30 @@ if __name__ == "__main__":
 
         # make the data TESS-like in time domain before converting to frequency
         # Kepler FFI cadence = 30 mins (48 observations per day)
-        #star.read_timeseries(start=0, length=27*48, bandpass=0.85)
+        star.read_timeseries(start=0)
+        star.plot_timeseries()
+        star.plot_power_spectrum()
+        sys.exit()
+
+        # make the original Kepler PS
+        #star.just_ts()
+        #star.just_ps()
+        #star.plot_power_spectrum()
+
+        # convert from time to freq before making the data TESS-like. length: days
+        #star.power_spectrum(start=0, madVar=True)
         #star.plot_timeseries()
         #star.plot_power_spectrum()
 
 
-        # convert from time to freq before making the data TESS-like. length: days
-        star.power_spectrum(start=0, length=27, bandpass=0.85, madVar=True)
-        star.plot_timeseries()
-        star.plot_power_spectrum()
+        star.granulation(numax=info['numax'].as_matrix())
+        #star.est_numax()
 
+        plt.plot(star.freq, star.power)
+        plt.plot(star.freq, star.Pgran)
+        plt.yscale('log')
+        plt.xscale('log')
+        plt.show()
         sys.exit()
 
 
