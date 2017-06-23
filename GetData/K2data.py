@@ -5,8 +5,7 @@ from gatspy.periodic import LombScargleFast
 import matplotlib.pyplot as plt
 from astropy.stats import mad_std
 from astropy.convolution import Gaussian1DKernel, convolve
-from scipy.interpolate import interp1d
-import scipy.ndimage as nd
+
 
 """
 References:
@@ -16,6 +15,8 @@ References:
 (3)  Kp magnitude conversion: https://keplerscience.arc.nasa.gov/the-kepler-space-telescope.html
 (4)  'The connection between stellar granulation and oscillation as seen by the Kepler mission'
 	 by Kallinger et al (2014)
+(5)  'Predicting the detectability of oscillations in solar-type stars observed by Kepler'
+	 by Chaplin (2011)
 """
 
 
@@ -31,18 +32,11 @@ class Dataset(object):
         data_file: str
             The path to the file containg the data
 
-        Returns
-        -----------------
-        NA
+        bandpass: Float
+            The bandpass of the observations
 
-        Examples
-        -----------------
-
-        This is just creating the object, so for epic='2001122017' and
-        data file of '/home/davies/Data/ktwo_2001122017_llc.pow' you would run:
-
-        >>> import K2data
-        >>> star = K2data.Dataset(2001122017, '/home/davies/Data/ktwo_2001122017_llc.pow')
+        Tobs: int (days)
+            The observation time of the observations
 
         '''
 
@@ -58,145 +52,22 @@ class Dataset(object):
         self.smoo_freq = []
         self.smoo_power = []
         self.bin_width = []  # mu Hz
-        self.noise = []  # instrumental noise
+        self.KPnoise = []    # Kepler instrumental noise
+        self.TESSnoise = []  # TESS instrumental noise (ppm)
         self.numax = []
         self.bandpass = bandpass
         self.Pgran = []
         self.vnyq = 1e6*(2*30.*60.)**-1  # mu Hz
 
-    def read_timeseries(self, verbose=False, sigma_clip=4, start=0):
-        '''  Reads in a timeseries from the file stored in data file.
-        This works for ascii files that can be read by np.genfromtxt. The
-        function assumes that time is in the zero column and flux is in the
-        one column.
-
-        Time should be in units of days.
-
-        The data is read in, zero values are removed, and stored in the time and flux.
-
-        A sigma clip is performed on the flux to remove extreme values.  The
-        level of the sigma clip can be adjusted with the sigma_clip parameter.
-        The results of the sigma clip are stored in time_fix and flux_fix.
-
-
-        Parameters
-        ------------------
-        verbose: Bool(False)
-            Set to true to produce verbose output.
-
-        sigma_clip: Float
-            The level at which to perform the sigma clip.  If sigma_clip=0
-            then no sigma is performed.
-
-        start: Int
-            The # points at which to start the selection of points
-
-        length: Int
-            The # points to have in the selection of points.
-
-        bandpass: Float
-            Adjusts the bandpass of the flux
-
-        noise: Float
-            If noise is not zero then additional noise is added to the timeseries where the value of noise is the standard deviation of the additional noise.
-
-        Returns
-        ------------------
-        NA
-
-        Examples
-        ------------------
-
-        To load in the time series with a 4 sigma clip, one would run:
-
-        >>> import K2data
-        >>> star = K2data.Dataset(2001122017, '/home/davies/Data/ktwo_2001122017_llc.pow')
-        >>> star.read_timeseries()
-
-        '''
-        data = np.genfromtxt(self.data_file)
-        data[:,1] = data[np.argsort(data[:,0]),1]  # re-order flux by time
-        data[:,0] = data[np.argsort(data[:,0]),0]  # re-order time
-
-        #self.time = (data[:,0] - data[0,0]) * 24.0 * 3600.0  # start time at 0 secs
-        self.time = (data[:,0] - data[0,0]) # start time at 0 days
-        self.flux = data[:,1]
-
-        # remove data gaps
-        self.flux = self.flux[np.argsort(self.time)]
-        self.time = self.time[np.argsort(self.time)]
-        self.time = self.time[np.isfinite(self.flux)]
-        self.flux = self.flux[np.isfinite(self.flux)]
-        self.time = self.time[self.flux != 0]
-        self.flux = self.flux[self.flux != 0]
-
-        """ find the 27 days in the timeseries (inc. gaps) with the minimum time gaps """
-        #Tobs = (length/48)  # observation length (days). length=obs length (points)
-        diffs = np.full(len(self.time), np.inf)
-
-        # the data gaps over the reduced length of data
-        for i, item in enumerate(self.time):
-
-            if len(self.time[i:i+self.Tobs]) == self.Tobs:  # don't go beyond the end of the data
-                diffs[i] = np.sum(np.diff(self.time[i:i+self.Tobs]))
-
-        mn = np.where(diffs==np.min(diffs))[0][0]  # the data with minimum gap lengths
-        strt = abs(self.Tobs - self.time[mn:mn+self.Tobs*48][-1]) # the start time to get 'days' length dataset
-        idx = (np.abs(self.time-strt)).argmin()  # index of adjusted start time
-        #print self.time[idx]  # the start time in the dataset closest to 'days' length
-        #print self.time[mn:mn+length][-1]  # the stop time of the dataset
-
-        self.time_fix = self.time[idx:mn+self.Tobs*48]  # cut the data down
-        self.flux_fix = self.flux[idx:mn+self.Tobs*48]  # cut the data down
-
-        self.time = self.time * 86400.            # convert from days to seconds
-        self.time_fix = self.time_fix * 86400.    # convert from days to seconds
-
-
-        """
-        self.flux = self.flux[np.argsort(self.time)]
-        self.time = self.time[np.argsort(self.time)]
-
-        self.flux_fix = self.flux
-        sel = np.where(np.abs(self.flux_fix) < mad_std(self.flux_fix) * sigma_clip)
-        self.flux_fix = self.flux_fix[sel]  # remove extreme values
-        self.time_fix = self.time[sel]      # remove extreme values
-
-        if verbose:
-            print("Read file {}".format(self.data_file))
-            print("Data points : {}".format(len(self.time)))
-
-        a = start
-        if length == -1:
-            b = len(self.time_fix)
-        else:
-            b = start + length
-
-            # if more data is selected than is available, take the data at the end
-            if b > len(self.time_fix):
-                b = len(self.time_fix)
-                a = len(self.time_fix) - length  # move the start time
-        self.sel = range(a, b, 1)  # the range to cut the data down to
-
-        self.time_fix = self.time_fix[self.sel]  # cut the data down
-        self.flux_fix = self.flux_fix[self.sel]  # cut the data down
-        """
-
-        if self.bandpass != 1.:  # adjust the bandpass
-            self.flux_fix = self.flux_fix * self.bandpass
-
-        if self.noise > 0.0:  # add noise in the time domain
-            self.flux_fix += np.random.randn(len(self.time_fix)) * self.noise
-
-        self.just_ps(self, start=0, madVar=True)
-
-
-    def just_ts(self, verbose=False, sigma_clip=4, start=0, length=-1):
+    def ts(self, verbose=False, sigma_clip=4):
         '''  Reads in a timeseries from the file stored in data file ONLY.
         All data modification is to be done in the frequency domain.
         '''
 
         data = np.genfromtxt(self.data_file)
+        data[:,1] = data[np.argsort(data[:,0]),1]  # re-order flux by time
+        data[:,0] = data[np.argsort(data[:,0]),0]  # re-order time
+
         self.time = (data[:,0] - data[0,0]) * 24.0 * 3600.0  # start time at 0 secs
         self.flux = data[:,1]
 
@@ -204,10 +75,8 @@ class Dataset(object):
         self.time = self.time[np.argsort(self.time)]
 
         # remove data gaps
-        self.time = self.time[np.isfinite(self.flux)]
-        self.flux = self.flux[np.isfinite(self.flux)]
-        self.time = self.time[self.flux != 0]
-        self.flux = self.flux[self.flux != 0]
+        self.time = self.time[(self.flux != 0) & (np.isfinite(self.flux))]
+        self.flux = self.flux[(self.flux != 0) & (np.isfinite(self.flux))]
 
         self.flux = self.flux[np.argsort(self.time)]
         self.time = self.time[np.argsort(self.time)]
@@ -221,76 +90,8 @@ class Dataset(object):
             print("Read file {}".format(self.data_file))
             print("Data points : {}".format(len(self.time)))
 
-        a = start
-        if length == -1:
-            b = len(self.time_fix)
-        else:
-            b = start + length
-
-            # if more data is selected than is available, take the data at the end
-            if b > len(self.time_fix):
-                b = len(self.time_fix)
-                a = len(self.time_fix) - length  # move the start time
-        self.sel = range(a, b, 1)  # the range to cut the data down to
-
-        self.time_fix = self.time_fix[self.sel]  # cut the data down
-        self.flux_fix = self.flux_fix[self.sel]  # cut the data down
-
-        if self.bandpass != 1.:  # adjust the bandpass
-            self.flux_fix = self.flux_fix * self.bandpass
-
-
-    def granulation(self, numax, dilution=1):
-        """ Estimate the power due to granulation from (4)
-        """
-
-        self.numax = numax
-    	a_nomass = self.bandpass * 3382*self.numax**-0.609
-    	b1 = 0.317 * self.numax**0.970
-    	b2 = 0.948 * self.numax**0.992
-
-        # Divide by dilution squared as it affects stars in the time series.
-        # The units of dilution change from ppm to ppm^2 microHz^-1 when going from the
-        # time series to frequency. p6: c=4 and zeta = 2*sqrt(2)/pi
-        Pgran = (((2*np.sqrt(2))/np.pi) * (a_nomass**2/b1) / (1 + ((self.freq/b1)**4)) \
-        + ((2*np.sqrt(2))/np.pi) * (a_nomass**2/b2) / (1 + ((self.freq/b2)**4))) / (dilution**2)
-
-        # From (9). the amplitude suppression factor. Normalised sinc with pi (area=1)
-        eta = np.sinc((self.freq/(2*self.vnyq)))
-
-        # the granulation after attenuation
-        self.Pgran = Pgran * eta**2
-
-
-
-    def est_numax(self):
-        """
-        Estimate numax as the maximum of the smoothed PSD
-        """
-
-        smoop = nd.filters.uniform_filter1d(self.power, 10)
-
-        #print smoop
-        #sys.exit()
-
-        self.numax_est = self.freq[np.argmax(self.power)]
-        print("Numax est: ", self.numax_est)
-
-        plt.plot(self.freq, self.power)
-        plt.plot(self.freq, smoop)
-        plt.yscale('log')
-        plt.xscale('log')
-        plt.show()
-        #sys.exit()
-
-        self.numax_est = self.freq[np.argmax(self.power)]
-        print("Numax est: ", self.numax_est)
-        #self.res.loc[len(self.res)] = ['PSPS Rough Numax', self.numax_est, np.nan]
-
-
-    def just_ps(self, verbose=False, start=0, madVar=False):
+    def Periodogram(self, madVar=True):
         """ This function computes the power spectrum from the timeseries ONLY.
-        All data modification is alredy done in the time series.
         """
 
         dtav = np.mean(np.diff(self.time_fix))  # mean value of time differences (s)
@@ -310,19 +111,77 @@ class Dataset(object):
         else:       var = np.std(self.flux_fix)**2
 
         # convert to PSD, see (1) eqn 1, 8, 9 & (2)
-        power /= np.sum(power)  # make the power sum to unity
-        power *= var  # periodogram gives SNR. so multiply by var get power due to signal (ppm)
-        power /= df * 1e6  # convert to ppm^2 muHz^-1
+        power /= np.sum(power)  # make the power sum to unity (dimensionless)
+        power *= var  # Parseval's theorem. time-series units: ppm. variance units: ppm^2
+        power /= df * 1e6  # convert from ppm^2 to ppm^2 muHz^-1
 
         if len(freqs) < len(power):  power = power[0:len(freqs)]
         if len(freqs) > len(power):  freqs = freqs[0:len(power)]
 
-        self.freq = freqs * 1e6  # mu Hz
-        self.power = power
-        self.bin_width = df * 1e6  # bin width (mu Hz)
+        self.freq = freqs * 1e6    # muHz
+        self.power = power         # ppm^2 muHz^-1
+        self.bin_width = df * 1e6  # mu Hz
+
+    def timeseries(self, sigma_clip=4, plot_ts=False, plot_ps=False):
+        '''  Reads in a timeseries from the file stored in data file.
+        This works for ascii files that can be read by np.genfromtxt. The
+        function assumes that time is in the zero column and flux is in the
+        one column.
+
+        The data is read in, zero values are removed, and stored in the time and flux.
+
+        A sigma clip is performed on the flux to remove extreme values.  The
+        level of the sigma clip can be adjusted with the sigma_clip parameter.
+        The results of the sigma clip are stored in time_fix and flux_fix.
 
 
-    def power_spectrum(self, verbose=False, start=0, madVar=False):
+        Parameters
+        ------------------
+        sigma_clip: Float
+            The level at which to perform the sigma clip.  If sigma_clip=0
+            then no sigma is performed.
+
+        noise: Float
+            If noise is not zero then additional noise is added to the timeseries where the value of noise is the standard deviation of the additional noise.
+
+        '''
+
+        self.ts(sigma_clip=4)
+
+        """ find the 27 days in the timeseries (inc. gaps) with the minimum time gaps """
+        self.time = self.time / 86400             # convert from seconds to days
+        self.time_fix = self.time_fix / 86400     # convert from seconds to days
+        diffs = np.full(len(self.time_fix), np.inf)
+
+        # the data gaps over the reduced length of data
+        for i, item in enumerate(self.time_fix):
+
+            if len(self.time_fix[i:i+self.Tobs]) == self.Tobs:  # don't go beyond the end of the data
+                diffs[i] = np.sum(np.diff(self.time_fix[i:i+self.Tobs]))
+
+        mn = np.where(diffs==np.min(diffs))[0][0]  # the data with minimum gap lengths
+        strt = abs(self.Tobs - self.time_fix[mn:mn+self.Tobs*48][-1]) # the start time to get 'days' length dataset
+        idx = (np.abs(self.time_fix-strt)).argmin()  # index of adjusted start time
+
+        self.time_fix = self.time_fix[idx:mn+self.Tobs*48]  # cut the data down
+        self.flux_fix = self.flux_fix[idx:mn+self.Tobs*48]  # cut the data down
+
+        self.time = self.time * 86400.            # convert from days to seconds
+        self.time_fix = self.time_fix * 86400.    # convert from days to seconds
+
+        if self.bandpass != 1.:  # adjust the bandpass
+            self.flux_fix = self.flux_fix * self.bandpass
+
+        if self.TESSnoise > 0.0:  # add noise in the time domain
+            self.flux_fix += np.random.randn(len(self.time_fix)) * self.TESSnoise
+
+        self.Periodogram()  # make the power spectrum
+
+        if plot_ts:  self.plot_timeseries()
+        if plot_ps: self.plot_power_spectrum()
+
+    def power_spectrum(self, verbose=False, madVar=True, Plot1=False,\
+        plot_ts=False, plot_ps=False):
         ''' This function computes the power spectrum from the timeseries.
 
         The function checks to see if the timeseries has been read in, and if not it calls the read_timeseries function.
@@ -336,17 +195,11 @@ class Dataset(object):
         verbose: Bool(False)
             Provide verbose output if set to True.
 
-        noise: Float
-            If noise is not zero then additional noise is added to the timeseries where the value of noise is the standard deviation of the additional noise.
-
-        length: Int (days)
-            If length is not -1 then a subset of the timeseries is selected when n points will equal length.
-
-        start: Int
-            The points to use on the transform will be taken from [start:start+length]
-
         madVar: Bool
             the Median Absolute Deviation (robust variance of input data)
+
+        plot_ps: Bool
+            plots the power spectrum at different stages of analysis from Kepler to TESS
 
         Returns
         ----------------
@@ -365,82 +218,48 @@ class Dataset(object):
         '''
         # read the timeseries data WITHOUT adding noise in the time domain
         # add noise and change the length of the dataset in the frequency domain
-        if len(self.time) < 1:
-            self.just_ts(verbose=False, start=start, length=-1)
+        if len(self.time) < 1:  self.ts()
 
-        dtav = np.mean(np.diff(self.time_fix))  # mean value of time differences (s)
-        dtmed = np.median(np.diff(self.time_fix))  # median value of time differences (s)
-        if dtmed == 0:  dtmed = dtav
-
-        # compute periodogram from regular frequency values
-        fmin = 0  # minimum frequency
-        N = len(self.time_fix)  # n-points
-        df = 1./(dtmed*N)  # bin width (1/Tobs) (in Hz)
-        model = LombScargleFast().fit(self.time_fix, self.flux_fix, np.ones(N))
-        power = model.score_frequency_grid(fmin, df, N/2)  # signal-to-noise ratio, (1) eqn 9
-        freqs = fmin + df * np.arange(N/2)  # the periodogram was computed over these freqs (Hz)
-
-        # the variance of the flux
-        if madVar:  var = mad_std(self.flux_fix)**2
-        else:       var = np.std(self.flux_fix)**2
-
-        # convert to PSD, see (1) eqn 1, 8, 9 & (2)
-        power /= np.sum(power)  # make the power sum to unity
-        power *= var  # periodogram gives SNR. so multiply by var get power due to signal (ppm)
-        power /= df * 1e6  # convert to ppm^2 muHz^-1
-
-        if len(freqs) < len(power):  power = power[0:len(freqs)]
-        if len(freqs) > len(power):  freqs = freqs[0:len(power)]
+        self.Periodogram()  # compute periodogram. freqs (Hz) power (ppm^2 mu Hz^-1)
 
         if self.bandpass != 1.:  # adjust the bandpass
-            power *= self.bandpass**2
-
-        #plt.plot(freqs*1e6, power)
+            self.power *= self.bandpass**2
 
         # Smooth the data using a convolve function to remove chi^2 2 DOF noise
         g = Gaussian1DKernel(stddev=5)
-        power = convolve(power, g, boundary='extend')
+        self.power = convolve(self.power, g, boundary='extend')
 
-        kp_noise = np.mean(power[-100:]) # estimate of Kepler noise level at high frequencies
-        power -= kp_noise  # subtract Kepler noise
-        if self.noise > 0.0:  power += self.noise  # add TESS noise to get 'limit' spectrum
+        #self.KPnoise = np.mean(self.power[-100:]) # estimate of Kepler noise level at high frequencies
+        self.power -= self.KPnoise  # subtract Kepler noise
+        if self.TESSnoise > 0.0:  self.power += self.TESSnoise  # add TESS noise to get 'limit' spectrum
 
         # reduce the data set length
-        tbw = 1./(self.Tobs*86400)  # binwidth of reduced dataset (Hz; obs. self.Tobs in days)
-        tfreqs = np.arange(0., freqs[-1], tbw)  # frequency bins for TESS dataset
-        tpower = np.interp(tfreqs, freqs, power)  # power values at these freqs
+        tbw = 1e6/(self.Tobs*86400)  # binwidth of reduced dataset (mu Hz; self.Tobs in days)
+        tfreqs = np.arange(0., self.freq[-1], tbw)  # frequency bins for TESS dataset, mu Hz
+        tpower = np.interp(tfreqs, self.freq, self.power)  # power values at these freqs
 
-        #plt.plot(freqs*1e6, power)
-        #plt.plot(freqs, power + kp_noise - noise, 'r--', alpha=0.4)
-        #plt.plot(tfreqs*1e6, tpower)
-        #plt.xscale('log')
-        #plt.yscale('log')
-        #plt.show()
-        #sys.exit()
+        if Plot1: self.Plot1(tfreqs, tpower)  # plot power spectrum at different stages
 
         # add chi^2 2 DOF noise
         s = np.random.uniform(low=0.0, high=1.0, size=len(tpower))
         tpower = -tpower * np.log(s)
 
-        self.freq = tfreqs * 1e6  # mu Hz
-        self.power = tpower
-        self.bin_width = tbw  # bin width (Hz)
+        self.freq = tfreqs        # mu Hz
+        self.power = tpower       # ppm^2 mu Hz^-1
+        self.bin_width = tbw      # Hz
+
+        if plot_ts: self.plot_timeseries()
+        if plot_ps: self.plot_power_spectrum()
 
         if verbose:
             print("Frequency resolution : {}".format(self.freq[1]))
             print("Nyquist : ~".format(self.freq.max()))
 
-    def pixel_cost(self, x):
-        """ returns the number of pixels in the TESS aperture
-        """
-
-        N = np.ceil(10.0**-5.0 * 10.0**(0.4*(20.0-x)))
-        N_tot = 10*(N+10)
-
-        return N_tot
-
-    def calc_noise(self, imag, exptime, teff, e_lng = 0, e_lat = 30, g_lng = 96, g_lat = -30, subexptime = 2.0, npix_aper = 10, \
+    def TESS_noise(self, imag, exptime, teff, e_lat = 30, g_lng = 96, g_lat = -30, subexptime = 2.0,\
     frac_aper = 0.76, e_pix_ro = 10, geom_area = 60.0, pix_scale = 21.1, sys_limit = 0):
+
+        N = np.ceil(10.0**-5.0 * 10.0**(0.4*(20.0-imag)))
+        npix_aper = 10*(N+10)
 
         omega_pix = pix_scale**2.0
         n_exposures = exptime/subexptime
@@ -477,7 +296,32 @@ class Dataset(object):
         noise1 = np.sqrt(noise_star**2.0 + noise_sky**2.0 + noise_ro**2.0)
         noise2 = np.sqrt(noise_star**2.0 + noise_sky**2.0 + noise_ro**2.0 + noise_sys**2.0)
 
-        self.noise = noise2 * 1e6  # in ppm
+        self.TESSnoise = noise2 * 1e6  # in ppm
+
+    def kepler_noise(self, Kp):
+        """ calculate the noise for a source from Kepler """
+        c = 1.28 * 10**(0.4*(12.-Kp) + 7.)  # detections per cadence, (5) eqn 17.
+        self.KPnoise = 1e6/c * np.sqrt(c + 9.5 * 1e5*(14./Kp)**5) # in ppm
+
+    def granulation(self, numax, dilution=1):
+        """ Estimate the power due to granulation from (4) """
+
+        self.numax = numax
+    	a_nomass = self.bandpass * 3382*self.numax**-0.609
+    	b1 = 0.317 * self.numax**0.970
+    	b2 = 0.948 * self.numax**0.992
+
+        # Divide by dilution squared as it affects stars in the time series.
+        # The units of dilution change from ppm to ppm^2 microHz^-1 when going from the
+        # time series to frequency. p6: c=4 and zeta = 2*sqrt(2)/pi
+        Pgran = (((2*np.sqrt(2))/np.pi) * (a_nomass**2/b1) / (1 + ((self.freq/b1)**4)) \
+        + ((2*np.sqrt(2))/np.pi) * (a_nomass**2/b2) / (1 + ((self.freq/b2)**4))) / (dilution**2)
+
+        # From (9). the amplitude suppression factor. Normalised sinc with pi (area=1)
+        eta = np.sinc((self.freq/(2*self.vnyq)))
+
+        # the granulation after attenuation
+        self.Pgran = Pgran * eta**2
 
     def plot_power_spectrum(self, smoo=0, plog=True):
         ''' Plots the power spectrum '''
@@ -512,13 +356,31 @@ class Dataset(object):
         ax.set_title('KIC ' + str(self.epic))
         fig.savefig('timeseries_' + str(self.epic) + '.png')
 
-    def rebin_quick(self, smoo):
-        ''' TODO Write DOC strings '''
-        if smoo < 1:
-            return f, p
-        if self.freq == []:
-            self.power_spectrum()
-        self.smoo = int(smoo)
-        m = int(len(self.power) / self.smoo)
-        self.smoo_freq = self.freq[:m*self.smoo].reshape((m,self.smoo)).mean(1)
-        self.smoo_power = self.power[:m*self.smoo].reshape((m,self.smoo)).mean(1)
+    def Plot1(self, tfreqs, tpower):
+        """ Plot the power spectrum at different stages from converting """
+        plt.plot(self.freq, self.power, label='TESS noise level')
+        plt.plot(self.freq, self.power + self.KPnoise - self.TESSnoise, 'r--',
+            alpha=0.4, label='Kepler noise level')
+        plt.plot(tfreqs, tpower, label='TESS noise level and binwidth')
+        plt.legend(loc='lower left')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.xlabel(r'$\nu / \mu$Hz')
+        plt.ylabel(r'Power $\rm ppm^{2} \mu Hz^{-1}$')
+        plt.show()
+
+    def diagnostic_plot(self):
+        pass
+
+    def Diagnostic(self, Kp, imag, exptime, teff, e_lat):
+        """ Perform diagnostic tests to check TESS power spectra """
+
+        self.TESS_noise(imag, exptime, teff, e_lat, sys_limit=0)
+        self.kepler_noise(Kp)
+        self.timeseries()
+
+
+
+
+
+#

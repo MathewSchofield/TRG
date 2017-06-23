@@ -29,42 +29,33 @@ if __name__ == "__main__":
 
     for i, fdir in enumerate(ts):
 
-        star = Dataset(epic[i], fdir, bandpass=0.85, Tobs=27)  # create the object
+        star = Dataset(epic[i], fdir, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
+        star.Diagnostic(Kp=info['kic_kepmag'].as_matrix(), \
+            imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
+            teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix())
+        #sys.exit()
+
         # units of exptime are seconds. noise in units of ppm
-        star.calc_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-            e_lng=mag['e_lng'].as_matrix(), e_lat=mag['e_lat'].as_matrix(),\
-            teff=info['Teff'].as_matrix())
+        star.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
+            teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
+        star.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
+
 
         # make the data TESS-like in time domain before converting to frequency
-        # Kepler FFI cadence = 30 mins (48 observations per day)
-        star.read_timeseries(start=0)
-        star.plot_timeseries()
-        star.plot_power_spectrum()
+        star.timeseries(plot_ts=True, plot_ps=True)
+
+        # convert from time to freq before making the data TESS-like
+        star.power_spectrum(plot_ts=False, plot_ps=True)
         sys.exit()
 
         # make the original Kepler PS
-        #star.just_ts()
-        #star.just_ps()
+        #star.ts()
+        #star.Periodogram()
         #star.plot_power_spectrum()
 
-        # convert from time to freq before making the data TESS-like. length: days
-        #star.power_spectrum(start=0, madVar=True)
-        #star.plot_timeseries()
-        #star.plot_power_spectrum()
-
-
-        star.granulation(numax=info['numax'].as_matrix())
-        #star.est_numax()
-
-        plt.plot(star.freq, star.power)
-        plt.plot(star.freq, star.Pgran)
-        plt.yscale('log')
-        plt.xscale('log')
-        plt.show()
-        sys.exit()
 
 
     stop = timeit.default_timer()
