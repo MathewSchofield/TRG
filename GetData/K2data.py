@@ -5,6 +5,7 @@ from gatspy.periodic import LombScargleFast
 import matplotlib.pyplot as plt
 from astropy.stats import mad_std
 from astropy.convolution import Gaussian1DKernel, convolve
+import matplotlib.gridspec as gridspec
 
 
 """
@@ -52,7 +53,7 @@ class Dataset(object):
         self.smoo_freq = []
         self.smoo_power = []
         self.bin_width = []  # mu Hz
-        self.KPnoise = []    # Kepler instrumental noise
+        self.KPnoise = []    # Kepler instrumental noise (ppm)
         self.TESSnoise = []  # TESS instrumental noise (ppm)
         self.numax = []
         self.bandpass = bandpass
@@ -369,18 +370,78 @@ class Dataset(object):
         plt.ylabel(r'Power $\rm ppm^{2} \mu Hz^{-1}$')
         plt.show()
 
-    def diagnostic_plot(self):
-        pass
+    def diagnostic_plot1(self, scale):
+
+        fig = plt.figure(figsize=(12, 16))
+        plt.rc('font', size=26)
+
+        # axes positions
+        ax1 = plt.subplot2grid((3, 2), (0, 0), colspan=1)
+        ax2 = plt.subplot2grid((3, 2), (1, 0), colspan=1)
+        ax3 = plt.subplot2grid((3, 2), (1, 1), rowspan=1)
+        ax4 = plt.subplot2grid((3, 2), (2, 0))
+        ax5 = plt.subplot2grid((3, 2), (2, 1))
+
+        # axes properties
+        for idx, i in enumerate([ax1, ax2, ax3, ax4, ax5]):
+            i.set_yscale('log')
+            i.set_xscale('log')
+            titles = [r'$Kepler \ (4 \rm \ yrs)$',\
+                r'TESS (1 yr, time domain)', r'TESS (27 days, time domain)',\
+                r'TESS (1 yr, freq domain)', r'TESS (27 days, freq domain)']
+            i.set_title(titles[idx])
+
+            if (i == ax4) or (i == ax5):
+                i.set_xlabel(r'$\rm \nu / \mu Hz$')
+
+            if (i == ax1) or (i == ax2) or (i == ax4):
+                i.set_ylabel(r'$\rm PSD / ppm^{2} \mu Hz^{-1}$')
+
+            # set the axes scale. 'full': the entire spectrum; 'modes': just modes
+            if scale == 'full':
+                i.set_ylim([0.02,367665])
+                i.set_xlim([1.5, 299])
+
+            if scale == 'modes':
+                i.set_ylim([40,143796])
+                i.set_xlim([16, 80])
+
+        # original Kepler spectrum
+        self.ts()
+        self.Periodogram()
+        ax1.plot(self.freq, self.power, color='k', alpha=0.5)
+
+        # TESS-like, conversion in the time series, 1 year
+        self.Tobs = 365  # days
+        self.timeseries()
+        ax2.plot(self.freq, self.power, color='c')
+
+        # TESS-like, conversion in the time series, 27 days
+        self.Tobs = 27  # days
+        self.power_spectrum()
+        ax3.plot(self.freq, self.power, color='c')
+
+        # TESS-like, conversion in the freq domain, 1 year
+        self.Tobs = 365  # days
+        self.power_spectrum()
+        ax4.plot(self.freq, self.power, color='b', alpha=0.8)
+
+        # TESS-like, conversion in the freq domain, 27 days
+        self.Tobs = 27  # days
+        self.power_spectrum()
+        ax5.plot(self.freq, self.power, color='b', alpha=0.8)
+
+        plt.tight_layout()
+        plt.show()
+        fig.savefig('diagnostic_plot1_' + scale + '.pdf')
 
     def Diagnostic(self, Kp, imag, exptime, teff, e_lat):
         """ Perform diagnostic tests to check TESS power spectra """
 
         self.TESS_noise(imag, exptime, teff, e_lat, sys_limit=0)
         self.kepler_noise(Kp)
-        self.timeseries()
-
-
-
+        #self.diagnostic_plot1(scale='full')
+        self.diagnostic_plot1(scale='modes')
 
 
 #

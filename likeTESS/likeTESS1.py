@@ -18,7 +18,7 @@ sys.path.insert(0, TRG + 'GetData' + os.sep)
 from K2data import Dataset
 
 
-# all stars here are Red Giants so conditions for dwarfs have been removed
+# calculate Imags. all stars here are Red Giants so conditions for dwarfs have been removed
 def BV2VI(whole):
 
     whole['B-V'] = whole['Bmag'] - whole['Vmag']
@@ -43,21 +43,31 @@ def BV2VI(whole):
 # load the time-series file directories, epic numbers & parameters.
 def getInput(RepoLoc, dataset):
 
+    # ts: time series file locs. epic: EPIC numbers. params: numax, dnu, teff, Kp
     ts = glob.glob(RepoLoc + 'GetData' + os.sep + dataset + os.sep + '*.dat')
     epic = [x.split('kplr')[1].split('_llc')[0] for x in ts]
     params = pd.read_csv(RepoLoc + 'GetData' + os.sep + dataset + os.sep + dataset.lower() + '.csv')
 
     mags = pd.read_csv(RepoLoc + 'GetData' + os.sep + dataset + os.sep +\
-        '20stars_simbad.csv', sep='\t', usecols=['typed ident ', 'Mag B ', 'Mag V ', '  coord3 (Ecl,J2000/2000)  '])
-    mags.rename(columns={'typed ident ':'KIC', 'Mag B ':'Bmag', \
-        'Mag V ':'Vmag', '  coord3 (Ecl,J2000/2000)  ':'a'}, inplace=True)
-    mags = BV2VI(mags)  # calculate Imags
+        dataset.lower() + '_simbad.csv')
 
-    # separate ecliptic coordinates
-    s = mags['a'].apply(lambda x: x.split(' +'))
-    mags['e_lng'] = s.apply(lambda x: x[0]).astype(float)
-    mags['e_lat'] = s.apply(lambda x: x[1]).astype(float)
-    mags.drop(['a'], axis=1, inplace=True)
+    # if Imags are not known for the stars, calculate them and save to file
+    if 'Imag' not in mags.columns:
+
+        mags.rename(columns={'typed ident ':'KIC', 'Mag B ':'Bmag', \
+            'Mag V ':'Vmag', '  coord3 (Ecl,J2000/2000)  ':'a'}, inplace=True)
+
+        # separate ecliptic coordinates
+        s = mags['a'].apply(lambda x: x.split(' +'))
+        mags['e_lng'] = s.apply(lambda x: x[0]).astype(float)
+        mags['e_lat'] = s.apply(lambda x: x[1]).astype(float)
+        mags.drop(['a'], axis=1, inplace=True)
+
+        mags = BV2VI(mags)  # calculate Imags
+
+        mags[['KIC', 'Bmag', 'Vmag', 'e_lng', 'e_lat', 'B-V', 'V-I', 'Imag']].\
+            to_csv(RepoLoc + 'GetData' + os.sep + dataset + os.sep +\
+            dataset.lower() + '_simbad.csv', index=False)
 
     return ts, epic, params, mags
 
@@ -67,31 +77,35 @@ if __name__ == "__main__":
 
     ts, epic, params, mags = getInput(RepoLoc=TRG, dataset='20Stars')
 
-
     for i, fdir in enumerate(ts):
 
-        star = Dataset(epic[i], fdir)  # create the object
+        star = Dataset(epic[i], fdir, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
+
+        star.Diagnostic(Kp=info['kic_kepmag'].as_matrix(), \
+            imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
+            teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix())
+        sys.exit()
+
         # units of exptime are seconds. noise in units of ppm
-        noise = star.calc_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-            e_lng=mag['e_lng'].as_matrix(), e_lat=mag['e_lat'].as_matrix(),\
-            teff=info['Teff'].as_matrix())
+        star.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
+            teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
+        star.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
+
 
         # make the data TESS-like in time domain before converting to frequency
-        # Kepler FFI cadence = 30 mins (48 observations per day)
-        star.read_timeseries(start=0, length=27*48, bandpass=0.85, noise=noise)
-        #star.plot_timeseries()
-        star.plot_power_spectrum()
+        star.timeseries(plot_ts=True, plot_ps=True)
 
-
-        # convert from time to freq before making the data TESS-like. length: days
-        #star.power_spectrum(start=0, length=27, noise=noise, bandpass=0.85, madVar=True)
-        #star.plot_timeseries()
-        #star.plot_power_spectrum()
-
+        # convert from time to freq before making the data TESS-like
+        star.power_spectrum(plot_ts=False, plot_ps=True)
         sys.exit()
+
+        # make the original Kepler PS
+        #star.ts()
+        #star.Periodogram()
+        #star.plot_power_spectrum()
 
 
     stop = timeit.default_timer()

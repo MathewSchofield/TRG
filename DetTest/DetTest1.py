@@ -33,11 +33,6 @@ if __name__ == "__main__":
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
-        star.Diagnostic(Kp=info['kic_kepmag'].as_matrix(), \
-            imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-            teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix())
-        #sys.exit()
-
         # units of exptime are seconds. noise in units of ppm
         star.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
             teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
