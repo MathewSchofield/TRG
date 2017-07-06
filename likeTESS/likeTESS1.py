@@ -96,10 +96,10 @@ if __name__ == "__main__":
 
 
         # make the data TESS-like in time domain before converting to frequency
-        star.timeseries(plot_ts=True, plot_ps=True)
+        star.timeseries(plot_ts=False, plot_ps=False)
 
         # convert from time to freq before making the data TESS-like
-        star.power_spectrum(plot_ts=False, plot_ps=True)
+        star.power_spectrum(plot_ts=False, plot_ps=False)
         sys.exit()
 
         # make the original Kepler PS

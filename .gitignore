@@ -9,6 +9,9 @@ __pycache__/
 *.png
 *.pdf
 
+# exceptions - data to test code with
+!/GetData/20Stars
+
 # C extensions
 *.so
 

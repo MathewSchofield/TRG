@@ -1,8 +1,10 @@
 import numpy as np
+import scipy.ndimage as ndim
 import sys
 import gatspy
 from gatspy.periodic import LombScargleFast
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from astropy.stats import mad_std
 from astropy.convolution import Gaussian1DKernel, convolve
 import matplotlib.gridspec as gridspec
@@ -121,7 +123,7 @@ class Dataset(object):
 
         self.freq = freqs * 1e6    # muHz
         self.power = power         # ppm^2 muHz^-1
-        self.bin_width = df * 1e6  # mu Hz
+        self.bin_width = df * 1e6  # muHz
 
     def timeseries(self, sigma_clip=4, plot_ts=False, plot_ps=False):
         '''  Reads in a timeseries from the file stored in data file.
@@ -370,10 +372,19 @@ class Dataset(object):
         plt.ylabel(r'Power $\rm ppm^{2} \mu Hz^{-1}$')
         plt.show()
 
-    def diagnostic_plot1(self, scale):
+    def Smoo(self, smoo_scale):
+        """ smooth the input power using a convolve function """
+
+        g = Gaussian1DKernel(stddev=smoo_scale)
+        self.power = convolve(self.power, g, boundary='extend')
+
+    def Diagnostic_plot1(self, scale):
+        """ subplots of TESS-like spectra made in the time and frequency
+        domains, observed over different timescales """
 
         fig = plt.figure(figsize=(12, 16))
         plt.rc('font', size=26)
+        smoo_scale = 10  # scale to convolve over
 
         # axes positions
         ax1 = plt.subplot2grid((3, 2), (0, 0), colspan=1)
@@ -404,44 +415,115 @@ class Dataset(object):
 
             if scale == 'modes':
                 i.set_ylim([40,143796])
-                i.set_xlim([16, 80])
+                i.set_xlim([9, 117])
 
-        # original Kepler spectrum
+
+        # original Kepler spectrum. smooth with 1 muHz moving mean
         self.ts()
         self.Periodogram()
         ax1.plot(self.freq, self.power, color='k', alpha=0.5)
+        self.Smoo(smoo_scale)
+        ax1.plot(self.freq, self.power, color='k')
+        #smoo = ndim.filters.uniform_filter1d(self.power, size=int(1./self.bin_width))
+        #ax1.plot(self.freq, smoo, color='r')
 
         # TESS-like, conversion in the time series, 1 year
         self.Tobs = 365  # days
         self.timeseries()
         ax2.plot(self.freq, self.power, color='c')
+        self.Smoo(smoo_scale)
+        ax2.plot(self.freq, self.power, color='k')
 
         # TESS-like, conversion in the time series, 27 days
         self.Tobs = 27  # days
         self.power_spectrum()
         ax3.plot(self.freq, self.power, color='c')
+        self.Smoo(smoo_scale)
+        ax3.plot(self.freq, self.power, color='k')
 
         # TESS-like, conversion in the freq domain, 1 year
         self.Tobs = 365  # days
         self.power_spectrum()
         ax4.plot(self.freq, self.power, color='b', alpha=0.8)
+        self.Smoo(smoo_scale)
+        ax4.plot(self.freq, self.power, color='k')
 
         # TESS-like, conversion in the freq domain, 27 days
         self.Tobs = 27  # days
         self.power_spectrum()
         ax5.plot(self.freq, self.power, color='b', alpha=0.8)
+        self.Smoo(smoo_scale)
+        ax5.plot(self.freq, self.power, color='k')
 
         plt.tight_layout()
         plt.show()
         fig.savefig('diagnostic_plot1_' + scale + '.pdf')
+
+    def Diagnostic_plot2(self, scale):
+        """ overplot smoothed TESS-like spectra made in the time and frequency
+        domains, observed over different timescales """
+
+        fig = plt.figure(figsize=(12, 16))
+        plt.rc('font', size=26)
+        smoo_scale = 10  # scale to convolve over
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.ylabel(r'$\rm PSD / ppm^{2} \mu Hz^{-1}$')
+        plt.xlabel(r'$\rm \nu / \mu Hz$')
+
+        if scale == 'full':
+            plt.ylim([10,124916])
+            plt.xlim([1.5, 299])
+
+        if scale == 'modes':
+            plt.ylim([40,143796])
+            plt.xlim([9, 117])
+
+        # original Kepler spectrum. smooth with 1 muHz moving mean
+        self.ts()
+        self.Periodogram()
+        self.Smoo(smoo_scale)
+        plt.plot(self.freq, self.power, color='gray', alpha=0.4, label=r'$Kepler \ (4 \rm \ yrs)$')
+        #smoo = ndim.filters.uniform_filter1d(self.power, size=int(1./self.bin_width))
+        #ax1.plot(self.freq, smoo, color='r')
+
+        # TESS-like, conversion in the time series, 1 year
+        self.Tobs = 365  # days
+        self.timeseries()
+        self.Smoo(smoo_scale)
+        plt.plot(self.freq, self.power, color='r', alpha=0.4, label=r'TESS (1 yr, time domain)')
+
+        # TESS-like, conversion in the time series, 27 days
+        self.Tobs = 27  # days
+        self.power_spectrum()
+        self.Smoo(smoo_scale)
+        plt.plot(self.freq, self.power, color='b', alpha=0.4, label=r'TESS (27 days, time domain)')
+
+        # TESS-like, conversion in the freq domain, 1 year
+        self.Tobs = 365  # days
+        self.power_spectrum()
+        self.Smoo(smoo_scale)
+        plt.plot(self.freq, self.power, color='g', alpha=0.4, label=r'TESS (1 yr, freq domain)')
+
+        # TESS-like, conversion in the freq domain, 27 days
+        self.Tobs = 27  # days
+        self.power_spectrum()
+        self.Smoo(smoo_scale)
+        plt.plot(self.freq, self.power, color='orange', alpha=0.6, label=r'TESS (27 days, freq domain)')
+
+        plt.tight_layout()
+        plt.legend(loc='bottom left')
+        plt.show()
+        fig.savefig('diagnostic_plot2_' + scale + '.pdf')
 
     def Diagnostic(self, Kp, imag, exptime, teff, e_lat):
         """ Perform diagnostic tests to check TESS power spectra """
 
         self.TESS_noise(imag, exptime, teff, e_lat, sys_limit=0)
         self.kepler_noise(Kp)
-        #self.diagnostic_plot1(scale='full')
-        self.diagnostic_plot1(scale='modes')
-
+        #self.Diagnostic_plot1(scale='full')
+        #self.Diagnostic_plot1(scale='modes')
+        #self.Diagnostic_plot2(scale='full')
+        self.Diagnostic_plot2(scale='modes')
 
 #
