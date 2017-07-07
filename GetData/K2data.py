@@ -345,6 +345,7 @@ class Dataset(object):
             self.rebin_quick(smoo)
             ax.plot(self.smoo_freq, self.smoo_power, 'k-', linewidth=4)
 
+        plt.show()
         fig.savefig('power_spectrum_' + str(self.epic) + '.png')
 
     def plot_timeseries(self):

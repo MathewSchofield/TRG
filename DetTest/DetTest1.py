@@ -21,6 +21,99 @@ sys.path.insert(0, TRG + 'likeTESS' + os.sep)
 from likeTESS1 import getInput
 
 
+class DetTest(object):
+
+    def __init__(self, ds):
+        """ Inherit from the Dataset class
+        ds: an instance of the Dataset class """
+        self.ds = ds
+        self.bkg = []
+
+    def test(self):
+        print 'hg'
+        print self.ds.epic
+
+    def estimate_background(self, log_width=0.1):
+        """ Estimate background of star using log-space filter
+        Credit: DFM
+        """
+
+        count = np.zeros(len(self.ds.freq))
+        bkg = np.zeros_like(self.ds.freq)  # array for the background
+        x0 = np.log10(self.ds.freq[1])  # exponent to describe 1st bin
+
+        while x0 < np.log10(self.ds.freq[-1]):  # until the end of the spectrum
+
+            # bins to calculate bkg for (size increases with larger frequencies)
+            m = np.abs(np.log10(self.ds.freq) - x0) < log_width
+
+            # bkg is the mean power in the 'm' bins
+            bkg[m] += np.median(self.ds.power[m]) * 1.4  # 1.4: convert from median to mean
+            count[m] += 1  # normalise over the number of times this bin is used to get bkg
+            x0 += 0.5*log_width  # iterate through the bins
+
+        bkg[0] = self.ds.power[0]
+        count[0] = 1 # the normalised background in the 1st bin is just the power
+        return bkg/count
+
+    def Power2SNR(self, plt_PS=False, plt_SNR=False):
+        """ Convert from Power (ppm^2 muHz^-1) to SNR
+        by dividing the signal by the fitted background """
+
+        self.bkg = self.estimate_background(log_width=0.1)
+        self.snr = self.ds.power/self.bkg
+        print plt_PS
+        if plt_PS:
+            self.plot_ps()
+
+        if plt_SNR:
+            self.plot_snr()
+
+    def plot_ps(self, smoo=0, plog=True):
+        ''' Plots the power spectrum and the fitted background '''
+
+        if len(self.ds.freq) < 0:
+            self.ds.power_spectrum()
+
+        fig, ax = plt.subplots()
+        ax.plot(self.ds.freq, self.ds.power, 'k-', alpha=0.5)
+        ax.plot(self.ds.freq, self.bkg, 'k-')
+
+        if plog:
+            ax.set_xscale('log')
+            ax.set_yscale('log')
+        ax.set_xlabel(r'Frequency ($\rm \mu Hz$)')
+        ax.set_ylabel(r'Power ($\rm ppm^{2} \, \mu Hz^{-1}$)')
+        ax.set_xlim([self.ds.freq.min(),self.ds.freq.max()])
+        ax.set_title('KIC ' + str(self.ds.epic))
+
+        if smoo > 0:
+            self.ds.rebin_quick(smoo)
+            ax.plot(self.ds.smoo_freq, self.ds.smoo_power, 'k-', linewidth=4)
+
+        plt.show()
+        fig.savefig('ps_' + str(self.ds.epic) + '.png')
+
+    def plot_snr(self, plog=True):
+        ''' Plots the SNR '''
+        if len(self.ds.freq) < 0:
+            self.ds.power_spectrum()
+
+        fig, ax = plt.subplots()
+        ax.plot(self.ds.freq, self.snr, 'k-', alpha=0.5)
+        if plog:
+            ax.set_xscale('log')
+            ax.set_yscale('log')
+        ax.set_xlabel(r'Frequency ($\rm \mu Hz$)')
+        ax.set_ylabel(r'Power ($\rm ppm^{2} \, \mu Hz^{-1}$)')
+        ax.set_xlim([self.ds.freq.min(),self.ds.freq.max()])
+        ax.set_title('KIC ' + str(self.ds.epic))
+
+        plt.show()
+        fig.savefig('snr_' + str(self.ds.epic) + '.png')
+
+
+
 if __name__ == "__main__":
     start = timeit.default_timer()
 
@@ -33,25 +126,26 @@ if __name__ == "__main__":
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
-        # units of exptime are seconds. noise in units of ppm
-        star.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-            teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
-        star.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
-
-
-        # make the data TESS-like in time domain before converting to frequency
-        star.timeseries(plot_ts=True, plot_ps=True)
-
-        # convert from time to freq before making the data TESS-like
-        star.power_spectrum(plot_ts=False, plot_ps=True)
-        sys.exit()
-
         # make the original Kepler PS
-        #star.ts()
-        #star.Periodogram()
+        star.ts()
+        star.Periodogram()
         #star.plot_power_spectrum()
 
+        star = DetTest(star)
+        star.Power2SNR(plt_PS=True, plt_SNR=True)
+        sys.exit()
+
+
+        # units of exptime are seconds. noise in units of ppm
+        #star.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
+        #    teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
+        #star.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
+        #star.timeseries(plot_ts=False, plot_ps=False)
 
 
     stop = timeit.default_timer()
     print round(stop-start, 3), 'secs;', round((stop-start)/len(ts), 3), 's per star.'
+
+
+
+#
