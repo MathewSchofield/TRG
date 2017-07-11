@@ -1,6 +1,8 @@
 import numpy as np
+import pandas as pd
 import scipy.ndimage as ndim
 import sys
+import glob
 import gatspy
 from gatspy.periodic import LombScargleFast
 import matplotlib.pyplot as plt
@@ -61,6 +63,11 @@ class Dataset(object):
         self.bandpass = bandpass
         self.Pgran = []
         self.vnyq = 1e6*(2*30.*60.)**-1  # mu Hz
+
+    def get_modes(self, id_file):
+
+        self.id_file = id_file  # mode ID file loc
+        self.mode_id = pd.read_csv(self.id_file)
 
     def ts(self, verbose=False, sigma_clip=4):
         '''  Reads in a timeseries from the file stored in data file ONLY.
@@ -229,8 +236,7 @@ class Dataset(object):
             self.power *= self.bandpass**2
 
         # Smooth the data using a convolve function to remove chi^2 2 DOF noise
-        g = Gaussian1DKernel(stddev=5)
-        self.power = convolve(self.power, g, boundary='extend')
+        self.Smoo(smoo_scale=5)
 
         #self.KPnoise = np.mean(self.power[-100:]) # estimate of Kepler noise level at high frequencies
         self.power -= self.KPnoise  # subtract Kepler noise

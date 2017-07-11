@@ -11,8 +11,11 @@ import pandas as pd
 import os
 import glob
 import sys
+import scipy.ndimage as ndim
+from scipy import stats
 import timeit
 import matplotlib.pyplot as plt
+from astropy.convolution import Gaussian1DKernel, convolve
 
 TRG = os.getcwd().split('DetTest')[0]
 sys.path.insert(0, TRG + 'GetData' + os.sep)
@@ -35,8 +38,7 @@ class DetTest(object):
 
     def estimate_background(self, log_width=0.1):
         """ Estimate background of star using log-space filter
-        Credit: DFM
-        """
+        Credit: DFM """
 
         count = np.zeros(len(self.ds.freq))
         bkg = np.zeros_like(self.ds.freq)  # array for the background
@@ -62,7 +64,7 @@ class DetTest(object):
 
         self.bkg = self.estimate_background(log_width=0.1)
         self.snr = self.ds.power/self.bkg
-        print plt_PS
+
         if plt_PS:
             self.plot_ps()
 
@@ -117,23 +119,87 @@ class DetTest(object):
 if __name__ == "__main__":
     start = timeit.default_timer()
 
-    ts, epic, params, mags = getInput(RepoLoc=TRG, dataset='20Stars')
-
+    ts, epic, params, mags, modes = getInput(RepoLoc=TRG, dataset='20Stars')
 
     for i, fdir in enumerate(ts):
 
-        star = Dataset(epic[i], fdir, bandpass=0.85, Tobs=27)  # Tobs in days
+        ds = Dataset(epic[i], fdir, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
+        IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
+        ds.get_modes(IDfile)
+
+        #print ds.mode_id
+        #print len(ds.mode_id)
+        #sys.exit()
+
 
         # make the original Kepler PS
-        star.ts()
-        star.Periodogram()
-        #star.plot_power_spectrum()
+        ds.ts()
+        ds.Periodogram()
+        #ds.plot_power_spectrum()
 
-        star = DetTest(star)
-        star.Power2SNR(plt_PS=True, plt_SNR=True)
+        star = DetTest(ds)
+        star.Power2SNR(plt_PS=False, plt_SNR=False)
+        #print star.snr
+
+
+        snrs = np.full(len(ds.mode_id), -99)  # SNR values at radial mode freqs
+        for idx, f in ds.mode_id.iterrows():
+
+            #print abs(f['w0']), int(np.around(abs(f['w0'])))
+            #print f['f0']
+
+            snrs[idx] = star.snr[f['f0']]
+
+            """
+            # smooth with uniform filter
+            smoo = ndim.filters.uniform_filter1d(star.snr, size=int(np.around(abs(f['w0']))))
+
+            # smooth by convolving with Guassian
+            g = Gaussian1DKernel(stddev=abs(f['w0']))
+            smoo2 = convolve(star.snr, g, boundary='extend')
+
+            # smooth by interpolating
+            bins = np.arange(0., star.ds.freq[-1], abs(f['w0']))  # rebin data to get highest SNR
+            smoo3 = np.interp(bins, star.ds.freq, star.snr)  # power values at these freqs
+            #sys.exit()
+
+
+            #print star.snr
+            #star.snr_fix = smoo
+            #print star.snr_fix
+
+            #print star.snr
+            print 'before smoo', star.snr[f['f0']]
+            print 'smoo1', smoo[f['f0']]
+            print 'smoo2', smoo2[f['f0']]
+            print 'smoo3', smoo3[f['f0']], '\n'
+            """
+
+            #print smoo
+            #star.plot_snr()
+            #star.snr = smoo
+            #star.plot_snr()
+
+
+
+            #sys.exit()
+
+        print snrs
+
+        fap = 0.01  # false alarm probability
+        pdet = 1.0 - fap
+        nbins=1
+
+        #snrthresh = stats.chi2.ppf(pdet, 2.0*nbins) / (2.0*nbins) - 1.0
+        snrthresh = 1  # SNR value if no mode present
+        prob = stats.chi2.sf((snrthresh+1.0) / (snrs+1.0)*2.0*nbins, 2*nbins) # detection probability for each mode
+        print prob
+        print snrthresh
         sys.exit()
+
+
 
 
         # units of exptime are seconds. noise in units of ppm

@@ -44,9 +44,15 @@ def BV2VI(whole):
 def getInput(RepoLoc, dataset):
 
     # ts: time series file locs. epic: EPIC numbers. params: numax, dnu, teff, Kp
+    # modes: list of mode frequencies, linewidths and uncertainties for each star
     ts = glob.glob(RepoLoc + 'GetData' + os.sep + dataset + os.sep + '*.dat')
     epic = [x.split('kplr')[1].split('_llc')[0] for x in ts]
     params = pd.read_csv(RepoLoc + 'GetData' + os.sep + dataset + os.sep + dataset.lower() + '.csv')
+
+    #print RepoLoc + 'GetData' + os.sep + 'Modes' + os.sep
+    modes = glob.glob(RepoLoc + 'GetData' + os.sep + 'Modes' + os.sep + '*.csv')
+    #print modes
+    #sys.exit()
 
     mags = pd.read_csv(RepoLoc + 'GetData' + os.sep + dataset + os.sep +\
         dataset.lower() + '_simbad.csv')
@@ -69,13 +75,13 @@ def getInput(RepoLoc, dataset):
             to_csv(RepoLoc + 'GetData' + os.sep + dataset + os.sep +\
             dataset.lower() + '_simbad.csv', index=False)
 
-    return ts, epic, params, mags
+    return ts, epic, params, mags, modes
 
 
 if __name__ == "__main__":
     start = timeit.default_timer()
 
-    ts, epic, params, mags = getInput(RepoLoc=TRG, dataset='20Stars')
+    ts, epic, params, mags, modes = getInput(RepoLoc=TRG, dataset='20Stars')
 
     for i, fdir in enumerate(ts):
 
@@ -84,10 +90,10 @@ if __name__ == "__main__":
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
 
-        star.Diagnostic(Kp=info['kic_kepmag'].as_matrix(), \
-            imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-            teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix())
-        sys.exit()
+        #star.Diagnostic(Kp=info['kic_kepmag'].as_matrix(), \
+        #    imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
+        #    teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix())
+        #sys.exit()
 
         # units of exptime are seconds. noise in units of ppm
         star.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
