@@ -529,7 +529,7 @@ class Dataset(object):
         self.TESS_noise(imag, exptime, teff, e_lat, sys_limit=0)
         self.kepler_noise(Kp)
         #self.Diagnostic_plot1(scale='full')
-        #self.Diagnostic_plot1(scale='modes')
+        self.Diagnostic_plot1(scale='modes')
         #self.Diagnostic_plot2(scale='full')
         self.Diagnostic_plot2(scale='modes')
 

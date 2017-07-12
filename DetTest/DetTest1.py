@@ -29,14 +29,13 @@ class DetTest(object):
     def __init__(self, ds):
         """ Inherit from the Dataset class
         ds: an instance of the Dataset class """
+
         self.ds = ds
         self.bkg = []
+        self.snr = []
+        self.prob = []
 
-    def test(self):
-        print 'hg'
-        print self.ds.epic
-
-    def estimate_background(self, log_width=0.1):
+    def estimate_background(self, log_width):
         """ Estimate background of star using log-space filter
         Credit: DFM """
 
@@ -65,11 +64,46 @@ class DetTest(object):
         self.bkg = self.estimate_background(log_width=0.1)
         self.snr = self.ds.power/self.bkg
 
-        if plt_PS:
-            self.plot_ps()
+        if plt_PS:   self.plot_ps()
+        if plt_SNR:  self.plot_snr()
 
-        if plt_SNR:
-            self.plot_snr()
+    def Det_Prob(self, snrs, nbins=[], fap=[], snrthresh=[]):
+        """
+        Calculate the detection probability, given a SNR ratio and threshold.
+
+        Inputs
+        snrs:      Array of SNR values to calculate detection probabilities for (Float)
+        nbins:     Number of bins the SNR is taken across (Int)
+        fap:       False Alarm Probability (Float)
+        snrthresh: Threshold SNR; SNR if no mode is present (Float)
+
+        Outputs
+        prob: the detection probability for each SNR value (i.e mode) (Float)
+        """
+
+        if nbins == []:      nbins = 1
+        if fap == []:        fap = 0.01
+        if snrthresh == []:
+            pdet = 1.0 - fap
+            snrthresh = stats.chi2.ppf(pdet, 2.0*nbins) / (2.0*nbins) - 1.0
+
+        self.prob = stats.chi2.sf((snrthresh+1.0) / (snrs+1.0)*2.0*nbins, 2*nbins)
+
+    def Conv(self, data, stddev):
+        """
+        Perform a convolution using a 1D Gaussian Kernel
+
+        Inputs
+        data:   data to perform convolution upon (array)
+        stddev: standard deviation of the Gaussian to convolve with (Float)
+
+        Outputs
+        data:   data which has been convolved (array)
+        """
+
+        g = Gaussian1DKernel(stddev=stddev)
+        data = convolve(data, g, boundary='extend')
+        return data
 
     def plot_ps(self, smoo=0, plog=True):
         ''' Plots the power spectrum and the fitted background '''
@@ -114,7 +148,70 @@ class DetTest(object):
         plt.show()
         fig.savefig('snr_' + str(self.ds.epic) + '.png')
 
+    def Diagnostic_plot1(self, v=False):
+        """
+        Assess which method of convolution/interpolation gives the highest mode
+        SNR values for 1 star
+        """
 
+        # sort modes by frequency (radial order)
+        ds.mode_id.sort_values(['f0'], axis=0, ascending=True, inplace=True)
+
+        # SNR values after smoothing/interpolating at radial mode freqs
+        snrs = np.full(len(ds.mode_id), -99)  # starting SNR values
+        s1 = np.full(len(ds.mode_id), -99)  # after Gaussian smoothing
+        s2 = np.full(len(ds.mode_id), -99)  # after uniform smoothing
+        s3 = np.full(len(ds.mode_id), -99)  # after linear interpolation
+
+        for idx, f in ds.mode_id.iterrows():
+            width = abs(f['w0'])  # width to convolve/interpolate over
+
+            # smooth by convolving with Guassian
+            smoo = star.Conv(self.snr, width)
+
+            # smooth with uniform filter
+            smoo2 = ndim.filters.uniform_filter1d(self.snr, size=int(np.around(width)))
+
+            #print smoo2
+            #if idx ==1:
+            #    sys.exit()
+
+            # smooth by interpolating
+            bins = np.arange(0., self.ds.freq[-1], width)  # rebin data to get highest SNR
+            smoo3 = np.interp(bins, self.ds.freq, self.snr)  # SNR values at these freqs
+
+            index = np.abs(self.ds.freq-f['f0']).argmin()  # use the frequency closest to mode
+            if v:
+                print self.ds.freq[index], self.snr[index]
+                print 'before smoo', self.snr[index]
+                print 'smoo1', smoo[index]
+                print 'smoo2', smoo2[index]
+                print 'smoo3', smoo3[np.abs(bins-f['f0']).argmin()], '\n'
+
+            snrs[idx] = self.snr[index]
+            s1[idx] = smoo[index]
+            s2[idx] = smoo2[index]
+            s3[idx] = smoo3[np.abs(bins-f['f0']).argmin()]
+
+        print s2
+        #if s2 == np.full(len(ds.mode_id), np.NaN):
+        #    print 'hgfd'
+        sys.exit()
+
+        """
+        fig = plt.figure(figsize=(12, 18))
+        plt.rc('font', size=26)
+        plt.plot(self.ds.mode_id['f0'], snrs, label=r'unsmoothed')
+        plt.plot(self.ds.mode_id['f0'], s1,   label=r'Smoothed with 1D Gaussian')
+        plt.plot(self.ds.mode_id['f0'], s2,   label=r'Smoothed with uniform filter')
+        plt.plot(self.ds.mode_id['f0'], s3,   label=r'Smoothed by interpolating')
+        plt.xlabel(r'$\nu / \mu$Hz')
+        plt.ylabel(r'SNR')
+        plt.legend(loc='upper right')
+        plt.show()
+        fig.savefig('DetTest_Diagnostic_plot1_' + self.ds.epic + '.pdf')
+        sys.exit()
+        """
 
 if __name__ == "__main__":
     start = timeit.default_timer()
@@ -129,84 +226,29 @@ if __name__ == "__main__":
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
         ds.get_modes(IDfile)
 
-        #print ds.mode_id
-        #print len(ds.mode_id)
-        #sys.exit()
-
-
         # make the original Kepler PS
         ds.ts()
         ds.Periodogram()
-        #ds.plot_power_spectrum()
+
+        # units of exptime are seconds. noise in units of ppm
+        #ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
+        #   teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
+        #ds.timeseries(plot_ts=False, plot_ps=False)
 
         star = DetTest(ds)
         star.Power2SNR(plt_PS=False, plt_SNR=False)
-        #print star.snr
-
 
         snrs = np.full(len(ds.mode_id), -99)  # SNR values at radial mode freqs
         for idx, f in ds.mode_id.iterrows():
 
-            #print abs(f['w0']), int(np.around(abs(f['w0'])))
-            #print f['f0']
+            smoo = star.Conv(star.snr, abs(f['w0']))  # smooth by convolving with Guassian
+            index = np.abs(star.ds.freq-f['f0']).argmin()  # frequency closest to mode
+            snrs[idx] = smoo[index]
 
-            snrs[idx] = star.snr[f['f0']]
+        #star.Det_Prob(snrs, snrthresh=1.0)
+        #print star.prob
 
-            """
-            # smooth with uniform filter
-            smoo = ndim.filters.uniform_filter1d(star.snr, size=int(np.around(abs(f['w0']))))
-
-            # smooth by convolving with Guassian
-            g = Gaussian1DKernel(stddev=abs(f['w0']))
-            smoo2 = convolve(star.snr, g, boundary='extend')
-
-            # smooth by interpolating
-            bins = np.arange(0., star.ds.freq[-1], abs(f['w0']))  # rebin data to get highest SNR
-            smoo3 = np.interp(bins, star.ds.freq, star.snr)  # power values at these freqs
-            #sys.exit()
-
-
-            #print star.snr
-            #star.snr_fix = smoo
-            #print star.snr_fix
-
-            #print star.snr
-            print 'before smoo', star.snr[f['f0']]
-            print 'smoo1', smoo[f['f0']]
-            print 'smoo2', smoo2[f['f0']]
-            print 'smoo3', smoo3[f['f0']], '\n'
-            """
-
-            #print smoo
-            #star.plot_snr()
-            #star.snr = smoo
-            #star.plot_snr()
-
-
-
-            #sys.exit()
-
-        print snrs
-
-        fap = 0.01  # false alarm probability
-        pdet = 1.0 - fap
-        nbins=1
-
-        #snrthresh = stats.chi2.ppf(pdet, 2.0*nbins) / (2.0*nbins) - 1.0
-        snrthresh = 1  # SNR value if no mode present
-        prob = stats.chi2.sf((snrthresh+1.0) / (snrs+1.0)*2.0*nbins, 2*nbins) # detection probability for each mode
-        print prob
-        print snrthresh
-        sys.exit()
-
-
-
-
-        # units of exptime are seconds. noise in units of ppm
-        #star.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-        #    teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
-        #star.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
-        #star.timeseries(plot_ts=False, plot_ps=False)
+        star.Diagnostic_plot1()
 
 
     stop = timeit.default_timer()
