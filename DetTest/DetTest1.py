@@ -33,6 +33,7 @@ class DetTest(object):
         self.ds = ds
         self.bkg = []
         self.snr = []
+        self.snr_modes = np.array([])  # the self.snr values at mode frequencies
         self.prob = []
 
     def estimate_background(self, log_width):
@@ -58,16 +59,18 @@ class DetTest(object):
         return bkg/count
 
     def Power2SNR(self, plt_PS=False, plt_SNR=False):
-        """ Convert from Power (ppm^2 muHz^-1) to SNR
-        by dividing the signal by the fitted background """
+        """ Convert from Power (ppm^2 muHz^-1) to SNR by dividing the signal
+        by the fitted background. If the power in the first bin is zero, change
+        the SNR value in the first bin. """
 
         self.bkg = self.estimate_background(log_width=0.1)
         self.snr = self.ds.power/self.bkg
+        if np.isnan(self.snr[0]) == True:  self.snr[0] = 1e-5
 
         if plt_PS:   self.plot_ps()
         if plt_SNR:  self.plot_snr()
 
-    def Det_Prob(self, snrs, nbins=[], fap=[], snrthresh=[]):
+    def Det_Prob(self, nbins=[], fap=[], snrthresh=[]):
         """
         Calculate the detection probability, given a SNR ratio and threshold.
 
@@ -87,7 +90,41 @@ class DetTest(object):
             pdet = 1.0 - fap
             snrthresh = stats.chi2.ppf(pdet, 2.0*nbins) / (2.0*nbins) - 1.0
 
-        self.prob = stats.chi2.sf((snrthresh+1.0) / (snrs+1.0)*2.0*nbins, 2*nbins)
+        #print self.snr_modes, snrs
+        #sys.exit()
+        self.prob = stats.chi2.sf((snrthresh+1.0) / (self.snr_modes+1.0)*2.0*nbins, 2*nbins)
+
+    def Info2Save(self):
+        """
+        Save information on mode frequencies, SNR values and detection
+        probabilities for different satellites and observing times
+
+        Output
+        Files saved in DetTest/DetTest1_results (.csv)
+        """
+
+        print self.ds.mode_id['f0']
+        print ds.Tobs
+        print self.ds.sat
+        print os.getcwd() + os.sep + 'DetTest1_results' + os.sep
+        print self.prob
+
+
+        if self.ds.sat == 'Kepler':
+            snr_header = 'SNR_' + self.ds.sat
+            Pdet_header = 'Pdet_' + self.ds.sat
+
+        elif self.ds.sat == 'TESS':
+            snr_header = 'SNR_' + self.ds.sat + str(ds.Tobs)
+            Pdet_header = 'Pdet_' + self.ds.sat + str(ds.Tobs)
+
+        save = pd.DataFrame({'f0':self.ds.mode_id['f0'], snr_header:self.snr_modes,
+                            Pdet_header:self.prob})
+        print save
+        save.sort_values(['f0'], axis=0, ascending=True, inplace=True)
+        save = save.ix[:, ['f0', snr_header, Pdet_header]]
+        print save
+        sys.exit()
 
     def Conv(self, data, stddev):
         """
@@ -148,7 +185,7 @@ class DetTest(object):
         plt.show()
         fig.savefig('snr_' + str(self.ds.epic) + '.png')
 
-    def Diagnostic_plot1(self, v=False):
+    def Diagnostic_plot1(self, v=True):
         """
         Assess which method of convolution/interpolation gives the highest mode
         SNR values for 1 star
@@ -158,7 +195,6 @@ class DetTest(object):
         ds.mode_id.sort_values(['f0'], axis=0, ascending=True, inplace=True)
 
         # SNR values after smoothing/interpolating at radial mode freqs
-        snrs = np.full(len(ds.mode_id), -99)  # starting SNR values
         s1 = np.full(len(ds.mode_id), -99)  # after Gaussian smoothing
         s2 = np.full(len(ds.mode_id), -99)  # after uniform smoothing
         s3 = np.full(len(ds.mode_id), -99)  # after linear interpolation
@@ -172,10 +208,6 @@ class DetTest(object):
             # smooth with uniform filter
             smoo2 = ndim.filters.uniform_filter1d(self.snr, size=int(np.around(width)))
 
-            #print smoo2
-            #if idx ==1:
-            #    sys.exit()
-
             # smooth by interpolating
             bins = np.arange(0., self.ds.freq[-1], width)  # rebin data to get highest SNR
             smoo3 = np.interp(bins, self.ds.freq, self.snr)  # SNR values at these freqs
@@ -188,20 +220,20 @@ class DetTest(object):
                 print 'smoo2', smoo2[index]
                 print 'smoo3', smoo3[np.abs(bins-f['f0']).argmin()], '\n'
 
-            snrs[idx] = self.snr[index]
+            # if the array with unadjusted mode SNR values is empty, fill it
+            if self.snr_modes.size  < len(ds.mode_id):
+                self.snr_modes = np.append(self.snr_modes, self.snr[index])
+
             s1[idx] = smoo[index]
             s2[idx] = smoo2[index]
             s3[idx] = smoo3[np.abs(bins-f['f0']).argmin()]
 
-        print s2
-        #if s2 == np.full(len(ds.mode_id), np.NaN):
-        #    print 'hgfd'
+        print self.snr_modes
         sys.exit()
 
-        """
         fig = plt.figure(figsize=(12, 18))
         plt.rc('font', size=26)
-        plt.plot(self.ds.mode_id['f0'], snrs, label=r'unsmoothed')
+        plt.plot(self.ds.mode_id['f0'], self.snr_modes, label=r'unsmoothed')
         plt.plot(self.ds.mode_id['f0'], s1,   label=r'Smoothed with 1D Gaussian')
         plt.plot(self.ds.mode_id['f0'], s2,   label=r'Smoothed with uniform filter')
         plt.plot(self.ds.mode_id['f0'], s3,   label=r'Smoothed by interpolating')
@@ -210,43 +242,50 @@ class DetTest(object):
         plt.legend(loc='upper right')
         plt.show()
         fig.savefig('DetTest_Diagnostic_plot1_' + self.ds.epic + '.pdf')
-        sys.exit()
-        """
+        #sys.exit()
+
 
 if __name__ == "__main__":
     start = timeit.default_timer()
 
     ts, epic, params, mags, modes = getInput(RepoLoc=TRG, dataset='20Stars')
 
+
     for i, fdir in enumerate(ts):
 
-        ds = Dataset(epic[i], fdir, bandpass=0.85, Tobs=27)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat='Kepler', bandpass=0.85, Tobs=365)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
         ds.get_modes(IDfile)
 
         # make the original Kepler PS
-        ds.ts()
-        ds.Periodogram()
+        if ds.sat == 'Kepler':
+            ds.ts()
+            ds.Periodogram()
 
-        # units of exptime are seconds. noise in units of ppm
-        #ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-        #   teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
-        #ds.timeseries(plot_ts=False, plot_ps=False)
+        elif ds.sat == 'TESS':
+            # units of exptime are seconds. noise in units of ppm
+            ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
+               teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
+            ds.timeseries(plot_ts=False, plot_ps=False)
 
         star = DetTest(ds)
         star.Power2SNR(plt_PS=False, plt_SNR=False)
 
-        snrs = np.full(len(ds.mode_id), -99)  # SNR values at radial mode freqs
+
         for idx, f in ds.mode_id.iterrows():
 
             smoo = star.Conv(star.snr, abs(f['w0']))  # smooth by convolving with Guassian
             index = np.abs(star.ds.freq-f['f0']).argmin()  # frequency closest to mode
-            snrs[idx] = smoo[index]
+            star.snr_modes = np.append(star.snr_modes, smoo[index])
 
-        #star.Det_Prob(snrs, snrthresh=1.0)
-        #print star.prob
+
+        #star.Det_Prob(snrthresh=1.0)
+
+        #star.Info2Save()
+
+
 
         star.Diagnostic_plot1()
 

@@ -26,7 +26,7 @@ References:
 
 
 class Dataset(object):
-    def __init__(self, epic, data_file, bandpass, Tobs):
+    def __init__(self, epic, data_file, sat, bandpass, Tobs):
         ''' Initial contruct for the Dataset object
 
         Parameters
@@ -35,7 +35,10 @@ class Dataset(object):
             The epic number for the source
 
         data_file: str
-            The path to the file containg the data
+            The path to the file containing the data
+
+        sat: str
+            The name of the satellite to simulate observations for
 
         bandpass: Float
             The bandpass of the observations
@@ -47,6 +50,7 @@ class Dataset(object):
 
         self.epic = epic
         self.data_file = data_file
+        self.sat = sat  # satellite to simulate observations of
         self.Tobs = Tobs  # ovservation length (days)
         self.time = []  # the un-adjusted time
         self.flux = []  # the un-adjusted flux
@@ -116,6 +120,8 @@ class Dataset(object):
         power = model.score_frequency_grid(fmin, df, N/2)  # signal-to-noise ratio, (1) eqn 9
         freqs = fmin + df * np.arange(N/2)  # the periodogram was computed over these freqs (Hz)
 
+        #print power[0], dtmed, df
+
         # the variance of the flux
         if madVar:  var = mad_std(self.flux_fix)**2
         else:       var = np.std(self.flux_fix)**2
@@ -127,6 +133,9 @@ class Dataset(object):
 
         if len(freqs) < len(power):  power = power[0:len(freqs)]
         if len(freqs) > len(power):  freqs = freqs[0:len(power)]
+
+        #if power[0] == 0:   power[0] = 1e-5
+
 
         self.freq = freqs * 1e6    # muHz
         self.power = power         # ppm^2 muHz^-1
