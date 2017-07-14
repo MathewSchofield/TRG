@@ -97,33 +97,42 @@ class DetTest(object):
     def Info2Save(self):
         """
         Save information on mode frequencies, SNR values and detection
-        probabilities for different satellites and observing times
+        probabilities for different satellites and observing times.
 
         Output
         Files saved in DetTest/DetTest1_results (.csv)
         """
 
-        print self.ds.mode_id['f0']
-        print ds.Tobs
-        print self.ds.sat
-        print os.getcwd() + os.sep + 'DetTest1_results' + os.sep
-        print self.prob
-
-
         if self.ds.sat == 'Kepler':
             snr_header = 'SNR_' + self.ds.sat
-            Pdet_header = 'Pdet_' + self.ds.sat
+            prob_header = 'Pdet_' + self.ds.sat
 
         elif self.ds.sat == 'TESS':
             snr_header = 'SNR_' + self.ds.sat + str(ds.Tobs)
-            Pdet_header = 'Pdet_' + self.ds.sat + str(ds.Tobs)
+            prob_header = 'Pdet_' + self.ds.sat + str(ds.Tobs)
 
-        save = pd.DataFrame({'f0':self.ds.mode_id['f0'], snr_header:self.snr_modes,
-                            Pdet_header:self.prob})
-        print save
-        save.sort_values(['f0'], axis=0, ascending=True, inplace=True)
-        save = save.ix[:, ['f0', snr_header, Pdet_header]]
-        print save
+
+        # check if file exists. If it does, add columns if they are missing
+        fname = os.getcwd() + os.sep + 'DetTest1_results' + os.sep + self.ds.epic + '.csv'
+        if os.path.exists(fname):
+            save = pd.read_csv(fname)
+
+            if snr_header not in save.columns:
+                save[snr_header], save[prob_header] = [self.snr_modes, self.prob]
+
+        else:
+            save = pd.DataFrame({'f0'      :self.ds.mode_id['f0'],
+                                snr_header :self.snr_modes,
+                                prob_header:self.prob})
+            save.sort_values(['f0'], axis=0, ascending=True, inplace=True)
+            save = save.ix[:, ['f0', snr_header, prob_header]]
+
+
+
+
+
+        print save, self.ds.epic
+        save.to_csv(fname, index=False)
         sys.exit()
 
     def Conv(self, data, stddev):
@@ -185,7 +194,7 @@ class DetTest(object):
         plt.show()
         fig.savefig('snr_' + str(self.ds.epic) + '.png')
 
-    def Diagnostic_plot1(self, v=True):
+    def Diagnostic_plot1(self, v=False):
         """
         Assess which method of convolution/interpolation gives the highest mode
         SNR values for 1 star
@@ -195,6 +204,7 @@ class DetTest(object):
         ds.mode_id.sort_values(['f0'], axis=0, ascending=True, inplace=True)
 
         # SNR values after smoothing/interpolating at radial mode freqs
+        u  = np.full(len(ds.mode_id), -99)  # unsmoothed
         s1 = np.full(len(ds.mode_id), -99)  # after Gaussian smoothing
         s2 = np.full(len(ds.mode_id), -99)  # after uniform smoothing
         s3 = np.full(len(ds.mode_id), -99)  # after linear interpolation
@@ -220,20 +230,14 @@ class DetTest(object):
                 print 'smoo2', smoo2[index]
                 print 'smoo3', smoo3[np.abs(bins-f['f0']).argmin()], '\n'
 
-            # if the array with unadjusted mode SNR values is empty, fill it
-            if self.snr_modes.size  < len(ds.mode_id):
-                self.snr_modes = np.append(self.snr_modes, self.snr[index])
-
+            u[idx]  = self.snr[index]
             s1[idx] = smoo[index]
             s2[idx] = smoo2[index]
             s3[idx] = smoo3[np.abs(bins-f['f0']).argmin()]
 
-        print self.snr_modes
-        sys.exit()
-
         fig = plt.figure(figsize=(12, 18))
         plt.rc('font', size=26)
-        plt.plot(self.ds.mode_id['f0'], self.snr_modes, label=r'unsmoothed')
+        plt.plot(self.ds.mode_id['f0'], u,    label=r'unsmoothed')
         plt.plot(self.ds.mode_id['f0'], s1,   label=r'Smoothed with 1D Gaussian')
         plt.plot(self.ds.mode_id['f0'], s2,   label=r'Smoothed with uniform filter')
         plt.plot(self.ds.mode_id['f0'], s3,   label=r'Smoothed by interpolating')
@@ -253,7 +257,10 @@ if __name__ == "__main__":
 
     for i, fdir in enumerate(ts):
 
-        ds = Dataset(epic[i], fdir, sat='Kepler', bandpass=0.85, Tobs=365)  # Tobs in days
+        sat = 'Kepler'
+        sat = 'TESS'
+
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
@@ -281,13 +288,12 @@ if __name__ == "__main__":
             star.snr_modes = np.append(star.snr_modes, smoo[index])
 
 
-        #star.Det_Prob(snrthresh=1.0)
-
-        #star.Info2Save()
-
+        star.Det_Prob(snrthresh=1.0)
+        star.Info2Save()
 
 
-        star.Diagnostic_plot1()
+
+        #star.Diagnostic_plot1()
 
 
     stop = timeit.default_timer()
