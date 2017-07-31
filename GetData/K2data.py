@@ -50,7 +50,6 @@ class Dataset(object):
 
         self.epic = epic
         self.data_file = data_file
-        self.sat = sat  # satellite to simulate observations of
         self.Tobs = Tobs  # ovservation length (days)
         self.time = []  # the un-adjusted time
         self.flux = []  # the un-adjusted flux
@@ -66,7 +65,14 @@ class Dataset(object):
         self.numax = []
         self.bandpass = bandpass
         self.Pgran = []
-        self.vnyq = 1e6*(2*30.*60.)**-1  # mu Hz
+        self.sat = sat  # satellite to simulate observations of
+
+        if self.sat == 'Kepler':
+            self.cadence = 30.*60
+        elif self.sat == 'TESS':
+            self.cadence = 120.
+
+        self.vnyq = 1e6*(2*self.cadence)**-1  # mu Hz
 
     def get_modes(self, id_file):
 

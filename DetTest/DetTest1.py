@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt
 from astropy.convolution import Gaussian1DKernel, convolve
 
 TRG = os.getcwd().split('DetTest')[0]
+sys.path.insert(0, TRG)
+from plotTemplates import generalPlot
 sys.path.insert(0, TRG + 'GetData' + os.sep)
 from K2data import Dataset
 sys.path.insert(0, TRG + 'likeTESS' + os.sep)
@@ -35,6 +37,10 @@ class DetTest(object):
         self.snr = []
         self.snr_modes = np.array([])  # the self.snr values at mode frequencies
         self.prob = []
+
+        # the location of the probability file for the star (to save) in Info2Save()
+        self.probfile = os.getcwd() + os.sep + 'DetTest1_results' +\
+            os.sep + self.ds.epic + '.csv'
 
     def estimate_background(self, log_width):
         """ Estimate background of star using log-space filter
@@ -94,47 +100,6 @@ class DetTest(object):
         #sys.exit()
         self.prob = stats.chi2.sf((snrthresh+1.0) / (self.snr_modes+1.0)*2.0*nbins, 2*nbins)
 
-    def Info2Save(self):
-        """
-        Save information on mode frequencies, SNR values and detection
-        probabilities for different satellites and observing times.
-
-        Output
-        Files saved in DetTest/DetTest1_results (.csv)
-        """
-
-        if self.ds.sat == 'Kepler':
-            snr_header = 'SNR_' + self.ds.sat
-            prob_header = 'Pdet_' + self.ds.sat
-
-        elif self.ds.sat == 'TESS':
-            snr_header = 'SNR_' + self.ds.sat + str(ds.Tobs)
-            prob_header = 'Pdet_' + self.ds.sat + str(ds.Tobs)
-
-
-        # check if file exists. If it does, add columns if they are missing
-        fname = os.getcwd() + os.sep + 'DetTest1_results' + os.sep + self.ds.epic + '.csv'
-        if os.path.exists(fname):
-            save = pd.read_csv(fname)
-
-            if snr_header not in save.columns:
-                save[snr_header], save[prob_header] = [self.snr_modes, self.prob]
-
-        else:
-            save = pd.DataFrame({'f0'      :self.ds.mode_id['f0'],
-                                snr_header :self.snr_modes,
-                                prob_header:self.prob})
-            save.sort_values(['f0'], axis=0, ascending=True, inplace=True)
-            save = save.ix[:, ['f0', snr_header, prob_header]]
-
-
-
-
-
-        print save, self.ds.epic
-        save.to_csv(fname, index=False)
-        sys.exit()
-
     def Conv(self, data, stddev):
         """
         Perform a convolution using a 1D Gaussian Kernel
@@ -150,6 +115,39 @@ class DetTest(object):
         g = Gaussian1DKernel(stddev=stddev)
         data = convolve(data, g, boundary='extend')
         return data
+
+    def Info2Save(self):
+        """
+        Save information on mode frequencies, SNR values and detection
+        probabilities for different satellites and observing times.
+
+        Output
+        Files saved in DetTest/DetTest1_results/ (.csv)
+        """
+
+        if self.ds.sat == 'Kepler':
+            snr_header = 'SNR_' + self.ds.sat
+            prob_header = 'Pdet_' + self.ds.sat
+
+        elif self.ds.sat == 'TESS':
+            snr_header = 'SNR_' + self.ds.sat + str(ds.Tobs)
+            prob_header = 'Pdet_' + self.ds.sat + str(ds.Tobs)
+
+
+        # check if file exists. If it does, add columns/write over columns
+        # if the files doesn't exist, make it
+        if os.path.exists(self.probfile):
+            save = pd.read_csv(self.probfile)
+            save[snr_header], save[prob_header] = [self.snr_modes, self.prob]
+
+        else:
+            save = pd.DataFrame({'f0'      :self.ds.mode_id['f0'],
+                                snr_header :self.snr_modes,
+                                prob_header:self.prob})
+            save.sort_values(['f0'], axis=0, ascending=True, inplace=True)
+            save = save.ix[:, ['f0', snr_header, prob_header]]
+
+        save.to_csv(self.probfile, index=False)
 
     def plot_ps(self, smoo=0, plog=True):
         ''' Plots the power spectrum and the fitted background '''
@@ -174,7 +172,7 @@ class DetTest(object):
             ax.plot(self.ds.smoo_freq, self.ds.smoo_power, 'k-', linewidth=4)
 
         plt.show()
-        fig.savefig('ps_' + str(self.ds.epic) + '.png')
+        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +'ps_' + str(self.ds.epic) + '.png')
 
     def plot_snr(self, plog=True):
         ''' Plots the SNR '''
@@ -192,7 +190,7 @@ class DetTest(object):
         ax.set_title('KIC ' + str(self.ds.epic))
 
         plt.show()
-        fig.savefig('snr_' + str(self.ds.epic) + '.png')
+        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +'snr_' + str(self.ds.epic) + '.png')
 
     def Diagnostic_plot1(self, v=False):
         """
@@ -245,8 +243,62 @@ class DetTest(object):
         plt.ylabel(r'SNR')
         plt.legend(loc='upper right')
         plt.show()
-        fig.savefig('DetTest_Diagnostic_plot1_' + self.ds.epic + '.pdf')
+        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +'DetTest_Diagnostic_plot1_' + self.ds.epic + '.pdf')
         #sys.exit()
+
+    def Diagnostic_plot2(self):
+        """ Compare detection probabilities between different timeseries' and
+        satellites for 1 star. """
+
+        probs = pd.read_csv(self.probfile)
+        fig, ax = generalPlot(xaxis=r'$\nu / \mu$Hz', yaxis=r'$P_{\rm det}$')
+
+        plt.scatter(probs['f0'], probs['Pdet_Kepler'], label='Kepler - 4yrs')
+        plt.scatter(probs['f0'], probs['Pdet_TESS365'], label='TESS - 1 yr')
+        plt.scatter(probs['f0'], probs['Pdet_TESS27'], label='TESS - 27 days')
+        plt.legend(loc='lower right')
+        plt.ylim([0,1])
+        plt.show()
+        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +\
+            'DetTest_Diagnostic_plot2_' + self.ds.epic + '.pdf')
+        #sys.exit()
+
+    def Diagnostic_plot3(self):
+        """ Compare detection probabilities between different timeseries' and
+        satellites for the entire dataset of stars.
+        Plot results for 1 star at a time (the Pdet values for each mode).
+        Also plot the median Pdet value from all modes and stars for each
+        satellite and timeseries dataset. """
+
+        floc = glob.glob(os.getcwd() + os.sep + 'DetTest1_results' + os.sep + '*.csv')
+        fig, ax = generalPlot(xaxis=r'$\nu / \mu$Hz', yaxis=r'$P_{\rm det}$')
+
+        for idx, i in enumerate(floc):
+
+            d = pd.read_csv(i)
+            if idx == 0:
+                fullpdet = d[['f0', 'Pdet_Kepler', 'Pdet_TESS365', 'Pdet_TESS27']]
+            else:
+                fullpdet = pd.concat([ fullpdet,\
+                    d[['f0', 'Pdet_Kepler', 'Pdet_TESS365', 'Pdet_TESS27']] ])
+
+            plt.scatter(d['f0'], d['Pdet_Kepler'], color='b',\
+                label="Kepler - 4yrs" if idx == 0 else '')
+            plt.scatter(d['f0'], d['Pdet_TESS365'], color='orange',\
+                label='TESS - 1 yr' if idx == 0 else '')
+            plt.scatter(d['f0'], d['Pdet_TESS27'], color='g',\
+                label='TESS - 27 days' if idx == 0 else '')
+
+        plt.axhline(fullpdet['Pdet_Kepler'].median(), color='b')
+        plt.axhline(fullpdet['Pdet_TESS365'].median(), color='orange')
+        plt.axhline(fullpdet['Pdet_TESS27'].median(), color='g')
+
+        plt.legend(loc='lower right')
+        plt.ylim([0,1])
+        plt.show()
+        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +\
+            'DetTest_Diagnostic_plot3.pdf')
+        sys.exit()
 
 
 if __name__ == "__main__":
@@ -260,7 +312,7 @@ if __name__ == "__main__":
         sat = 'Kepler'
         sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
@@ -271,6 +323,7 @@ if __name__ == "__main__":
             ds.ts()
             ds.Periodogram()
 
+        # transform the Kepler PS into TESS PS
         elif ds.sat == 'TESS':
             # units of exptime are seconds. noise in units of ppm
             ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
@@ -278,23 +331,24 @@ if __name__ == "__main__":
             ds.timeseries(plot_ts=False, plot_ps=False)
 
         star = DetTest(ds)
-        star.Power2SNR(plt_PS=False, plt_SNR=False)
+        star.Power2SNR(plt_PS=True, plt_SNR=False)
 
+        sys.exit()
 
+        # iterate over the fitted modes
         for idx, f in ds.mode_id.iterrows():
 
-            smoo = star.Conv(star.snr, abs(f['w0']))  # smooth by convolving with Guassian
+            smoo = star.Conv(star.snr, abs(f['w0']))  # smooth the SNR by convolving with Guassian
             index = np.abs(star.ds.freq-f['f0']).argmin()  # frequency closest to mode
-            star.snr_modes = np.append(star.snr_modes, smoo[index])
+            star.snr_modes = np.append(star.snr_modes, smoo[index])  # add the SNR value at the mode to the array
 
 
         star.Det_Prob(snrthresh=1.0)
         star.Info2Save()
 
-
-
         #star.Diagnostic_plot1()
-
+        #star.Diagnostic_plot2()
+        star.Diagnostic_plot3()
 
     stop = timeit.default_timer()
     print round(stop-start, 3), 'secs;', round((stop-start)/len(ts), 3), 's per star.'

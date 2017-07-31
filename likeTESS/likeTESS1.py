@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     for i, fdir in enumerate(ts):
 
-        star = Dataset(epic[i], fdir, bandpass=0.85, Tobs=27)  # Tobs in days
+        star = Dataset(epic[i], fdir, sat='Kepler', bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
