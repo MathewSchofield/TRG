@@ -126,8 +126,6 @@ class Dataset(object):
         power = model.score_frequency_grid(fmin, df, N/2)  # signal-to-noise ratio, (1) eqn 9
         freqs = fmin + df * np.arange(N/2)  # the periodogram was computed over these freqs (Hz)
 
-        #print power[0], dtmed, df
-
         # the variance of the flux
         if madVar:  var = mad_std(self.flux_fix)**2
         else:       var = np.std(self.flux_fix)**2
@@ -139,9 +137,6 @@ class Dataset(object):
 
         if len(freqs) < len(power):  power = power[0:len(freqs)]
         if len(freqs) > len(power):  freqs = freqs[0:len(power)]
-
-        #if power[0] == 0:   power[0] = 1e-5
-
 
         self.freq = freqs * 1e6    # muHz
         self.power = power         # ppm^2 muHz^-1
@@ -159,7 +154,6 @@ class Dataset(object):
         level of the sigma clip can be adjusted with the sigma_clip parameter.
         The results of the sigma clip are stored in time_fix and flux_fix.
 
-
         Parameters
         ------------------
         sigma_clip: Float
@@ -173,7 +167,7 @@ class Dataset(object):
 
         self.ts(sigma_clip=4)
 
-        """ find the 27 days in the timeseries (inc. gaps) with the minimum time gaps """
+        """ find the 'Tobs' days in the timeseries (inc. gaps) with the minimum time gaps """
         self.time = self.time / 86400             # convert from seconds to days
         self.time_fix = self.time_fix / 86400     # convert from seconds to days
         diffs = np.full(len(self.time_fix), np.inf)

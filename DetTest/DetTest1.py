@@ -16,6 +16,7 @@ from scipy import stats
 import timeit
 import matplotlib.pyplot as plt
 from astropy.convolution import Gaussian1DKernel, convolve
+from scipy import interpolate
 
 TRG = os.getcwd().split('DetTest')[0]
 sys.path.insert(0, TRG)
@@ -72,6 +73,33 @@ class DetTest(object):
         self.bkg = self.estimate_background(log_width=0.1)
         self.snr = self.ds.power/self.bkg
         if np.isnan(self.snr[0]) == True:  self.snr[0] = 1e-5
+
+        if plt_PS:   self.plot_ps()
+        if plt_SNR:  self.plot_snr()
+
+    def set_width(self, numax, a=0.66, b=0.88, factor=1.5):
+        """ Created by GD in K2pipes/K2wavelets.py """
+        return a * numax**b * factor
+
+    def get_snr(self, smoo=0, skips=50, plt_PS=False, plt_SNR=False):
+        """ Created by GD in K2pipes/K2wavelets.py
+        Takes a moving median around the predicted envelope width at every
+        frequency. Then interpolates between median values."""
+
+        # print np.abs(self.ds.freq - 100.)  # the difference between all the freqs and d
+        # print self.set_width(100., factor=1)  # the env width at d
+        # print self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)]  # all the power values inside of the envelope around d
+        # print np.median(self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)])  # the median power in the envelope around d
+        med = [np.median(self.ds.power[np.abs(self.ds.freq - d) < self.set_width(d, factor=1)]) for d in self.ds.freq[::skips]]
+
+        # interpolate between skipped freqs in self.ds.freqs using the moving median
+        f = interpolate.interp1d(self.ds.freq[::skips], med, bounds_error=False)
+        self.bkg = f(self.ds.freq)
+        self.snr = self.ds.power / self.bkg
+        self.snr[:skips] = 1.0
+        self.snr[-skips:] = 1.0
+        if smoo > 1:
+            self.snr = nd.filters.uniform_filter1d(self.snr, int(smoo[0]))
 
         if plt_PS:   self.plot_ps()
         if plt_SNR:  self.plot_snr()
@@ -312,7 +340,7 @@ if __name__ == "__main__":
         sat = 'Kepler'
         sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
@@ -331,9 +359,8 @@ if __name__ == "__main__":
             ds.timeseries(plot_ts=False, plot_ps=False)
 
         star = DetTest(ds)
-        star.Power2SNR(plt_PS=True, plt_SNR=False)
-
-        sys.exit()
+        #star.Power2SNR(plt_PS=False, plt_SNR=False)
+        star.get_snr(plt_PS=True, plt_SNR=False)
 
         # iterate over the fitted modes
         for idx, f in ds.mode_id.iterrows():
@@ -342,13 +369,16 @@ if __name__ == "__main__":
             index = np.abs(star.ds.freq-f['f0']).argmin()  # frequency closest to mode
             star.snr_modes = np.append(star.snr_modes, smoo[index])  # add the SNR value at the mode to the array
 
-
-        star.Det_Prob(snrthresh=1.0)
-        star.Info2Save()
+        star.Det_Prob(snrthresh=1.0, fap=0.05)
+        #star.Info2Save()
+        print ds.mode_id
+        print star.snr_modes
+        print star.prob
+        sys.exit()
 
         #star.Diagnostic_plot1()
         #star.Diagnostic_plot2()
-        star.Diagnostic_plot3()
+        #star.Diagnostic_plot3()
 
     stop = timeit.default_timer()
     print round(stop-start, 3), 'secs;', round((stop-start)/len(ts), 3), 's per star.'
