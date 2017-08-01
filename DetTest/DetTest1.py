@@ -104,6 +104,52 @@ class DetTest(object):
         if plt_PS:   self.plot_ps()
         if plt_SNR:  self.plot_snr()
 
+    def mode_snrs(self, v=False):
+        """ Get the SNR values for the modes by taking the highest value
+        around the range defined by the mode linewidth.
+
+        Inputs
+        ds.mode_id:     frequency and linewidth values of the modes
+        self.ds.freq:   frequency array of the spectrum
+        self.snr_modes: empty array to put mode SNR values in (defined in __init__)
+
+        Outputs
+        self.snr_modes: full array of mode SNR values
+        """
+
+        # iterate over the fitted modes
+        for idx, f in ds.mode_id.iterrows():
+
+            #smoo = nd.filters.uniform_filter1d(self.snr, int(np.exp(f['w0'])/ds.bin_width))
+            #smoo = self.Conv(self.snr, np.exp(f['w0'])/ds.bin_width)  # smooth the SNR by convolving with Guassian
+            #smoo = self.Conv(self.snr, abs(f['w0']))  # smooth the SNR by convolving with Guassian
+            #index = np.abs(self.ds.freq-f['f0']).argmin()  # frequency closest to mode
+            #self.snr_modes = np.append(self.snr_modes, smoo[index])  # add the SNR value at the mode to the array
+
+
+            # the range to find highest snr over
+            wid = np.exp(f['w0'])
+            rng = (self.ds.freq>(f['f0']-wid)) & (self.ds.freq<(f['f0']+wid))
+
+            if v:  print f['f0'], wid
+            if v:  print self.ds.freq[rng]
+            if v:  print self.snr[rng]
+            if v:  print max(self.snr[rng])  # the maximum SNR around the mode
+
+            # if there are no freq bins in the range defined by mode width,
+            # take closest snr value
+            if len(self.ds.freq[rng]) == 0:
+                index = np.abs(self.ds.freq-f['f0']).argmin()
+                self.snr_modes = np.append(self.snr_modes, self.snr[index])
+
+            else:
+                self.snr_modes = np.append(self.snr_modes, max(self.snr[rng]))
+
+            if v:  print 'final val', self.snr_modes, '\n'
+            if v:  sys.exit()
+
+
+
     def Det_Prob(self, nbins=[], fap=[], snrthresh=[]):
         """
         Calculate the detection probability, given a SNR ratio and threshold.
@@ -345,6 +391,7 @@ if __name__ == "__main__":
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
         ds.get_modes(IDfile)
         print epic[i]
+
         # make the original Kepler PS
         if ds.sat == 'Kepler':
             ds.ts()
@@ -359,49 +406,12 @@ if __name__ == "__main__":
 
         star = DetTest(ds)
         star.get_snr(plt_PS=False, plt_SNR=False)
-
-        # iterate over the fitted modes
-        for idx, f in ds.mode_id.iterrows():
-
-            #smoo = nd.filters.uniform_filter1d(star.snr, int(np.exp(f['w0'])/ds.bin_width))
-            #smoo = star.Conv(star.snr, np.exp(f['w0'])/ds.bin_width)  # smooth the SNR by convolving with Guassian
-            #smoo = star.Conv(star.snr, abs(f['w0']))  # smooth the SNR by convolving with Guassian
-            #index = np.abs(star.ds.freq-f['f0']).argmin()  # frequency closest to mode
-            #star.snr_modes = np.append(star.snr_modes, smoo[index])  # add the SNR value at the mode to the array
-
-
-
-            wid = np.exp(f['w0'])
-            rng = (star.ds.freq>(f['f0']-wid)) & (star.ds.freq<(f['f0']+wid))  # the range to find highest snr over
-
-            # print f['f0'], wid
-            # print star.ds.freq[rng]
-            # print star.snr[rng]
-            # print max(star.snr[rng])  # the maximum SNR around the mode
-            # sys.exit()
-
-            # if there are no freq bins in the range defined by mode width,
-            # take closest snr value
-            if len(star.ds.freq[rng]) == 0:
-                index = np.abs(star.ds.freq-f['f0']).argmin()
-                star.snr_modes = np.append(star.snr_modes, star.snr[index])
-
-            else:
-                star.snr_modes = np.append(star.snr_modes, max(star.snr[rng]))
-
-            #print 'final val', star.snr_modes, '\n'
-
-
+        star.mode_snrs()
         star.Det_Prob(snrthresh=1.0, fap=0.05)
         #star.Info2Save()
 
-        #print(ds.mode_id)
-        #print(star.snr_modes)
-        #print(star.prob)
-        #sys.exit()
-
         #star.Diagnostic_plot1()
-        star.Diagnostic_plot2()
+        #star.Diagnostic_plot2()
         #star.Diagnostic_plot3()
 
     stop = timeit.default_timer()
