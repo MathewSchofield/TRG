@@ -13,6 +13,7 @@ __pycache__/
 
 # exceptions - data to test code with
 !GetData/20Stars
+!*simbad.csv  # magnitude values
 
 # C extensions
 *.so

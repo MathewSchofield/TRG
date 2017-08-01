@@ -12,7 +12,7 @@ __pycache__/
 *.pdf
 
 # exceptions - data to test code with
-!20Stars
+!GetData/20Stars
 
 # C extensions
 *.so
