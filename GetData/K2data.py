@@ -325,9 +325,9 @@ class Dataset(object):
         """ Estimate the power due to granulation from (4) """
 
         self.numax = numax
-    	a_nomass = self.bandpass * 3382*self.numax**-0.609
-    	b1 = 0.317 * self.numax**0.970
-    	b2 = 0.948 * self.numax**0.992
+        a_nomass = self.bandpass * 3382*self.numax**-0.609
+        b1 = 0.317 * self.numax**0.970
+        b2 = 0.948 * self.numax**0.992
 
         # Divide by dilution squared as it affects stars in the time series.
         # The units of dilution change from ppm to ppm^2 microHz^-1 when going from the

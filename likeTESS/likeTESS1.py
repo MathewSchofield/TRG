@@ -9,14 +9,22 @@ warnings.simplefilter(action = "ignore")
 import numpy as np
 import pandas as pd
 import os
+import pwd
 import glob
 import sys
 import timeit
+from config import *
 
 TRG = os.getcwd().split('likeTESS')[0]
 sys.path.insert(0, TRG + 'GetData' + os.sep)
 from K2data import Dataset
-
+user = pwd.getpwuid(os.getuid())[0]
+if user == 'davies':
+    TRG = '/home/davies/Projects/Mat/TRG/'
+    data_dir = '/home/davies/Dropbox/K2_seismo_pipes/20Stars/Data/'
+elif user == 'Mat':
+    pass
+    
 
 # calculate Imags. all stars here are Red Giants so conditions for dwarfs have been removed
 def BV2VI(whole):
@@ -41,21 +49,15 @@ def BV2VI(whole):
 
 
 # load the time-series file directories, epic numbers & parameters.
-def getInput(RepoLoc, dataset):
+def getInput():
 
     # ts: time series file locs. epic: EPIC numbers. params: numax, dnu, teff, Kp
     # modes: list of mode frequencies, linewidths and uncertainties for each star
-    ts = glob.glob(RepoLoc + 'GetData' + os.sep + dataset + os.sep + '*.dat')
+    ts = glob.glob(data_dir + '*.dat')
     epic = [x.split('kplr')[1].split('_llc')[0] for x in ts]
-    params = pd.read_csv(RepoLoc + 'GetData' + os.sep + dataset + os.sep + dataset.lower() + '.csv')
-
-    #print RepoLoc + 'GetData' + os.sep + 'Modes' + os.sep
-    modes = glob.glob(RepoLoc + 'GetData' + os.sep + 'Modes' + os.sep + '*.csv')
-    #print modes
-    #sys.exit()
-
-    mags = pd.read_csv(RepoLoc + 'GetData' + os.sep + dataset + os.sep +\
-        dataset.lower() + '_simbad.csv')
+    params = pd.read_csv(param_file)
+    modes = glob.glob(mode_dir + '*.csv')
+    mags = pd.read_csv(mag_file)
 
     # if Imags are not known for the stars, calculate them and save to file
     if 'Imag' not in mags.columns:
@@ -72,8 +74,7 @@ def getInput(RepoLoc, dataset):
         mags = BV2VI(mags)  # calculate Imags
 
         mags[['KIC', 'Bmag', 'Vmag', 'e_lng', 'e_lat', 'B-V', 'V-I', 'Imag']].\
-            to_csv(RepoLoc + 'GetData' + os.sep + dataset + os.sep +\
-            dataset.lower() + '_simbad.csv', index=False)
+            to_csv(mag_file, index=False)
 
     return ts, epic, params, mags, modes
 
@@ -81,7 +82,7 @@ def getInput(RepoLoc, dataset):
 if __name__ == "__main__":
     start = timeit.default_timer()
 
-    ts, epic, params, mags, modes = getInput(RepoLoc=TRG, dataset='20Stars')
+    ts, epic, params, mags, modes = getInput()
 
     for i, fdir in enumerate(ts):
 
@@ -115,7 +116,7 @@ if __name__ == "__main__":
 
 
     stop = timeit.default_timer()
-    print round(stop-start, 3), 'secs;', round((stop-start)/len(ts), 3), 's per star.'
+    print(round(stop-start, 3), 'secs;', round((stop-start)/len(ts), 3), 's per star.')
 
 
 
