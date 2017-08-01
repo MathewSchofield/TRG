@@ -11,7 +11,7 @@ import pandas as pd
 import os
 import glob
 import sys
-import scipy.ndimage as ndim
+import scipy.ndimage as nd
 from scipy import stats
 import timeit
 import matplotlib.pyplot as plt
@@ -90,6 +90,7 @@ class DetTest(object):
         # print self.set_width(100., factor=1)  # the env width at d
         # print self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)]  # all the power values inside of the envelope around d
         # print np.median(self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)])  # the median power in the envelope around d
+        print(self.ds.freq)
         med = [np.median(self.ds.power[np.abs(self.ds.freq - d) < self.set_width(d, factor=1)]) for d in self.ds.freq[::skips]]
 
         # interpolate between skipped freqs in self.ds.freqs using the moving median
@@ -250,11 +251,11 @@ class DetTest(object):
 
             index = np.abs(self.ds.freq-f['f0']).argmin()  # use the frequency closest to mode
             if v:
-                print self.ds.freq[index], self.snr[index]
-                print 'before smoo', self.snr[index]
-                print 'smoo1', smoo[index]
-                print 'smoo2', smoo2[index]
-                print 'smoo3', smoo3[np.abs(bins-f['f0']).argmin()], '\n'
+                print(self.ds.freq[index], self.snr[index])
+                print('before smoo', self.snr[index])
+                print('smoo1', smoo[index])
+                print('smoo2', smoo2[index])
+                print('smoo3', smoo3[np.abs(bins-f['f0']).argmin()], '\n')
 
             u[idx]  = self.snr[index]
             s1[idx] = smoo[index]
@@ -332,7 +333,7 @@ class DetTest(object):
 if __name__ == "__main__":
     start = timeit.default_timer()
 
-    ts, epic, params, mags, modes = getInput(RepoLoc=TRG, dataset='20Stars')
+    ts, epic, params, mags, modes = getInput()
 
 
     for i, fdir in enumerate(ts):
@@ -340,7 +341,7 @@ if __name__ == "__main__":
         sat = 'Kepler'
         sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=85)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
@@ -355,7 +356,7 @@ if __name__ == "__main__":
         elif ds.sat == 'TESS':
             # units of exptime are seconds. noise in units of ppm
             ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-               teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
+               teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=600000)
             ds.timeseries(plot_ts=False, plot_ps=False)
 
         star = DetTest(ds)
@@ -364,16 +365,17 @@ if __name__ == "__main__":
 
         # iterate over the fitted modes
         for idx, f in ds.mode_id.iterrows():
-
-            smoo = star.Conv(star.snr, abs(f['w0']))  # smooth the SNR by convolving with Guassian
+            print(10**f['w0'])
+            smoo = nd.filters.uniform_filter1d(star.snr, int(np.exp(f['w0'])/ds.bin_width))
+            #smoo = star.Conv(star.snr, abs(f['w0']))  # smooth the SNR by convolving with Guassian
             index = np.abs(star.ds.freq-f['f0']).argmin()  # frequency closest to mode
             star.snr_modes = np.append(star.snr_modes, smoo[index])  # add the SNR value at the mode to the array
 
         star.Det_Prob(snrthresh=1.0, fap=0.05)
         #star.Info2Save()
-        print ds.mode_id
-        print star.snr_modes
-        print star.prob
+        print(ds.mode_id)
+        print(star.snr_modes)
+        print(star.prob)
         sys.exit()
 
         #star.Diagnostic_plot1()
@@ -381,7 +383,7 @@ if __name__ == "__main__":
         #star.Diagnostic_plot3()
 
     stop = timeit.default_timer()
-    print round(stop-start, 3), 'secs;', round((stop-start)/len(ts), 3), 's per star.'
+    print(round(stop-start, 3), 'secs;', round((stop-start)/len(ts), 3), 's per star.')
 
 
 
