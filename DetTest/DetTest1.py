@@ -90,7 +90,6 @@ class DetTest(object):
         # print self.set_width(100., factor=1)  # the env width at d
         # print self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)]  # all the power values inside of the envelope around d
         # print np.median(self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)])  # the median power in the envelope around d
-        print(self.ds.freq)
         med = [np.median(self.ds.power[np.abs(self.ds.freq - d) < self.set_width(d, factor=1)]) for d in self.ds.freq[::skips]]
 
         # interpolate between skipped freqs in self.ds.freqs using the moving median
@@ -335,18 +334,17 @@ if __name__ == "__main__":
 
     ts, epic, params, mags, modes = getInput()
 
-
     for i, fdir in enumerate(ts):
 
         sat = 'Kepler'
         sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=85)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
         ds.get_modes(IDfile)
-
+        print epic[i]
         # make the original Kepler PS
         if ds.sat == 'Kepler':
             ds.ts()
@@ -356,30 +354,54 @@ if __name__ == "__main__":
         elif ds.sat == 'TESS':
             # units of exptime are seconds. noise in units of ppm
             ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-               teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=600000)
+               teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
             ds.timeseries(plot_ts=False, plot_ps=False)
 
         star = DetTest(ds)
-        #star.Power2SNR(plt_PS=False, plt_SNR=False)
-        star.get_snr(plt_PS=True, plt_SNR=False)
+        star.get_snr(plt_PS=False, plt_SNR=False)
 
         # iterate over the fitted modes
         for idx, f in ds.mode_id.iterrows():
-            print(10**f['w0'])
-            smoo = nd.filters.uniform_filter1d(star.snr, int(np.exp(f['w0'])/ds.bin_width))
+
+            #smoo = nd.filters.uniform_filter1d(star.snr, int(np.exp(f['w0'])/ds.bin_width))
+            #smoo = star.Conv(star.snr, np.exp(f['w0'])/ds.bin_width)  # smooth the SNR by convolving with Guassian
             #smoo = star.Conv(star.snr, abs(f['w0']))  # smooth the SNR by convolving with Guassian
-            index = np.abs(star.ds.freq-f['f0']).argmin()  # frequency closest to mode
-            star.snr_modes = np.append(star.snr_modes, smoo[index])  # add the SNR value at the mode to the array
+            #index = np.abs(star.ds.freq-f['f0']).argmin()  # frequency closest to mode
+            #star.snr_modes = np.append(star.snr_modes, smoo[index])  # add the SNR value at the mode to the array
+
+
+
+            wid = np.exp(f['w0'])
+            rng = (star.ds.freq>(f['f0']-wid)) & (star.ds.freq<(f['f0']+wid))  # the range to find highest snr over
+
+            # print f['f0'], wid
+            # print star.ds.freq[rng]
+            # print star.snr[rng]
+            # print max(star.snr[rng])  # the maximum SNR around the mode
+            # sys.exit()
+
+            # if there are no freq bins in the range defined by mode width,
+            # take closest snr value
+            if len(star.ds.freq[rng]) == 0:
+                index = np.abs(star.ds.freq-f['f0']).argmin()
+                star.snr_modes = np.append(star.snr_modes, star.snr[index])
+
+            else:
+                star.snr_modes = np.append(star.snr_modes, max(star.snr[rng]))
+
+            #print 'final val', star.snr_modes, '\n'
+
 
         star.Det_Prob(snrthresh=1.0, fap=0.05)
         #star.Info2Save()
-        print(ds.mode_id)
-        print(star.snr_modes)
-        print(star.prob)
-        sys.exit()
+
+        #print(ds.mode_id)
+        #print(star.snr_modes)
+        #print(star.prob)
+        #sys.exit()
 
         #star.Diagnostic_plot1()
-        #star.Diagnostic_plot2()
+        star.Diagnostic_plot2()
         #star.Diagnostic_plot3()
 
     stop = timeit.default_timer()

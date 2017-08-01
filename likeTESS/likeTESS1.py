@@ -13,18 +13,12 @@ import pwd
 import glob
 import sys
 import timeit
-from config import *
+from config import *  # the directories to find the data files
 
 TRG = os.getcwd().split('likeTESS')[0]
 sys.path.insert(0, TRG + 'GetData' + os.sep)
 from K2data import Dataset
-user = pwd.getpwuid(os.getuid())[0]
-if user == 'davies':
-    TRG = '/home/davies/Projects/Mat/TRG/'
-    data_dir = '/home/davies/Dropbox/K2_seismo_pipes/20Stars/Data/'
-elif user == 'Mat':
-    pass
-    
+
 
 # calculate Imags. all stars here are Red Giants so conditions for dwarfs have been removed
 def BV2VI(whole):
