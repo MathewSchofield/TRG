@@ -78,6 +78,7 @@ class Dataset(object):
 
         self.id_file = id_file  # mode ID file loc
         self.mode_id = pd.read_csv(self.id_file)
+        self.mode_id.sort_values(['f0'], inplace=True)
 
     def ts(self, verbose=False, sigma_clip=4):
         '''  Reads in a timeseries from the file stored in data file ONLY.

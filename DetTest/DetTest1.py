@@ -11,7 +11,7 @@ import pandas as pd
 import os
 import glob
 import sys
-import scipy.ndimage as nd
+import scipy.ndimage as ndim
 from scipy import stats
 import timeit
 import matplotlib.pyplot as plt
@@ -147,8 +147,6 @@ class DetTest(object):
 
             if v:  print 'final val', self.snr_modes, '\n'
             if v:  sys.exit()
-
-
 
     def Det_Prob(self, nbins=[], fap=[], snrthresh=[]):
         """
@@ -321,12 +319,12 @@ class DetTest(object):
         #sys.exit()
 
     def Diagnostic_plot2(self):
-        """ Compare detection probabilities between different timeseries' and
-        satellites for 1 star. """
+        """ Compare detection probabilities and SNRs between different
+        timeseries' and satellites for 1 star. """
 
         probs = pd.read_csv(self.probfile)
-        fig, ax = generalPlot(xaxis=r'$\nu / \mu$Hz', yaxis=r'$P_{\rm det}$')
 
+        fig, ax = generalPlot(xaxis=r'$\nu / \mu$Hz', yaxis=r'$P_{\rm det}$')
         plt.scatter(probs['f0'], probs['Pdet_Kepler'], label='Kepler - 4yrs')
         plt.scatter(probs['f0'], probs['Pdet_TESS365'], label='TESS - 1 yr')
         plt.scatter(probs['f0'], probs['Pdet_TESS27'], label='TESS - 27 days')
@@ -334,8 +332,17 @@ class DetTest(object):
         plt.ylim([0,1])
         plt.show()
         fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +\
-            'DetTest_Diagnostic_plot2_' + self.ds.epic + '.pdf')
-        #sys.exit()
+            'DetTest_Diagnostic_plot2_Pdet' + self.ds.epic + '.pdf')
+
+        fig, ax = generalPlot(xaxis=r'$\nu / \mu$Hz', yaxis=r'SNR')
+        plt.scatter(probs['f0'], probs['SNR_Kepler'], label='Kepler - 4yrs')
+        plt.scatter(probs['f0'], probs['SNR_TESS365'], label='TESS - 1 yr')
+        plt.scatter(probs['f0'], probs['SNR_TESS27'], label='TESS - 27 days')
+        plt.legend(loc='lower right')
+        #plt.ylim([0,1])
+        plt.show()
+        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +\
+            'DetTest_Diagnostic_plot2_SNR' + self.ds.epic + '.pdf')
 
     def Diagnostic_plot3(self):
         """ Compare detection probabilities between different timeseries' and
@@ -374,6 +381,45 @@ class DetTest(object):
             'DetTest_Diagnostic_plot3.pdf')
         sys.exit()
 
+    def plot4(self, plog=False):
+        """ Plot the SNR spectrum of the modes to check that the correct value
+        of the SNR is being taken for each mode. """
+
+        probs = pd.read_csv(self.probfile)
+
+        fig, ax = plt.subplots()
+        plt.plot(self.ds.freq, self.snr, 'k-', alpha=0.5)
+
+        # plot the SNR range to search across when finding snr_modes
+        for idx, line in enumerate(self.ds.mode_id['f0']):
+            w = np.exp(self.ds.mode_id['w0'][idx])
+            plt.axvline(x=line-w, color='b', linestyle='-', alpha=0.4)
+            plt.axvline(x=line+w, color='b', linestyle='-', alpha=0.4)
+
+        # overplot the predicted SNR values at the modes
+        plt.scatter(probs['f0'], probs['SNR_Kepler'], label='Kepler - 4yrs')
+        plt.scatter(probs['f0'], probs['SNR_TESS365'], label='TESS - 1 yr')
+        plt.scatter(probs['f0'], probs['SNR_TESS27'], label='TESS - 27 days')
+
+        if plog:
+            plt.xscale('log')
+            plt.yscale('log')
+        plt.xlabel(r'Frequency ($\rm \mu Hz$)')
+        plt.ylabel(r'SNR')
+
+        mn = min(star.ds.mode_id['f0']) -\
+            (max(star.ds.mode_id['f0'])-min(star.ds.mode_id['f0']))/7.
+        mx = max(star.ds.mode_id['f0']) +\
+            (max(star.ds.mode_id['f0'])-min(star.ds.mode_id['f0']))/7.
+        plt.xlim([mn,mx])
+
+        plt.legend()
+        plt.title('KIC ' + str(self.ds.epic))
+        plt.show()
+        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +\
+            'plot4_SNR' + self.ds.epic + '.pdf')
+
+
 
 if __name__ == "__main__":
     start = timeit.default_timer()
@@ -383,14 +429,14 @@ if __name__ == "__main__":
     for i, fdir in enumerate(ts):
 
         sat = 'Kepler'
-        sat = 'TESS'
+        #sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
-        info = params[params['KIC']==int(epic[i])]  # info on the object
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
+        info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
         ds.get_modes(IDfile)
-        print epic[i]
+        #print epic[i]
 
         # make the original Kepler PS
         if ds.sat == 'Kepler':
@@ -406,13 +452,16 @@ if __name__ == "__main__":
 
         star = DetTest(ds)
         star.get_snr(plt_PS=False, plt_SNR=False)
-        star.mode_snrs()
+        star.mode_snrs(v=False)
         star.Det_Prob(snrthresh=1.0, fap=0.05)
         #star.Info2Save()
+
 
         #star.Diagnostic_plot1()
         #star.Diagnostic_plot2()
         #star.Diagnostic_plot3()
+        star.plot4()
+        #sys.exit()
 
     stop = timeit.default_timer()
     print(round(stop-start, 3), 'secs;', round((stop-start)/len(ts), 3), 's per star.')
