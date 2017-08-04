@@ -10,7 +10,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-TRG = os.getcwd().split('Parameters2Pdet')[0]
+TRG = os.getcwd().split('KDE')[0]
 sys.path.insert(0, TRG)
 from plotTemplates import generalPlot
 sys.path.insert(0, TRG + 'GetData' + os.sep)

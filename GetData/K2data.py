@@ -322,26 +322,6 @@ class Dataset(object):
         c = 1.28 * 10**(0.4*(12.-Kp) + 7.)  # detections per cadence, (5) eqn 17.
         self.KPnoise = 1e6/c * np.sqrt(c + 9.5 * 1e5*(14./Kp)**5) # in ppm
 
-    def granulation(self, numax, dilution=1):
-        """ Estimate the power due to granulation from (4) """
-
-        self.numax = numax
-        a_nomass = self.bandpass * 3382*self.numax**-0.609
-        b1 = 0.317 * self.numax**0.970
-        b2 = 0.948 * self.numax**0.992
-
-        # Divide by dilution squared as it affects stars in the time series.
-        # The units of dilution change from ppm to ppm^2 microHz^-1 when going from the
-        # time series to frequency. p6: c=4 and zeta = 2*sqrt(2)/pi
-        Pgran = (((2*np.sqrt(2))/np.pi) * (a_nomass**2/b1) / (1 + ((self.freq/b1)**4)) \
-        + ((2*np.sqrt(2))/np.pi) * (a_nomass**2/b2) / (1 + ((self.freq/b2)**4))) / (dilution**2)
-
-        # From (9). the amplitude suppression factor. Normalised sinc with pi (area=1)
-        eta = np.sinc((self.freq/(2*self.vnyq)))
-
-        # the granulation after attenuation
-        self.Pgran = Pgran * eta**2
-
     def plot_power_spectrum(self, smoo=0, plog=True):
         ''' Plots the power spectrum '''
         if len(self.freq) < 0:

@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: TRG.aux
+The style file: mnras.bst
+Database file #1: TRG.bib
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+You've used 3 entries,
+            2881 wiz_defined-function locations,
+            740 strings with 7799 characters,
+and the built_in function-call counts, 1519 in all, are:
+= -- 170
+> -- 70
+< -- 2
++ -- 33
+- -- 6
+* -- 183
+:= -- 217
+add.period$ -- 0
+call.type$ -- 3
+change.case$ -- 6
+chr.to.int$ -- 3
+cite$ -- 3
+duplicate$ -- 66
+empty$ -- 69
+format.name$ -- 16
+if$ -- 273
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 3
+newline$ -- 22
+num.names$ -- 16
+pop$ -- 16
+preamble$ -- 1
+purify$ -- 12
+quote$ -- 0
+skip$ -- 36
+stack$ -- 0
+substring$ -- 169
+swap$ -- 22
+text.length$ -- 12
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 27
+warning$ -- 0
+while$ -- 20
+width$ -- 0
+write$ -- 42
