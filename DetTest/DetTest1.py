@@ -460,7 +460,7 @@ if __name__ == "__main__":
         #star.Diagnostic_plot1()
         #star.Diagnostic_plot2()
         #star.Diagnostic_plot3()
-        star.plot4()
+        #star.plot4()
         #sys.exit()
 
     stop = timeit.default_timer()

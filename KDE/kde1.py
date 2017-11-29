@@ -1,6 +1,6 @@
 """
 Use KDE to estimate the probability of detection for a star, given some input
-parameters (e.g Tobs, dnu and numax)
+parameters (e.g Tobs, dnu and numax) - redundant (using Machine Learning now).
 """
 
 import warnings
