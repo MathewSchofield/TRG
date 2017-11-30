@@ -12,6 +12,7 @@ import os
 import glob
 import sys
 import scipy.ndimage as ndim
+from scipy.optimize import curve_fit
 from scipy import stats
 import timeit
 import matplotlib.pyplot as plt
@@ -125,7 +126,6 @@ class DetTest(object):
             #smoo = self.Conv(self.snr, abs(f['w0']))  # smooth the SNR by convolving with Guassian
             #index = np.abs(self.ds.freq-f['f0']).argmin()  # frequency closest to mode
             #self.snr_modes = np.append(self.snr_modes, smoo[index])  # add the SNR value at the mode to the array
-
 
             # the range to find highest snr over
             wid = np.exp(f['w0'])
@@ -420,6 +420,114 @@ class DetTest(object):
             'plot4_SNR' + self.ds.epic + '.pdf')
 
 
+class data_for_ML(object):
+    """ Prepare and save the X, Y data to be used in ML.py """
+
+    def __init__(self, star):
+        self.star = star
+
+    def Gauss(self, x, height, centre, width, b=0):
+        """ A Gaussian fit.
+            Inputs
+            x:      data to fit Gaussian to
+            height: the height of the curve's peak
+            centre: the position of the centre of the peak
+            width:  the RMS width of the curve
+            b:      Optionally add background, b. """
+
+        return height * np.exp(-(x - centre)**2 / (2 * width**2)) - b
+
+    def fit_amplitudes(self, v=False):
+        """ Fits the mode frequencies (x) and amplitudes (height) for each
+        Kepler target to get a numax value. """
+
+        x         = self.star.ds.mode_id['f0'].as_matrix()
+        height    = self.star.ds.mode_id['A0'].as_matrix()
+        sd_height = self.star.ds.mode_id['A0_err'].as_matrix()
+        if v:  print 'x:', x
+        if v:  print 'height:', height
+        if v:  print 'sd_height:', sd_height
+
+        mean = sum(height*x) / sum(height)  # weighted mean x value
+        sigma = np.sqrt(sum(height * (x - mean)**2) / sum(height)) # weighted Gaussian sd
+
+        popt, pcov = curve_fit(self.Gauss, x, height,\
+            p0=[max(height), mean, sigma], sigma=sd_height, absolute_sigma=True)
+        self.numax = popt[1]
+        # sd_numax = np.sqrt(np.diag(pcov))[1]  # the uncertaintiy on numax
+        if v:  print 'numax:', self.numax
+
+    def average_dnu(self):
+        """ get an average dnu value for each star. """
+
+        freqs = self.star.ds.mode_id['f0'].as_matrix()
+        f1 = freqs[1:]
+        f2 = freqs[:-1]
+        diff = f1-f2
+        self.dnu = np.mean(diff)
+
+    def save_xy(self, v=False):
+        """ Save the X data into 1 file. Save the Y data into another.
+        X data:  KIC, dnu, numax, Kp magnitude
+        Y data:  the 5 SNR values closest to numax, in ascending frequency order
+        """
+
+        if i == 0:
+            """ Make the array of KIC, dnu, numax, Kp """
+            global x_data, y_data
+            x_data = np.zeros((len(params), 4))
+            y_data = np.zeros((len(params), 5))
+
+
+        """
+        fit_amplitudes() is not doing a good job of estimating numax. Instead,
+        estimate numax by taking the freq value of the mode with highest SNR. """
+        self.numax = ds.mode_id['f0'].as_matrix()[np.argmax(star.snr_modes)]
+
+
+        """ Get Y data. """
+        # Step 1: get the frequencies and their corresponding SNR values
+        ds.mode_id.reset_index(drop=True, inplace=True)
+        if v:  print i
+        if v:  print ds.mode_id['f0'].as_matrix()
+        if v:  print star.snr_modes, '\n'
+
+        # step 2: calculate the frequency difference between the modes and numax
+        diff = abs(self.numax - ds.mode_id['f0'].as_matrix())
+        if v:  print self.numax, diff, '\n'
+
+        # step 3: take the 5 modes closest to numax, sorted from highest to lowest SNR value
+        idx = np.argpartition(diff, 4)[:5]
+        if v:  print idx
+        if v:  print ds.mode_id['f0'].as_matrix()[idx]
+        if v:  print star.snr_modes[idx], '\n'
+
+        # step 4: sort the frequencies in ascending order. Sort SNR values to match the corresponding frequencies
+        f = np.sort(ds.mode_id['f0'].as_matrix()[idx])
+        p = ds.mode_id['f0'].as_matrix()[idx].argsort() # permutation that sorts the frequencies f
+        s = star.snr_modes[idx][p]
+        if v:  print p
+        if v:  print f[p], '\n'
+        if v:  print 'sorted freq:', f
+        if v:  print 'sorted SNR:', s, '\n', '\n', '\n'
+
+
+        x_data[i, :] = int(info['KIC']), self.dnu, self.numax, float(info['kic_kepmag'])
+        y_data[i, :] = s
+
+
+        if i == len(params)-1:
+            """ After the last star has been processed, save data for all stars. """
+
+            sname = os.getcwd() + os.sep + 'DetTest1_results' + os.sep + 'data_for_ML' + os.sep
+            print x_data, '\n'
+            print sname + '20Stars' + os.sep + '20Stars.csv'
+
+            x = pd.DataFrame({'KIC': x_data[:,0], 'dnu': x_data[:,1], 'numax': x_data[:,2], 'Kp': x_data[:,3]})
+            y = pd.DataFrame({'SNR1': y_data[:,0], 'SNR2': y_data[:,1], 'SNR3': y_data[:,2], 'SNR4': y_data[:,3], 'SNR5': y_data[:,4]})
+            x.to_csv(sname + '20Stars' + os.sep + '20Stars_X.csv', index=False)
+            y.to_csv(sname + '20Stars' + os.sep + '20Stars_Y.csv', index=False)
+
 
 if __name__ == "__main__":
     start = timeit.default_timer()
@@ -450,18 +558,42 @@ if __name__ == "__main__":
                teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
             ds.timeseries(plot_ts=False, plot_ps=False)
 
+        # apply a detection test on every mode of the star
         star = DetTest(ds)
         star.get_snr(plt_PS=False, plt_SNR=False)
-        star.mode_snrs(v=False)
-        star.Det_Prob(snrthresh=1.0, fap=0.05)
+        star.mode_snrs(v=False)  # SNR value at each mode
+        #star.Det_Prob(snrthresh=1.0, fap=0.05)  # detection probabnility value for each mode
         #star.Info2Save()
-
-
+        # NOTE: plot results
         #star.Diagnostic_plot1()
         #star.Diagnostic_plot2()
         #star.Diagnostic_plot3()
         #star.plot4()
-        #sys.exit()
+
+
+
+
+
+        # print list(vars(ds))
+        # print 'mode id:', ds.mode_id, ds.id_file
+        # print len(params)
+        # print info
+        # print float(info['kic_kepmag'])
+        # print mag
+
+        # print '\n', list(vars(star)), '\n'
+        # print 'len', len(star.snr_modes)
+
+        # save the required X, Y data for Machine Learning
+        output = data_for_ML(star)
+        output.fit_amplitudes()  # fit Gaussian to modes to get numax
+        output.average_dnu()  # get dnu value from mode frequencies
+        output.save_xy()
+
+        # print output.numax, output.dnu
+        # print list(vars(output))
+
+        # sys.exit()
 
     stop = timeit.default_timer()
     print(round(stop-start, 3), 'secs;', round((stop-start)/len(ts), 3), 's per star.')

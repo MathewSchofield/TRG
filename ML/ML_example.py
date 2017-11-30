@@ -1,6 +1,8 @@
 """
-Use Machine Learning to estimate the probability of detecting modes
-using dnu, numax, magnitudes and SNR values.
+A commented Machine Example.
+
+This is just example code from
+http://scikit-learn.org/stable/auto_examples/ensemble/plot_random_forest_regression_multioutput.html#sphx-glr-auto-examples-ensemble-plot-random-forest-regression-multioutput-py
 """
 
 import warnings
@@ -27,9 +29,6 @@ from likeTESS1 import getInput
 
 if __name__ == '__main__':
     """ Machine Learning using Random Forest and Multi Random Forest Regression.
-    This is just example code from
-    http://scikit-learn.org/stable/auto_examples/ensemble/plot_random_forest_regression_multioutput.html#sphx-glr-auto-examples-ensemble-plot-random-forest-regression-multioutput-py
-
     RF: Random Forest
     MRF: Multi Random Forest
     """
@@ -41,6 +40,8 @@ if __name__ == '__main__':
     y += (0.5 - rng.rand(*y.shape))
     print np.shape(x), np.shape(y)
 
+    #print x
+    sys.exit()
     test_size = 0.3  # use 30% of the data to test the algorithm (i.e 70% to train)
     random_state = 10  # ??
     max_depth = 30
