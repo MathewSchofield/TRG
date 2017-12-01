@@ -22,6 +22,7 @@ from scipy import interpolate
 TRG = os.getcwd().split('DetTest')[0]
 sys.path.insert(0, TRG)
 from plotTemplates import generalPlot
+from config import *  # the directories to find the data files
 sys.path.insert(0, TRG + 'GetData' + os.sep)
 from K2data import Dataset
 sys.path.insert(0, TRG + 'likeTESS' + os.sep)
@@ -466,17 +467,17 @@ class data_for_ML(object):
         diff = f1-f2
         self.dnu = np.mean(diff)
 
-    def save_xy(self, v=False):
+    def save_xy(self, v=False, n=4):
         """ Save the X data into 1 file. Save the Y data into another.
+        n:       The number of overtones (SNR values) to save in the Y data.
         X data:  KIC, dnu, numax, Kp magnitude
         Y data:  the 5 SNR values closest to numax, in ascending frequency order
         """
 
         if i == 0:
-            """ Make the array of KIC, dnu, numax, Kp """
             global x_data, y_data
-            x_data = np.zeros((len(params), 4))
-            y_data = np.zeros((len(params), 5))
+            x_data = np.zeros((len(params), 4))  # Make the array of KIC, dnu, numax, Kp
+            y_data = np.zeros((len(params), n))  # Make the array of 'n' SNR values
 
 
         """
@@ -496,8 +497,8 @@ class data_for_ML(object):
         diff = abs(self.numax - ds.mode_id['f0'].as_matrix())
         if v:  print self.numax, diff, '\n'
 
-        # step 3: take the 5 modes closest to numax, sorted from highest to lowest SNR value
-        idx = np.argpartition(diff, 4)[:5]
+        # step 3: take the 'n' modes closest to numax, sorted from highest to lowest SNR value
+        idx = np.argpartition(diff, n-1)[:n]
         if v:  print idx
         if v:  print ds.mode_id['f0'].as_matrix()[idx]
         if v:  print star.snr_modes[idx], '\n'
@@ -515,18 +516,20 @@ class data_for_ML(object):
         x_data[i, :] = int(info['KIC']), self.dnu, self.numax, float(info['kic_kepmag'])
         y_data[i, :] = s
 
+        if i%100 == 0:  print i
 
         if i == len(params)-1:
             """ After the last star has been processed, save data for all stars. """
 
-            sname = os.getcwd() + os.sep + 'DetTest1_results' + os.sep + 'data_for_ML' + os.sep
-            print x_data, '\n'
-            print sname + '20Stars' + os.sep + '20Stars.csv'
-
             x = pd.DataFrame({'KIC': x_data[:,0], 'dnu': x_data[:,1], 'numax': x_data[:,2], 'Kp': x_data[:,3]})
-            y = pd.DataFrame({'SNR1': y_data[:,0], 'SNR2': y_data[:,1], 'SNR3': y_data[:,2], 'SNR4': y_data[:,3], 'SNR5': y_data[:,4]})
-            x.to_csv(sname + '20Stars' + os.sep + '20Stars_X.csv', index=False)
-            y.to_csv(sname + '20Stars' + os.sep + '20Stars_Y.csv', index=False)
+
+            if n == 5:
+                y = pd.DataFrame({'SNR1': y_data[:,0], 'SNR2': y_data[:,1], 'SNR3': y_data[:,2], 'SNR4': y_data[:,3], 'SNR5': y_data[:,4]})
+            if n == 4:
+                y = pd.DataFrame({'SNR1': y_data[:,0], 'SNR2': y_data[:,1], 'SNR3': y_data[:,2], 'SNR4': y_data[:,3]})
+
+            x.to_csv(ML_data_dir + '_X.csv', index=False)  # ML_data_dir is defined in config.py
+            y.to_csv(ML_data_dir + '_Y.csv', index=False)  # ML_data_dir is defined in config.py
 
 
 if __name__ == "__main__":
@@ -541,10 +544,25 @@ if __name__ == "__main__":
 
         ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
-        mag = mags[mags['KIC']=='KIC ' + str(epic[i])]  # magnitudes from Simbad
+        mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
+
+        if len(info) == 0:
+            """ No APOKASC information given in 'params' file """
+            #print 'No APOKASC info for KIC', ds.epic
+            continue
+
+        if [ID for ID in modes if ds.epic in ID] == []:
+            """ No fitted mode file given for this star (in 'modes'), so it cannot be analysed. """
+            #print 'No fitted mode file for KIC', ds.epic
+            continue
+
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
         ds.get_modes(IDfile)
         #print epic[i]
+
+        if len(ds.mode_id) == 0:
+            print "length of mode id file is 0 for KIC", ds.epic
+            continue
 
         # make the original Kepler PS
         if ds.sat == 'Kepler':
@@ -586,7 +604,7 @@ if __name__ == "__main__":
 
         # save the required X, Y data for Machine Learning
         output = data_for_ML(star)
-        output.fit_amplitudes()  # fit Gaussian to modes to get numax
+        #output.fit_amplitudes()  # fit Gaussian to modes to get numax
         output.average_dnu()  # get dnu value from mode frequencies
         output.save_xy()
 

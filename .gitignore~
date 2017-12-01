@@ -2,17 +2,20 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+*~
 
 
 # Data files and plots
-*.csv
+#*.csv
 *.dat
 *.png
 *.pdf
+DetTest/config.py
+likeTESS/config.py
 
 # exceptions - data to test code with
 !GetData/20Stars
+!*simbad.csv  # magnitude values
 
 # C extensions
 *.so

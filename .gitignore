@@ -16,6 +16,7 @@ likeTESS/config.py
 # exceptions - data to test code with
 !GetData/20Stars
 !*simbad.csv  # magnitude values
+!*DetTest/DetTest1_results/data_for_ML/20Stars/*.csv  # data to test ML1.py
 
 # C extensions
 *.so

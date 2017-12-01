@@ -53,17 +53,35 @@ def getInput():
     modes = glob.glob(mode_dir + '*.csv')
     mags = pd.read_csv(mag_file)
 
+    # print mags
+    # sys.exit()
+
     # if Imags are not known for the stars, calculate them and save to file
     if 'Imag' not in mags.columns:
 
         mags.rename(columns={'typed ident ':'KIC', 'Mag B ':'Bmag', \
-            'Mag V ':'Vmag', '  coord3 (Ecl,J2000/2000)  ':'a'}, inplace=True)
+            'Mag V ':'Vmag', '  coord3 (EclJ2000/2000)  ':'a'}, inplace=True)
+
+        # ignore rows without Bmag (or vmag values)
+        # mags = mags[(mags['Bmag'].str.strip()!='~')]
+        # mags = mags[(mags['Vmag'].str.strip()!='~')]
+
+        # do not delete rows without magnitudes, just set values to zero incase values become available
+        # mags['Bmag'][(mags['Bmag'].str.strip()=='~')] = 0
+        # mags['Vmag'][(mags['Vmag'].str.strip()=='~')] = 0
+        # print mags
+        # sys.exit()
 
         # separate ecliptic coordinates
-        s = mags['a'].apply(lambda x: x.split(' +'))
-        mags['e_lng'] = s.apply(lambda x: x[0]).astype(float)
-        mags['e_lat'] = s.apply(lambda x: x[1]).astype(float)
-        mags.drop(['a'], axis=1, inplace=True)
+        if 'a' in mags.columns:
+            s = mags['a'].apply(lambda x: x.split(' +'))
+            mags['e_lng'] = s.apply(lambda x: x[0]).astype(float)
+            mags['e_lat'] = s.apply(lambda x: x[1]).astype(float)
+            mags.drop(['a'], axis=1, inplace=True)
+
+        # print mags
+        # mags.to_csv(mag_file, index=False)
+        # sys.exit()
 
         mags = BV2VI(mags)  # calculate Imags
 
