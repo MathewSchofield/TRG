@@ -22,14 +22,17 @@ from sklearn.model_selection import train_test_split
 class Machine_Learning(object):
 
     def __init__(self, data_loc):
-        self.data_loc = data_loc  # the location of the X, Y data to load
+        """  The location and filename of the X, Y data to load
+        (without _X.csv or _Y.csv extension).  """
+        self.data_loc = data_loc
 
     def loadData(self):
-        """ Load the X and Y data. """
-        self.x = pd.read_csv(self.data_loc + '20Stars_X.csv')
-        self.y = pd.read_csv(self.data_loc + '20Stars_Y.csv')
+        """ Load the X and Y data. Remove rows where all values are zero. """
+        self.x = pd.read_csv(self.data_loc + '_X.csv')
+        self.y = pd.read_csv(self.data_loc + '_Y.csv')
 
-        print 'REMOVE EMPTY ROWS WITH ALL 0\'S!!!'; sys.exit()
+        self.x = self.x.loc[(self.x!=0).any(axis=1)]
+        self.y = self.y.loc[(self.y!=0).any(axis=1)]
 
 
     def random_forest_regression(self):
@@ -37,21 +40,24 @@ class Machine_Learning(object):
             RF: Random Forest
             MRF: Multi Random Forest """
 
+        #self.y = self.y[['SNR2', 'SNR3']]
+        #print self.y
+        #sys.exit()
         x = self.x[['Kp', 'dnu', 'numax']].as_matrix()
         y = self.y.as_matrix()
 
-        test_size = 0.3  # use 30% of the data to test the algorithm (i.e 70% to train)
-        random_state = 10  # ??
-        max_depth = 30
+        test_size = 0.4  # use 30% of the data to test the algorithm (i.e 70% to train)
+        random_state = 4  # ??
+        max_depth = 4
+        #random_state, max_depth = None, None
 
         x_train, x_test, y_train, y_test = train_test_split(x,
                                                             y,
                                                             test_size=test_size,
                                                             random_state=random_state)
-        print np.shape(x_train)
-        print np.shape(y_train)
-        print np.shape(x_test)
-        print np.shape(y_test)
+
+        print 'x training/testing set: ', np.shape(x_train), '/', np.shape(x_test)
+        print 'y training/testing set: ', np.shape(y_train), '/', np.shape(y_test)
 
 
         # 1. make an instance of the RF algorithm called 'regr_rf'
@@ -61,7 +67,7 @@ class Machine_Learning(object):
         regr_rf.fit(x_train, y_train)  # create the RF algorithm
         y_rf = regr_rf.predict(x_test)  # predict on new data with RF
         rf_test = regr_rf.score(x_test, y_test)  # how well has RF done:
-        print 'Random Forest Test:', rf_test
+        print 'RF Test: ', rf_test
 
         # 1. make an instance of the MRF algorithm called 'regr_multirf'
         # 2. train it on the training dataset
@@ -71,7 +77,9 @@ class Machine_Learning(object):
         regr_multirf.fit(x_train, y_train)  # create the MRF algorithm
         y_multirf = regr_multirf.predict(x_test)  # predict on new data with MRF
         multirf_test = regr_multirf.score(x_test, y_test)  # how well has MRF done?
-        print 'Multi Random Forest Test:', rf_test
+        print 'MRF Test:', rf_test
+
+
 
 
     def Plot1(self):
@@ -102,7 +110,7 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc='/home/mxs191/Desktop/MathewSchofield/TRG/DetTest/DetTest1_results/data_for_ML/20Stars/')
+    ml = Machine_Learning(data_loc='/home/mxs191/Desktop/MathewSchofield/TRG/DetTest/DetTest1_results/data_for_ML/1000Stars/1000Stars')
     ml.loadData()
     ml.random_forest_regression()
 

@@ -35,13 +35,12 @@ if __name__ == '__main__':
 
     # make some random data
     rng = np.random.RandomState(1)
-    x = np.sort(200 * rng.rand(600, 1) - 100, axis=0)
+    x = np.sort(200 * rng.rand(1000, 1) - 100, axis=0)
     y = np.array([np.pi * np.sin(x).ravel(), np.pi * np.cos(x).ravel()]).T
     y += (0.5 - rng.rand(*y.shape))
-    print np.shape(x), np.shape(y)
+    print 'x & y shape', np.shape(x), np.shape(y)
 
-    #print x
-    sys.exit()
+
     test_size = 0.3  # use 30% of the data to test the algorithm (i.e 70% to train)
     random_state = 10  # ??
     max_depth = 30
@@ -50,10 +49,8 @@ if __name__ == '__main__':
                                                         y,
                                                         test_size=test_size,
                                                         random_state=random_state)
-    print np.shape(x_train)
-    print np.shape(y_train)
-    print np.shape(x_test)
-    print np.shape(y_test)
+    print 'train', len(x_train), len(y_train)
+    print 'test', len(x_test), len(y_test)
 
 
     # 1. make an instance of the RF algorithm called 'regr_rf'
@@ -62,7 +59,8 @@ if __name__ == '__main__':
     regr_rf = RandomForestRegressor(max_depth=max_depth, random_state=random_state)
     regr_rf.fit(x_train, y_train)  # create the RF algorithm
     y_rf = regr_rf.predict(x_test)  # predict on new data with RF
-
+    rf_score = regr_rf.score(x_test, y_test)
+    print 'RF score', rf_score
 
     # 1. make an instance of the MRF algorithm called 'regr_multirf'
     # 2. train it on the training dataset
@@ -71,9 +69,10 @@ if __name__ == '__main__':
                                                              random_state=random_state))
     regr_multirf.fit(x_train, y_train)  # create the MRF algorithm
     y_multirf = regr_multirf.predict(x_test)  # predict on new data with MRF
+    mrf_score = regr_multirf.score(x_test, y_test)
+    print 'MRF score', mrf_score
 
-
-
+    """
     plt.figure()
     s = 50
     a = 0.4
@@ -92,7 +91,7 @@ if __name__ == '__main__':
     plt.title("Comparing random forests and the multi-output meta estimator")
     plt.legend()
     plt.show()
-
+    """
 
 
 

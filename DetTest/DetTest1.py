@@ -472,6 +472,7 @@ class data_for_ML(object):
         n:       The number of overtones (SNR values) to save in the Y data.
         X data:  KIC, dnu, numax, Kp magnitude
         Y data:  the 5 SNR values closest to numax, in ascending frequency order
+        ML_data_dir:  (Defined in config.py) where to save the data
         """
 
         if i == 0:
@@ -516,7 +517,7 @@ class data_for_ML(object):
         x_data[i, :] = int(info['KIC']), self.dnu, self.numax, float(info['kic_kepmag'])
         y_data[i, :] = s
 
-        if i%100 == 0:  print i
+        if i%100 == 0:  print i  # counter
 
         if i == len(params)-1:
             """ After the last star has been processed, save data for all stars. """
