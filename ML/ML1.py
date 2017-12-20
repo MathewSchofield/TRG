@@ -14,6 +14,11 @@ import os
 import sys
 import matplotlib.pyplot as plt
 
+TRG = os.getcwd().split('ML')[0]
+sys.path.insert(0, TRG)
+from plotTemplates import generalPlot
+from config import *  # the directories to find the data files (ML_data_dir)
+
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.model_selection import train_test_split
@@ -47,9 +52,8 @@ class Machine_Learning(object):
         y = self.y.as_matrix()
 
         test_size = 0.4  # use 30% of the data to test the algorithm (i.e 70% to train)
-        random_state = 4  # ??
+        random_state = 42  # keep this constant to keep the results constant
         max_depth = 4
-        #random_state, max_depth = None, None
 
         x_train, x_test, y_train, y_test = train_test_split(x,
                                                             y,
@@ -110,7 +114,7 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc='/home/mxs191/Desktop/MathewSchofield/TRG/DetTest/DetTest1_results/data_for_ML/1000Stars/1000Stars')
+    ml = Machine_Learning(data_loc=ML_data_dir)
     ml.loadData()
     ml.random_forest_regression()
 

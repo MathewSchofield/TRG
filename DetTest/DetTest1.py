@@ -191,6 +191,8 @@ class DetTest(object):
 
     def Info2Save(self):
         """
+        THIS FUNCTION IS DEPRECIATED. USE THE data_for_ML().
+
         Save information on mode frequencies, SNR values and detection
         probabilities for different satellites and observing times.
 
@@ -467,70 +469,69 @@ class data_for_ML(object):
         diff = f1-f2
         self.dnu = np.mean(diff)
 
-    def save_xy(self, v=False, n=4):
-        """ Save the X data into 1 file. Save the Y data into another.
-        n:       The number of overtones (SNR values) to save in the Y data.
-        X data:  KIC, dnu, numax, Kp magnitude
-        Y data:  the 5 SNR values closest to numax, in ascending frequency order
+    def save_xy(self, v=False, n=3):
+        """ Save the X and Y data for Machine Learning into 1 file.
+        n:            The number of overtones (SNR/Pdet values) to save in the Y data.
+        headers:      The headers to use in the final XY dataframe
         ML_data_dir:  (Defined in config.py) where to save the data
+        xy:           The dataframe to save out for all stars. 1 row per star,
+                      1 column per parameter
         """
+
+
+        headers = ['KIC', 'numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
+                   'Vmag', 'B-V', 'V-I', 'Imag', 'Pdet1', 'Pdet2', 'Pdet3']
 
         if i == 0:
+            """ On the first iteration, make the X and Y data arrays. """
             global x_data, y_data
-            x_data = np.zeros((len(params), 4))  # Make the array of KIC, dnu, numax, Kp
-            y_data = np.zeros((len(params), n))  # Make the array of 'n' SNR values
+            x_data = np.zeros((len(params), 11))
+            y_data = np.zeros((len(params), n))
 
 
-        """
-        fit_amplitudes() is not doing a good job of estimating numax. Instead,
-        estimate numax by taking the freq value of the mode with highest SNR. """
-        self.numax = ds.mode_id['f0'].as_matrix()[np.argmax(star.snr_modes)]
+        # NOTE: Get X data.
+        x_data[i, 0:6]  = info[headers[0:6]].as_matrix()
+        x_data[i, 6:11] = mag[headers[6:11]].as_matrix()
 
 
-        """ Get Y data. """
-        # Step 1: get the frequencies and their corresponding SNR values
+        # NOTE: Get Y data.
+        # Step 1: get the frequencies and their corresponding Pdet values
         ds.mode_id.reset_index(drop=True, inplace=True)
         if v:  print i
         if v:  print ds.mode_id['f0'].as_matrix()
-        if v:  print star.snr_modes, '\n'
+        if v:  print star.snr_modes
+        if v:  print star.prob, '\n'
 
         # step 2: calculate the frequency difference between the modes and numax
-        diff = abs(self.numax - ds.mode_id['f0'].as_matrix())
-        if v:  print self.numax, diff, '\n'
+        diff = abs(float(info['numax']) - ds.mode_id['f0'].as_matrix())
+        if v:  print float(info['numax']), diff, '\n'
 
         # step 3: take the 'n' modes closest to numax, sorted from highest to lowest SNR value
+        # make sure that the mode closest to numax is at the centre of
         idx = np.argpartition(diff, n-1)[:n]
         if v:  print idx
         if v:  print ds.mode_id['f0'].as_matrix()[idx]
-        if v:  print star.snr_modes[idx], '\n'
+        if v:  print star.prob[idx], '\n'
 
         # step 4: sort the frequencies in ascending order. Sort SNR values to match the corresponding frequencies
         f = np.sort(ds.mode_id['f0'].as_matrix()[idx])
         p = ds.mode_id['f0'].as_matrix()[idx].argsort() # permutation that sorts the frequencies f
-        s = star.snr_modes[idx][p]
+        s = star.prob[idx][p]
+        y_data[i, :] = s  # put the sorted Pdet values into the Y data array
         if v:  print p
-        if v:  print f[p], '\n'
+        if v:  print f[p], '\n'  # uncsorted frequencies
         if v:  print 'sorted freq:', f
-        if v:  print 'sorted SNR:', s, '\n', '\n', '\n'
+        if v:  print 'sorted Pdet:', s, '\n'#, '\n', '\n'
 
-
-        x_data[i, :] = int(info['KIC']), self.dnu, self.numax, float(info['kic_kepmag'])
-        y_data[i, :] = s
 
         if i%100 == 0:  print i  # counter
 
         if i == len(params)-1:
             """ After the last star has been processed, save data for all stars. """
 
-            x = pd.DataFrame({'KIC': x_data[:,0], 'dnu': x_data[:,1], 'numax': x_data[:,2], 'Kp': x_data[:,3]})
-
-            if n == 5:
-                y = pd.DataFrame({'SNR1': y_data[:,0], 'SNR2': y_data[:,1], 'SNR3': y_data[:,2], 'SNR4': y_data[:,3], 'SNR5': y_data[:,4]})
-            if n == 4:
-                y = pd.DataFrame({'SNR1': y_data[:,0], 'SNR2': y_data[:,1], 'SNR3': y_data[:,2], 'SNR4': y_data[:,3]})
-
-            x.to_csv(ML_data_dir + '_X.csv', index=False)  # ML_data_dir is defined in config.py
-            y.to_csv(ML_data_dir + '_Y.csv', index=False)  # ML_data_dir is defined in config.py
+            d = np.concatenate((x_data, y_data), axis=1)  # put the x and y data into 1 array
+            xy = pd.DataFrame(d, columns=headers)  # put x and y data into dataframe
+            xy.to_csv(ML_data_dir + '_XY.csv', index=False)  # ML_data_dir is defined in config.py)
 
 
 if __name__ == "__main__":
@@ -539,6 +540,7 @@ if __name__ == "__main__":
     ts, epic, params, mags, modes = getInput()
 
     for i, fdir in enumerate(ts):
+        """ Loop through the timeseries files. 1 file (1 star) per iteration. """
 
         sat = 'Kepler'
         #sat = 'TESS'
@@ -579,9 +581,9 @@ if __name__ == "__main__":
 
         # apply a detection test on every mode of the star
         star = DetTest(ds)
-        star.get_snr(plt_PS=False, plt_SNR=False)
+        star.get_snr(plt_PS=False, plt_SNR=False)  # calculate SNR values for every freq bin
         star.mode_snrs(v=False)  # SNR value at each mode
-        #star.Det_Prob(snrthresh=1.0, fap=0.05)  # detection probabnility value for each mode
+        star.Det_Prob(snrthresh=1.0, fap=0.05)  # detection probability value for each mode
         #star.Info2Save()
         # NOTE: plot results
         #star.Diagnostic_plot1()
@@ -593,15 +595,22 @@ if __name__ == "__main__":
 
 
 
-        # print list(vars(ds))
+        #print list(vars(ds))
         # print 'mode id:', ds.mode_id, ds.id_file
         # print len(params)
         # print info
         # print float(info['kic_kepmag'])
         # print mag
+        #print ds.numax
 
-        # print '\n', list(vars(star)), '\n'
+
+
+
+
+        #print '\n', list(vars(star)), '\n'
         # print 'len', len(star.snr_modes)
+        #print star.snr_modes
+        #print star.prob
 
         # save the required X, Y data for Machine Learning
         output = data_for_ML(star)
@@ -610,9 +619,9 @@ if __name__ == "__main__":
         output.save_xy()
 
         # print output.numax, output.dnu
-        # print list(vars(output))
+        #print list(vars(output))
 
-        # sys.exit()
+        #sys.exit()
 
     stop = timeit.default_timer()
     print(round(stop-start, 3), 'secs;', round((stop-start)/len(ts), 3), 's per star.')
