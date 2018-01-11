@@ -482,6 +482,8 @@ class data_for_ML(object):
         headers = ['KIC', 'numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
                    'Vmag', 'B-V', 'V-I', 'Imag', 'Pdet1', 'Pdet2', 'Pdet3']
 
+        #print info, mag
+
         if i == 0:
             """ On the first iteration, make the X and Y data arrays. """
             global x_data, y_data
@@ -490,6 +492,7 @@ class data_for_ML(object):
 
 
         # NOTE: Get X data.
+        info['Dnu'] = self.dnu  # replace dnu values with the value from average_dnu()
         x_data[i, 0:6]  = info[headers[0:6]].as_matrix()
         x_data[i, 6:11] = mag[headers[6:11]].as_matrix()
 
@@ -559,12 +562,16 @@ if __name__ == "__main__":
             #print 'No fitted mode file for KIC', ds.epic
             continue
 
+        if len(mag) == 0:
+            """ no magnitude values available for the star """
+            continue
+
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
         ds.get_modes(IDfile)
         #print epic[i]
 
         if len(ds.mode_id) == 0:
-            print "length of mode id file is 0 for KIC", ds.epic
+            #print "length of mode id file is 0 for KIC", ds.epic
             continue
 
         # make the original Kepler PS

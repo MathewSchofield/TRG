@@ -19,10 +19,11 @@ sys.path.insert(0, TRG)
 from plotTemplates import generalPlot
 from config import *  # the directories to find the data files (ML_data_dir)
 
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.multioutput import MultiOutputRegressor
-from sklearn.model_selection import train_test_split
-
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
 
 class Machine_Learning(object):
 
@@ -33,11 +34,60 @@ class Machine_Learning(object):
 
     def loadData(self):
         """ Load the X and Y data. Remove rows where all values are zero. """
-        self.x = pd.read_csv(self.data_loc + '_X.csv')
-        self.y = pd.read_csv(self.data_loc + '_Y.csv')
 
-        self.x = self.x.loc[(self.x!=0).any(axis=1)]
-        self.y = self.y.loc[(self.y!=0).any(axis=1)]
+        self.xy = pd.read_csv(self.data_loc + '_XY.csv')
+        self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
+
+    def decision_tree_classifier(self):
+        """ Perform a Decision Tree Classifier on the XY data. """
+
+        rs = 42  # random state
+
+        x = self.xy[['KIC', 'numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag',
+                      'Bmag', 'Vmag', 'B-V', 'V-I', 'Imag']].as_matrix()
+        y = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
+        y = np.mean(y, axis=1)
+
+        print (y*100).astype(int)
+        y = (y*100).astype(int)
+
+
+
+        x_train, x_test, y_train, y_test = train_test_split(x,
+                                                            y,
+                                                            test_size=0.5,
+                                                            random_state=rs)
+
+        print 'x training/testing set: ', np.shape(x_train), '/', np.shape(x_test)
+        print 'y training/testing set: ', np.shape(y_train), '/', np.shape(y_test)
+
+        #print y_train
+
+        # x_train = [[0, 0], [1, 1]]
+        # y_train = [0., 1.]
+        # x_test  = [[2,2]]
+        # y_test  = [1.]
+        # print np.shape(x_train), '/', np.shape(x_test)
+        # print np.shape(y_train), '/', np.shape(y_test)
+
+        # from sklearn import preprocessing
+        # from sklearn import utils
+        # lab_enc = preprocessing.LabelEncoder()
+        # encoded = lab_enc.fit_transform(y_test)
+        # print(utils.multiclass.type_of_target(y_test))
+        # print(utils.multiclass.type_of_target(y_test.astype('int')))
+        # print(utils.multiclass.type_of_target(encoded))
+        # sys.exit()
+
+        dtc = DecisionTreeClassifier(random_state=rs)
+        dtc = dtc.fit(x_train, y_train)
+        y_predict = dtc.predict(x_test)  # predict on new data
+        dtc_test = dtc.score(x_test, y_test)  # how well has the classifier done
+        print 'DTC Test: ', dtc_test
+        print y_predict
+        print y_test
+        print accuracy_score(y_test, y_predict)
+        print dtc.scores_
 
 
     def random_forest_regression(self):
@@ -51,7 +101,7 @@ class Machine_Learning(object):
         x = self.x[['Kp', 'dnu', 'numax']].as_matrix()
         y = self.y.as_matrix()
 
-        test_size = 0.4  # use 30% of the data to test the algorithm (i.e 70% to train)
+        test_size = 0.2  # use 30% of the data to test the algorithm (i.e 70% to train)
         random_state = 42  # keep this constant to keep the results constant
         max_depth = 4
 
@@ -83,9 +133,6 @@ class Machine_Learning(object):
         multirf_test = regr_multirf.score(x_test, y_test)  # how well has MRF done?
         print 'MRF Test:', rf_test
 
-
-
-
     def Plot1(self):
         """ Make of a plot of the random_forest_regression() results. """
 
@@ -109,14 +156,12 @@ class Machine_Learning(object):
         plt.show()
 
 
-
-
-
 if __name__ == '__main__':
 
     ml = Machine_Learning(data_loc=ML_data_dir)
     ml.loadData()
-    ml.random_forest_regression()
+    ml.decision_tree_classifier()
+    #ml.random_forest_regression()
 
 
 
