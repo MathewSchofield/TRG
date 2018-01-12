@@ -161,8 +161,9 @@ class Dataset(object):
             The level at which to perform the sigma clip.  If sigma_clip=0
             then no sigma is performed.
 
-        noise: Float
-            If noise is not zero then additional noise is added to the timeseries where the value of noise is the standard deviation of the additional noise.
+        self.TESSnoise: Float
+            If noise is not zero then additional noise is added to the timeseries
+            where the value of noise is the standard deviation of the additional noise.
 
         '''
 
@@ -321,6 +322,13 @@ class Dataset(object):
         """ calculate the noise for a source from Kepler """
         c = 1.28 * 10**(0.4*(12.-Kp) + 7.)  # detections per cadence, (5) eqn 17.
         self.KPnoise = 1e6/c * np.sqrt(c + 9.5 * 1e5*(14./Kp)**5) # in ppm
+
+    def PS_add_noise(self):
+        """ Add Kepler or TESS noise after computing the power spectrum. """
+        if self.sat == 'Kepler':
+            self.power += self.KPnoise
+        if self.sat == 'TESS':
+            self.power += self.TESSnoise
 
     def plot_power_spectrum(self, smoo=0, plog=True):
         ''' Plots the power spectrum '''

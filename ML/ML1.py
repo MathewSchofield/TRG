@@ -49,13 +49,14 @@ class Machine_Learning(object):
         y = np.mean(y, axis=1)
 
         print (y*100).astype(int)
+        print self.xy.shape
         y = (y*100).astype(int)
 
 
 
         x_train, x_test, y_train, y_test = train_test_split(x,
                                                             y,
-                                                            test_size=0.5,
+                                                            test_size=0.3,
                                                             random_state=rs)
 
         print 'x training/testing set: ', np.shape(x_train), '/', np.shape(x_test)
@@ -87,7 +88,12 @@ class Machine_Learning(object):
         print y_predict
         print y_test
         print accuracy_score(y_test, y_predict)
-        print dtc.scores_
+
+
+        from sklearn.model_selection import cross_val_score
+        print(cross_val_score(dtc, x_train, y_train))
+
+
 
 
     def random_forest_regression(self):

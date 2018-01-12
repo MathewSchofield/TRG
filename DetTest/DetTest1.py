@@ -173,6 +173,11 @@ class DetTest(object):
         #sys.exit()
         self.prob = stats.chi2.sf((snrthresh+1.0) / (self.snr_modes+1.0)*2.0*nbins, 2*nbins)
 
+        self.prob[self.prob>=0.9] = 1
+        self.prob[self.prob<0.9]  = 0
+
+
+
     def Conv(self, data, stddev):
         """
         Perform a convolution using a 1D Gaussian Kernel
@@ -471,6 +476,8 @@ class data_for_ML(object):
 
     def save_xy(self, v=False, n=3):
         """ Save the X and Y data for Machine Learning into 1 file.
+        x:            The number of iterations per star (Kp is varied each iteration).
+                      Note: x*i+j is the row number of xy for every star.
         n:            The number of overtones (SNR/Pdet values) to save in the Y data.
         headers:      The headers to use in the final XY dataframe
         ML_data_dir:  (Defined in config.py) where to save the data
@@ -484,17 +491,17 @@ class data_for_ML(object):
 
         #print info, mag
 
-        if i == 0:
+        if x*i+j == 0:
             """ On the first iteration, make the X and Y data arrays. """
             global x_data, y_data
-            x_data = np.zeros((len(params), 11))
-            y_data = np.zeros((len(params), n))
+            x_data = np.zeros((len(params)*x, 11))
+            y_data = np.zeros((len(params)*x, n))
 
 
         # NOTE: Get X data.
         info['Dnu'] = self.dnu  # replace dnu values with the value from average_dnu()
-        x_data[i, 0:6]  = info[headers[0:6]].as_matrix()
-        x_data[i, 6:11] = mag[headers[6:11]].as_matrix()
+        x_data[x*i+j, 0:6]  = info[headers[0:6]].as_matrix()
+        x_data[x*i+j, 6:11] = mag[headers[6:11]].as_matrix()
 
 
         # NOTE: Get Y data.
@@ -520,16 +527,15 @@ class data_for_ML(object):
         f = np.sort(ds.mode_id['f0'].as_matrix()[idx])
         p = ds.mode_id['f0'].as_matrix()[idx].argsort() # permutation that sorts the frequencies f
         s = star.prob[idx][p]
-        y_data[i, :] = s  # put the sorted Pdet values into the Y data array
+        y_data[x*i+j, :] = s  # put the sorted Pdet values into the Y data array
         if v:  print p
         if v:  print f[p], '\n'  # uncsorted frequencies
         if v:  print 'sorted freq:', f
         if v:  print 'sorted Pdet:', s, '\n'#, '\n', '\n'
 
+        if (x*i+j)%100 == 0:  print i  # counter
 
-        if i%100 == 0:  print i  # counter
-
-        if i == len(params)-1:
+        if i*(j+1) == (len(params)-1)*x:
             """ After the last star has been processed, save data for all stars. """
 
             d = np.concatenate((x_data, y_data), axis=1)  # put the x and y data into 1 array
@@ -574,61 +580,60 @@ if __name__ == "__main__":
             #print "length of mode id file is 0 for KIC", ds.epic
             continue
 
-        # make the original Kepler PS
-        if ds.sat == 'Kepler':
-            ds.ts()
-            ds.Periodogram()
 
-        # transform the Kepler PS into TESS PS
-        elif ds.sat == 'TESS':
-            # units of exptime are seconds. noise in units of ppm
-            ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-               teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
-            ds.timeseries(plot_ts=False, plot_ps=False)
+        x = 2
+        for j in range(x):
+            """ Perturb Kepler magnitudes before calculating detection probability.
+                Do this x times per star. Save 1 row per perturbed magnitude
+                in save_xy() (each star has x rows). """
 
-        # apply a detection test on every mode of the star
-        star = DetTest(ds)
-        star.get_snr(plt_PS=False, plt_SNR=False)  # calculate SNR values for every freq bin
-        star.mode_snrs(v=False)  # SNR value at each mode
-        star.Det_Prob(snrthresh=1.0, fap=0.05)  # detection probability value for each mode
-        #star.Info2Save()
-        # NOTE: plot results
-        #star.Diagnostic_plot1()
-        #star.Diagnostic_plot2()
-        #star.Diagnostic_plot3()
-        #star.plot4()
+            if j == 0:
+                kps = np.random.uniform(low=11, high=17, size=x)
+
+            info['kic_kepmag'] = kps[j]
 
 
+            # make the original Kepler PS
+            if ds.sat == 'Kepler':
+                ds.ts()
+                ds.Periodogram()
+                ds.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
+                ds.PS_add_noise()  # add noise to the power spectrum
+
+            # transform the Kepler PS into TESS PS
+            elif ds.sat == 'TESS':
+                # units of exptime are seconds. noise in units of ppm
+                ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
+                   teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
+                ds.timeseries(plot_ts=False, plot_ps=False)
+
+            # apply a detection test on every mode of the star
+            star = DetTest(ds)
+            star.get_snr(plt_PS=False, plt_SNR=False)  # calculate SNR values for every freq bin
+            star.mode_snrs(v=False)  # SNR value at each mode
+            star.Det_Prob(snrthresh=1.0, fap=0.05)  # detection probability value for each mode
+            #star.Info2Save()
+            # NOTE: plot results
+            #star.Diagnostic_plot1()
+            #star.Diagnostic_plot2()
+            #star.Diagnostic_plot3()
+            #star.plot4()
 
 
 
-        #print list(vars(ds))
-        # print 'mode id:', ds.mode_id, ds.id_file
-        # print len(params)
-        # print info
-        # print float(info['kic_kepmag'])
-        # print mag
-        #print ds.numax
+            #print list(vars(ds))
+            print star.prob
 
 
-
-
-
-        #print '\n', list(vars(star)), '\n'
-        # print 'len', len(star.snr_modes)
-        #print star.snr_modes
-        #print star.prob
-
-        # save the required X, Y data for Machine Learning
-        output = data_for_ML(star)
-        #output.fit_amplitudes()  # fit Gaussian to modes to get numax
-        output.average_dnu()  # get dnu value from mode frequencies
-        output.save_xy()
-
-        # print output.numax, output.dnu
-        #print list(vars(output))
+            # save the required X, Y data for Machine Learning
+            output = data_for_ML(star)
+            #output.fit_amplitudes()  # fit Gaussian to modes to get numax
+            output.average_dnu()  # get dnu value from mode frequencies (only once per star)
+            output.save_xy()
 
         #sys.exit()
+
+
 
     stop = timeit.default_timer()
     print(round(stop-start, 3), 'secs;', round((stop-start)/len(ts), 3), 's per star.')
