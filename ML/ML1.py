@@ -19,11 +19,12 @@ sys.path.insert(0, TRG)
 from plotTemplates import generalPlot
 from config import *  # the directories to find the data files (ML_data_dir)
 
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.multioutput import MultiOutputRegressor
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
+from sklearn import preprocessing, utils
+
 
 class Machine_Learning(object):
 
@@ -38,63 +39,37 @@ class Machine_Learning(object):
         self.xy = pd.read_csv(self.data_loc + '_XY.csv')
         self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
 
-    def decision_tree_classifier(self):
-        """ Perform a Decision Tree Classifier on the XY data. """
+    def random_forest_classifier(self):
+        """ Perform a Random Forest Classifier (made up of many decision trees)
+        on the XY data. Y data must be given as 0 or 1 for each mode (detected or not). """
 
         rs = 42  # random state
 
-        x = self.xy[['KIC', 'numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag',
+        x = self.xy[['numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag',
                       'Bmag', 'Vmag', 'B-V', 'V-I', 'Imag']].as_matrix()
         y = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
-        y = np.mean(y, axis=1)
-
-        print (y*100).astype(int)
-        print self.xy.shape
-        y = (y*100).astype(int)
-
-
 
         x_train, x_test, y_train, y_test = train_test_split(x,
                                                             y,
                                                             test_size=0.3,
                                                             random_state=rs)
-
         print 'x training/testing set: ', np.shape(x_train), '/', np.shape(x_test)
         print 'y training/testing set: ', np.shape(y_train), '/', np.shape(y_test)
+        #print 'y_test is a', (utils.multiclass.type_of_target(y_test))
 
-        #print y_train
+        rfc = RandomForestClassifier(random_state=rs, max_depth=100, max_features=5,
+            min_samples_leaf=20)
+        rfc = rfc.fit(x_train, y_train)
+        y_predict = rfc.predict(x_test)  # predict on new data (predict )
+        rfc_test = rfc.score(x_test, y_test)  # how well has the classifier done
+        print 'DTC Test: ', rfc_test
+        print 'Feature importance:', rfc.feature_importances_
 
-        # x_train = [[0, 0], [1, 1]]
-        # y_train = [0., 1.]
-        # x_test  = [[2,2]]
-        # y_test  = [1.]
-        # print np.shape(x_train), '/', np.shape(x_test)
-        # print np.shape(y_train), '/', np.shape(y_test)
-
-        # from sklearn import preprocessing
-        # from sklearn import utils
-        # lab_enc = preprocessing.LabelEncoder()
-        # encoded = lab_enc.fit_transform(y_test)
-        # print(utils.multiclass.type_of_target(y_test))
-        # print(utils.multiclass.type_of_target(y_test.astype('int')))
-        # print(utils.multiclass.type_of_target(encoded))
-        # sys.exit()
-
-        dtc = DecisionTreeClassifier(random_state=rs)
-        dtc = dtc.fit(x_train, y_train)
-        y_predict = dtc.predict(x_test)  # predict on new data
-        dtc_test = dtc.score(x_test, y_test)  # how well has the classifier done
-        print 'DTC Test: ', dtc_test
-        print y_predict
-        print y_test
-        print accuracy_score(y_test, y_predict)
+        #print y_predict
 
 
-        from sklearn.model_selection import cross_val_score
-        print(cross_val_score(dtc, x_train, y_train))
-
-
-
+        #cv_score = cross_val_score(rfc, x_train, y_train)
+        #print("Accuracy: %0.2f (+/- %0.2f)" % (cv_score.mean(), cv_score.std() * 2))
 
     def random_forest_regression(self):
         """ Perform Random Forest Regression on the X, Y data.
@@ -166,7 +141,7 @@ if __name__ == '__main__':
 
     ml = Machine_Learning(data_loc=ML_data_dir)
     ml.loadData()
-    ml.decision_tree_classifier()
+    ml.random_forest_classifier()
     #ml.random_forest_regression()
 
 

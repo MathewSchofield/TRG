@@ -581,7 +581,7 @@ if __name__ == "__main__":
             continue
 
 
-        x = 2
+        x = 100
         for j in range(x):
             """ Perturb Kepler magnitudes before calculating detection probability.
                 Do this x times per star. Save 1 row per perturbed magnitude
@@ -622,7 +622,7 @@ if __name__ == "__main__":
 
 
             #print list(vars(ds))
-            print star.prob
+            #print star.prob
 
 
             # save the required X, Y data for Machine Learning
