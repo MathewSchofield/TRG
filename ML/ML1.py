@@ -28,15 +28,17 @@ from sklearn import preprocessing, utils
 
 class Machine_Learning(object):
 
-    def __init__(self, data_loc):
-        """  The location and filename of the X, Y data to load
-        (without _X.csv or _Y.csv extension).  """
+    def __init__(self, data_loc, sat):
+        """  The file location of the X, Y data to load, and the satellite to test
+        ('Kepler' or 'TESS') """
         self.data_loc = data_loc
+        self.sat = sat
 
     def loadData(self):
-        """ Load the X and Y data. Remove rows where all values are zero. """
+        """ Load the X and Y data for the Kepler or TESS sample.
+        Remove rows where all values are zero. """
 
-        self.xy = pd.read_csv(self.data_loc + '_XY.csv')
+        self.xy = pd.read_csv(self.data_loc + '_' + self.sat + '_XY.csv')
         self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
 
     def random_forest_classifier(self):
@@ -57,16 +59,13 @@ class Machine_Learning(object):
         print 'y training/testing set: ', np.shape(y_train), '/', np.shape(y_test)
         #print 'y_test is a', (utils.multiclass.type_of_target(y_test))
 
-        rfc = RandomForestClassifier(random_state=rs, max_depth=100, max_features=5,
-            min_samples_leaf=20)
+        rfc = RandomForestClassifier(random_state=rs, max_depth=100, #max_features=10,
+            min_samples_leaf=100)
         rfc = rfc.fit(x_train, y_train)
-        y_predict = rfc.predict(x_test)  # predict on new data (predict )
+        y_predict = rfc.predict(x_test)  # predict on new data
         rfc_test = rfc.score(x_test, y_test)  # how well has the classifier done
         print 'DTC Test: ', rfc_test
         print 'Feature importance:', rfc.feature_importances_
-
-        #print y_predict
-
 
         #cv_score = cross_val_score(rfc, x_train, y_train)
         #print("Accuracy: %0.2f (+/- %0.2f)" % (cv_score.mean(), cv_score.std() * 2))
@@ -139,7 +138,7 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir)
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS')
     ml.loadData()
     ml.random_forest_classifier()
     #ml.random_forest_regression()

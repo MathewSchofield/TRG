@@ -160,7 +160,7 @@ class DetTest(object):
         snrthresh: Threshold SNR; SNR if no mode is present (Float)
 
         Outputs
-        prob: the detection probability for each SNR value (i.e mode) (Float)
+        prob: (int:0 or 1) the detection probability for each SNR value (i.e mode)
         """
 
         if nbins == []:      nbins = 1
@@ -173,10 +173,8 @@ class DetTest(object):
         #sys.exit()
         self.prob = stats.chi2.sf((snrthresh+1.0) / (self.snr_modes+1.0)*2.0*nbins, 2*nbins)
 
-        self.prob[self.prob>=0.9] = 1
-        self.prob[self.prob<0.9]  = 0
-
-
+        self.prob[self.prob>=0.9] = 1  # if Pdet>0.9, mode is detected
+        self.prob[self.prob<0.9]  = 0  # if Pdet<0.9, mode is not detected
 
     def Conv(self, data, stddev):
         """
@@ -540,7 +538,7 @@ class data_for_ML(object):
 
             d = np.concatenate((x_data, y_data), axis=1)  # put the x and y data into 1 array
             xy = pd.DataFrame(d, columns=headers)  # put x and y data into dataframe
-            xy.to_csv(ML_data_dir + '_XY.csv', index=False)  # ML_data_dir is defined in config.py)
+            xy.to_csv(ML_data_dir + '_' + sat + '_XY.csv', index=False)  # ML_data_dir is defined in config.py)
 
 
 if __name__ == "__main__":
@@ -551,13 +549,15 @@ if __name__ == "__main__":
     for i, fdir in enumerate(ts):
         """ Loop through the timeseries files. 1 file (1 star) per iteration. """
 
-        sat = 'Kepler'
-        #sat = 'TESS'
+        #sat = 'Kepler'
+        sat = 'TESS'
 
         ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
+
+        """ Conditions to skip this star """
         if len(info) == 0:
             """ No APOKASC information given in 'params' file """
             #print 'No APOKASC info for KIC', ds.epic
@@ -577,8 +577,9 @@ if __name__ == "__main__":
         #print epic[i]
 
         if len(ds.mode_id) == 0:
-            #print "length of mode id file is 0 for KIC", ds.epic
+            """ length of mode id file is 0 for KIC """
             continue
+        """ Conditions to skip this star """
 
 
         x = 100
