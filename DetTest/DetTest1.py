@@ -41,8 +41,13 @@ class DetTest(object):
         self.snr_modes = np.array([])  # the self.snr values at mode frequencies
         self.prob = []
 
+        if ds.sat == 'Kepler':
+            self.thresh = 0.9  # threshold for making a detection
+        if ds.sat == 'TESS':
+            self.thresh = 0.5  # threshold for making a detection
+
         # the location of the probability file for the star (to save) in Info2Save()
-        self.probfile = os.getcwd() + os.sep + 'DetTest1_results' +\
+        self.probfile = os.getcwd() + os.sep + 'DetTest1_results/Info2Save' +\
             os.sep + self.ds.epic + '.csv'
 
     def estimate_background(self, log_width):
@@ -147,17 +152,18 @@ class DetTest(object):
                 self.snr_modes = np.append(self.snr_modes, max(self.snr[rng]))
 
             if v:  print 'final val', self.snr_modes, '\n'
-            if v:  sys.exit()
+            #if v:  sys.exit()
 
     def Det_Prob(self, nbins=[], fap=[], snrthresh=[]):
         """
         Calculate the detection probability, given a SNR ratio and threshold.
 
         Inputs
-        snrs:      Array of SNR values to calculate detection probabilities for (Float)
-        nbins:     Number of bins the SNR is taken across (Int)
-        fap:       False Alarm Probability (Float)
-        snrthresh: Threshold SNR; SNR if no mode is present (Float)
+        snrs:        Array of SNR values to calculate detection probabilities for (Float)
+        nbins:       Number of bins the SNR is taken across (Int)
+        fap:         False Alarm Probability (Float)
+        snrthresh:   Threshold SNR; SNR if no mode is present (Float)
+        self.thresh: Defined in __init__. threshold for making a detection
 
         Outputs
         prob: (int:0 or 1) the detection probability for each SNR value (i.e mode)
@@ -173,8 +179,8 @@ class DetTest(object):
         #sys.exit()
         self.prob = stats.chi2.sf((snrthresh+1.0) / (self.snr_modes+1.0)*2.0*nbins, 2*nbins)
 
-        self.prob[self.prob>=0.9] = 1  # if Pdet>0.9, mode is detected
-        self.prob[self.prob<0.9]  = 0  # if Pdet<0.9, mode is not detected
+        self.prob[self.prob>=self.thresh] = 1  # if Pdet>threshold, mode is detected
+        self.prob[self.prob<self.thresh]  = 0  # if Pdet<threshold, mode is not detected
 
     def Conv(self, data, stddev):
         """
@@ -393,6 +399,7 @@ class DetTest(object):
 
         probs = pd.read_csv(self.probfile)
 
+        plt.rc('font', size=14)
         fig, ax = plt.subplots()
         plt.plot(self.ds.freq, self.snr, 'k-', alpha=0.5)
 
@@ -552,7 +559,7 @@ if __name__ == "__main__":
         #sat = 'Kepler'
         sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
@@ -582,46 +589,48 @@ if __name__ == "__main__":
         """ Conditions to skip this star """
 
 
-        x = 100
+        x = 1
         for j in range(x):
             """ Perturb Kepler magnitudes before calculating detection probability.
                 Do this x times per star. Save 1 row per perturbed magnitude
                 in save_xy() (each star has x rows). """
 
-            if j == 0:
-                kps = np.random.uniform(low=11, high=17, size=x)
 
-            info['kic_kepmag'] = kps[j]
+            if ds.sat == 'Kepler':  # make the original Kepler PS
+                if j == 0:
+                    kps = np.random.uniform(low=11, high=17, size=x)
 
+                #info['kic_kepmag'] = kps[j]  # change the magnitude for this iteration
 
-            # make the original Kepler PS
-            if ds.sat == 'Kepler':
                 ds.ts()
                 ds.Periodogram()
                 ds.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
                 ds.PS_add_noise()  # add noise to the power spectrum
 
-            # transform the Kepler PS into TESS PS
-            elif ds.sat == 'TESS':
+
+            elif ds.sat == 'TESS':  # transform the Kepler PS into TESS PS
+                if j == 0:
+                    imags = np.random.uniform(low=11, high=17, size=x)
+
+                mag['Imag'] = imags[j]  # change the magnitude for this iteration
+
                 # units of exptime are seconds. noise in units of ppm
                 ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
                    teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
                 ds.timeseries(plot_ts=False, plot_ps=False)
 
-            # apply a detection test on every mode of the star
-            star = DetTest(ds)
+
+
+            star = DetTest(ds)   # apply a detection test on every mode of the star
             star.get_snr(plt_PS=False, plt_SNR=False)  # calculate SNR values for every freq bin
-            star.mode_snrs(v=False)  # SNR value at each mode
+            star.mode_snrs()  # SNR value at each mode
             star.Det_Prob(snrthresh=1.0, fap=0.05)  # detection probability value for each mode
-            #star.Info2Save()
-            # NOTE: plot results
+            star.Info2Save()
             #star.Diagnostic_plot1()
             #star.Diagnostic_plot2()
             #star.Diagnostic_plot3()
-            #star.plot4()
-
-
-
+            star.plot4()
+            #sys.exit()
             #print list(vars(ds))
             #print star.prob
 
@@ -632,7 +641,7 @@ if __name__ == "__main__":
             output.average_dnu()  # get dnu value from mode frequencies (only once per star)
             output.save_xy()
 
-        #sys.exit()
+
 
 
 
