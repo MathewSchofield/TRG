@@ -545,7 +545,7 @@ class data_for_ML(object):
 
             d = np.concatenate((x_data, y_data), axis=1)  # put the x and y data into 1 array
             xy = pd.DataFrame(d, columns=headers)  # put x and y data into dataframe
-            xy.to_csv(ML_data_dir + '_' + sat + '_XY.csv', index=False)  # ML_data_dir is defined in config.py)
+            xy.to_csv(ML_data_dir + '_' + sat + str(ds.Tobs) + '_XY.csv', index=False)  # ML_data_dir is defined in config.py)
 
 
 if __name__ == "__main__":
@@ -589,7 +589,7 @@ if __name__ == "__main__":
         """ Conditions to skip this star """
 
 
-        x = 1
+        x = 100
         for j in range(x):
             """ Perturb Kepler magnitudes before calculating detection probability.
                 Do this x times per star. Save 1 row per perturbed magnitude
@@ -609,8 +609,9 @@ if __name__ == "__main__":
 
 
             elif ds.sat == 'TESS':  # transform the Kepler PS into TESS PS
+
                 if j == 0:
-                    imags = np.random.uniform(low=11, high=17, size=x)
+                    imags = np.random.uniform(low=6., high=12., size=x)
 
                 mag['Imag'] = imags[j]  # change the magnitude for this iteration
 
@@ -625,11 +626,11 @@ if __name__ == "__main__":
             star.get_snr(plt_PS=False, plt_SNR=False)  # calculate SNR values for every freq bin
             star.mode_snrs()  # SNR value at each mode
             star.Det_Prob(snrthresh=1.0, fap=0.05)  # detection probability value for each mode
-            star.Info2Save()
+            #star.Info2Save()
             #star.Diagnostic_plot1()
             #star.Diagnostic_plot2()
             #star.Diagnostic_plot3()
-            star.plot4()
+            #star.plot4()
             #sys.exit()
             #print list(vars(ds))
             #print star.prob

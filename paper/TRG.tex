@@ -6,11 +6,13 @@
 \usepackage{multicol}        % Multi-column entries in tables
 \usepackage{bm}		% Bold maths symbols, including upright Greek
 \usepackage{pdflscape}	% Landscape pages
+\usepackage{IEEEtrantools} % for stacked equations
 
 \newcommand{\numax}{\ensuremath{\nu_{\textrm{max}}}}
 \newcommand{\dnu}{\ensuremath{\Delta\nu}}
-\newcommand{\teff}{\ensuremath{T_{\textrm{eff}}}} 
+\newcommand{\teff}{\ensuremath{T_{\textrm{eff}}\:}} 
 \newcommand{\kep}{\ensuremath{Kepler}}
+\newcommand{\pdet}{\ensuremath{P_{\rm det}}}
 
 \newcommand{\bibtex}{\textsc{Bib}\!\TeX} % bibtex. Not quite the correct typesetting, but close enough
 
@@ -184,7 +186,7 @@ P = \int_{x}^{\infty} \frac{e^{-x}}{\Gamma(N)} x^{N-1} dx .
 \end{equation}
 $\Gamma(N)$ is the Gamma function. The lower bound of Equation \ref{eq:prob} is set to $x=1+{\rm SNR_{thresh}}$. N is the number of frequency bins. The noise in this bin is assumed to follow $\chi_{2}$ $2n_{\rm bins}$ d.o.f statistics. 
 
-Once $\rm SNR_{thresh}$ is found, Equation \ref{eq:prob} is solved again. This time it is solved for $P$ by setting $x=(1+{\rm SNR_{thresh}})/(1+{\rm SNR})$. Here, SNR is the observed Signal-to-noise Ratio calculated from Equation \ref{eq:snr}. This calculates the probability that the frequency sqike was due to stochastic excitation in the convective envelope of the star.
+Once $\rm SNR_{thresh}$ is found, Equation \ref{eq:prob} is solved again. This time it is solved for $P$ by setting $x=(1+{\rm SNR_{thresh}})/(1+{\rm SNR})$. Here, SNR is the observed Signal-to-noise Ratio calculated from Equation \ref{eq:snr}. This calculates the probability that the frequency spike was due to stochastic excitation in the convective envelope of the star.
 
 This detection test was applied to every mode of every star in the 1000-star sample. Classification was then applied to this dataset. This is described in Section \ref{classifier}.
 
@@ -194,7 +196,57 @@ This detection test was applied to every mode of every star in the 1000-star sam
 
 Section \ref{dataset} describes how the lightcurves of every star were treated before a detection test was run on the modes in Section \ref{det_test}. After this, Classification was applied to the stars to separate them into a suitable target list, and a list of stars that are not suitable for observation with TESS.
 
-This could be done without using Machine Learning, although it takes much longer. In the age where datasets from missions such as MAST and Gaia REFERENCE4GAIA !!!!!1 Gilmour 2012  
+This could be done without using Machine Learning, although it takes much longer. In the age where datasets from missions such as MAST and Gaia \citep{gaia_collaboration_gaia_2016} exist, tools need to be developed to make use of the huge amount of information we now have on stars from across the sky.
+
+\subsection{Preparing the data}
+Firstly, the detection probabilities of every mode were taken from Section \ref{det_test}. Each probability was changed to a 1 or 0 depending on if a detection was made. For each mode as observed by $Kepler$,
+\begin{equation}
+\label{eq:kep_class}
+P_{\rm det, Kep} = \left\{ \,
+    \begin{IEEEeqnarraybox}[][c]{l?s}
+      \IEEEstrut
+      1 & if \pdet $\geq$ 0.9 \, , \\
+      0 & if \pdet $<$    0.9 \, .
+      \IEEEstrut
+    \end{IEEEeqnarraybox}
+\right.
+\end{equation}
+Modes will be more difficult to detect in TESS due to the larger white noise levels and shorter observation times. The threshold for determining a detection was therefore reduced;
+\begin{equation}
+\label{eq:tess_class}
+P_{\rm det, TESS} = \left\{ \,
+    \begin{IEEEeqnarraybox}[][c]{l?s}
+      \IEEEstrut
+      1 & if \pdet $\geq$ 0.5 \, , \\
+      0 & if \pdet $<$    0.5 \, .
+      \IEEEstrut
+    \end{IEEEeqnarraybox}
+\right.
+\end{equation}
+
+Using equations \ref{eq:kep_class} and \ref{eq:kep_class}, every mode was classified as detected (1) or undetected (0). The same three radial modes were used for every star: the mode closest to \numax $l_{n}$, the radial mode one overtone below that $l_{n-1}$, and the radial mode above \numax $l_{n+1}$. It was important to use the same information for every star so that the algorithm could learn the patterns between the variables.
+
+A classifier is an algorithm that can learn a relationship between variables. The classifier will map from some initial information about the star (the X data), to some unknown information (the Y data). In this work, the X data were magnitude ($K_{p}$ or $I_{\rm mag}$), \numax, \dnu, \teff and [Fe/H]. The Y data were the 3 radial modes for every star.
+
+\citep{davies_asteroseismology_2016} had peak-bagged 1000 Red Giant stars. The more samples available, the better the classifier will be able to learn the relationship between variables. In order to increase the number of samples, the stellar magnitude was perturbed 100 times iteratively for every star. The noise level for the star was adjusted each iteration, and a detection probability was calculated for the modes. After removing gaps in the data, this left 60,000 samples.
+
+The 60,000 samples were separated into a training dataset, and a testing set. 70\% of the samples were used to train the classifier (46,410 stars); 30\% was used to test the algorithm (19,890 stars). To train the Classifier, the X and Y data in the training set was given to the algorithm (X$_{\rm train}$ and Y$_{\rm train}$). Once the Classifier had been made, the X data from the testing set was given to it (X$_{\rm test}$). The Classifier then predicted a set of Y data for the testing set (Y$_{\rm pred}$). This was compared to the actual Y data for the testing set (Y$_{\rm test}$).
+
+For the original $Kepler$ sample, the Classifier produced a set of Y$_{\rm pred}$ data with a score of 0.93. The data was then modified for observation by TESS using the process described in Section \ref{dataset}, and the classifier was used again. It produced a set of Y$_{\rm pred}$ data with a score of ???????????
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \bibliographystyle{mnras}
 \bibliography{TRG}

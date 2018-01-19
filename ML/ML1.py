@@ -47,8 +47,8 @@ class Machine_Learning(object):
 
         rs = 42  # random state
 
-        x = self.xy[['numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag',
-                      'Bmag', 'Vmag', 'B-V', 'V-I', 'Imag']].as_matrix()
+        params = ['numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag', 'Vmag', 'B-V', 'V-I', 'Imag']
+        x = self.xy[params].as_matrix()
         y = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
 
         x_train, x_test, y_train, y_test = train_test_split(x,
@@ -60,13 +60,17 @@ class Machine_Learning(object):
         #print 'y_test is a', (utils.multiclass.type_of_target(y_test))
 
         rfc = RandomForestClassifier(random_state=rs, max_depth=100, #max_features=10,
-            min_samples_leaf=100)
+            min_samples_leaf=10)
         rfc = rfc.fit(x_train, y_train)
-        y_predict = rfc.predict(x_test)  # predict on new data
+        y_pred = rfc.predict(x_test)  # predict on new data
         rfc_test = rfc.score(x_test, y_test)  # how well has the classifier done
         print 'DTC Test: ', rfc_test
         print 'Feature importance:', rfc.feature_importances_
 
+        from sklearn.metrics import classification_report
+        from sklearn.metrics import confusion_matrix
+        print(classification_report(y_test, y_pred))
+        #print(confusion_matrix(y_test, y_pred))
         #cv_score = cross_val_score(rfc, x_train, y_train)
         #print("Accuracy: %0.2f (+/- %0.2f)" % (cv_score.mean(), cv_score.std() * 2))
 
