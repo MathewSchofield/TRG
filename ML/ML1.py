@@ -28,17 +28,18 @@ from sklearn import preprocessing, utils
 
 class Machine_Learning(object):
 
-    def __init__(self, data_loc, sat):
-        """  The file location of the X, Y data to load, and the satellite to test
-        ('Kepler' or 'TESS') """
+    def __init__(self, data_loc, sat, Tobs):
+        """  The file location of the X, Y data to load, the satellite to test
+        ('Kepler' or 'TESS') and the observing time """
         self.data_loc = data_loc
         self.sat = sat
+        self.Tobs = Tobs
 
     def loadData(self):
         """ Load the X and Y data for the Kepler or TESS sample.
         Remove rows where all values are zero. """
 
-        self.xy = pd.read_csv(self.data_loc + '_' + self.sat + '_XY.csv')
+        self.xy = pd.read_csv(self.data_loc + '_' + self.sat + str(self.Tobs) + '_XY.csv')
         self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
 
     def random_forest_classifier(self):
@@ -47,7 +48,8 @@ class Machine_Learning(object):
 
         rs = 42  # random state
 
-        params = ['numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag', 'Vmag', 'B-V', 'V-I', 'Imag']
+        params = ['numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
+                  'Vmag', 'B-V', 'V-I', 'Imag']
         x = self.xy[params].as_matrix()
         y = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
 
@@ -69,7 +71,7 @@ class Machine_Learning(object):
 
         from sklearn.metrics import classification_report
         from sklearn.metrics import confusion_matrix
-        print(classification_report(y_test, y_pred))
+        #print(classification_report(y_test, y_pred))
         #print(confusion_matrix(y_test, y_pred))
         #cv_score = cross_val_score(rfc, x_train, y_train)
         #print("Accuracy: %0.2f (+/- %0.2f)" % (cv_score.mean(), cv_score.std() * 2))
@@ -142,7 +144,7 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS')
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=365)
     ml.loadData()
     ml.random_forest_classifier()
     #ml.random_forest_regression()

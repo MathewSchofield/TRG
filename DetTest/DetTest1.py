@@ -43,8 +43,8 @@ class DetTest(object):
 
         if ds.sat == 'Kepler':
             self.thresh = 0.9  # threshold for making a detection
-        if ds.sat == 'TESS':
-            self.thresh = 0.5  # threshold for making a detection
+        if (ds.sat == 'TESS') and (ds.Tobs==365):
+            self.thresh = 0.9  # threshold for making a detection
 
         # the location of the probability file for the star (to save) in Info2Save()
         self.probfile = os.getcwd() + os.sep + 'DetTest1_results/Info2Save' +\
@@ -563,6 +563,9 @@ if __name__ == "__main__":
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
+        IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
+        ds.get_modes(IDfile)
+
 
         """ Conditions to skip this star """
         if len(info) == 0:
@@ -570,7 +573,7 @@ if __name__ == "__main__":
             #print 'No APOKASC info for KIC', ds.epic
             continue
 
-        if [ID for ID in modes if ds.epic in ID] == []:
+        if [IDfile] == []:
             """ No fitted mode file given for this star (in 'modes'), so it cannot be analysed. """
             #print 'No fitted mode file for KIC', ds.epic
             continue
@@ -579,29 +582,23 @@ if __name__ == "__main__":
             """ no magnitude values available for the star """
             continue
 
-        IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
-        ds.get_modes(IDfile)
-        #print epic[i]
-
         if len(ds.mode_id) == 0:
             """ length of mode id file is 0 for KIC """
             continue
         """ Conditions to skip this star """
 
 
-        x = 100
+        x = 1000  # number of iterations for every star (number of different magnitudes)
         for j in range(x):
             """ Perturb Kepler magnitudes before calculating detection probability.
                 Do this x times per star. Save 1 row per perturbed magnitude
                 in save_xy() (each star has x rows). """
 
-
             if ds.sat == 'Kepler':  # make the original Kepler PS
                 if j == 0:
                     kps = np.random.uniform(low=11, high=17, size=x)
 
-                #info['kic_kepmag'] = kps[j]  # change the magnitude for this iteration
-
+                info['kic_kepmag'] = kps[j]  # change the magnitude for this iteration
                 ds.ts()
                 ds.Periodogram()
                 ds.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
@@ -613,11 +610,15 @@ if __name__ == "__main__":
                 if j == 0:
                     imags = np.random.uniform(low=6., high=12., size=x)
 
-                mag['Imag'] = imags[j]  # change the magnitude for this iteration
+                # change magnitudes for this iteration
+                diff = imags[j]-float(mag['Imag'])
+                mag[['Imag', 'Vmag', 'Bmag']] += diff
+                info['kic_kepmag'] += diff
 
-                # units of exptime are seconds. noise in units of ppm
+                #mag['Imag'] = imags[j]
                 ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-                   teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(), sys_limit=0)
+                   teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(),
+                   sys_limit=0)  # exptime in seconds. noise in ppm
                 ds.timeseries(plot_ts=False, plot_ps=False)
 
 
@@ -636,13 +637,11 @@ if __name__ == "__main__":
             #print star.prob
 
 
-            # save the required X, Y data for Machine Learning
-            output = data_for_ML(star)
+
+            output = data_for_ML(star)  # save X, Y data for Machine Learning
             #output.fit_amplitudes()  # fit Gaussian to modes to get numax
             output.average_dnu()  # get dnu value from mode frequencies (only once per star)
             output.save_xy()
-
-
 
 
 
