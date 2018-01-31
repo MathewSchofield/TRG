@@ -44,7 +44,9 @@ class DetTest(object):
         if ds.sat == 'Kepler':
             self.thresh = 0.9  # threshold for making a detection
         if (ds.sat == 'TESS') and (ds.Tobs==365):
-            self.thresh = 0.9  # threshold for making a detection
+            self.thresh = 0.9  # threshold for making a detection for 1 year
+        if (ds.sat == 'TESS') and (ds.Tobs==27):
+            self.thresh = 0.5  # threshold for making a detection for 27 days
 
         # the location of the probability file for the star (to save) in Info2Save()
         self.probfile = os.getcwd() + os.sep + 'DetTest1_results/Info2Save' +\
@@ -559,12 +561,9 @@ if __name__ == "__main__":
         #sat = 'Kepler'
         sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
-
-        IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
-        ds.get_modes(IDfile)
 
 
         """ Conditions to skip this star """
@@ -573,7 +572,7 @@ if __name__ == "__main__":
             #print 'No APOKASC info for KIC', ds.epic
             continue
 
-        if [IDfile] == []:
+        if [ID for ID in modes if ds.epic in ID] == []:
             """ No fitted mode file given for this star (in 'modes'), so it cannot be analysed. """
             #print 'No fitted mode file for KIC', ds.epic
             continue
@@ -582,13 +581,18 @@ if __name__ == "__main__":
             """ no magnitude values available for the star """
             continue
 
+        IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
+        ds.get_modes(IDfile)
+        #print epic[i]
+
         if len(ds.mode_id) == 0:
             """ length of mode id file is 0 for KIC """
             continue
         """ Conditions to skip this star """
 
 
-        x = 1000  # number of iterations for every star (number of different magnitudes)
+
+        x = 100  # number of iterations for every star (number of different magnitudes)
         for j in range(x):
             """ Perturb Kepler magnitudes before calculating detection probability.
                 Do this x times per star. Save 1 row per perturbed magnitude
@@ -615,7 +619,6 @@ if __name__ == "__main__":
                 mag[['Imag', 'Vmag', 'Bmag']] += diff
                 info['kic_kepmag'] += diff
 
-                #mag['Imag'] = imags[j]
                 ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
                    teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(),
                    sys_limit=0)  # exptime in seconds. noise in ppm
