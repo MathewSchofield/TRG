@@ -40,25 +40,35 @@ Chaplin W.~J.,  et~al., 2011, \mn@doi [The Astrophysical Journal]
   Miglio}{2016}]{davies_asteroseismology_2016}
 Davies G.~R.,  Miglio A.,  2016, arXiv:1601.02802 [astro-ph]
 
+\bibitem[\protect\citeauthoryear{Elorrieta et~al.,}{Elorrieta
+  et~al.}{2016}]{elorrieta_machine_2016}
+Elorrieta F.,  et~al., 2016, \mn@doi [Astronomy and Astrophysics]
+  {10.1051/0004-6361/201628700}, 595, A82
+
 \bibitem[\protect\citeauthoryear{{Gaia Collaboration} et~al.,}{{Gaia
   Collaboration} et~al.}{2016}]{gaia_collaboration_gaia_2016}
 {Gaia Collaboration} et~al., 2016, \mn@doi [Astronomy and Astrophysics]
   {10.1051/0004-6361/201629512}, 595, A2
-
-\bibitem[\protect\citeauthoryear{Green et~al.,}{Green
-  et~al.}{2015}]{green_three-dimensional_2015}
-Green G.~M.,  et~al., 2015, \mn@doi [The Astrophysical Journal]
-  {10.1088/0004-637X/810/1/25}, 810, 25
 
 \bibitem[\protect\citeauthoryear{Howell et~al.,}{Howell
   et~al.}{2014}]{howell_k2_2014}
 Howell S.~B.,  et~al., 2014, \mn@doi [Publications of the Astronomical Society
   of the Pacific] {10.1086/676406}, 126, 398
 
+\bibitem[\protect\citeauthoryear{Kremer, Stensbo-Smidt, Gieseke,
+  Steenstrup~Pedersen  \& Igel}{Kremer et~al.}{2017}]{kremer_big_2017}
+Kremer J.,  Stensbo-Smidt K.,  Gieseke F.,  Steenstrup~Pedersen K.,   Igel C.,
+  2017, preprint, 1704, arXiv:1704.04650
+
 \bibitem[\protect\citeauthoryear{Mosser et~al.,}{Mosser
   et~al.}{2012}]{mosser_characterization_2012}
 Mosser B.,  et~al., 2012, \mn@doi [A\&A] {10.1051/0004-6361/201117352}, 537,
   A30
+
+\bibitem[\protect\citeauthoryear{Nun, Pichara, Protopapas  \& Kim}{Nun
+  et~al.}{2014}]{nun_supervised_2014}
+Nun I.,  Pichara K.,  Protopapas P.,   Kim D.-W.,  2014, \mn@doi [The
+  Astrophysical Journal] {10.1088/0004-637X/793/1/23}, 793, 23
 
 \bibitem[\protect\citeauthoryear{Rauer et~al.,}{Rauer
   et~al.}{2014}]{rauer_plato_2014}
@@ -69,6 +79,11 @@ Rauer H.,  et~al., 2014, \mn@doi [Experimental Astronomy]
   et~al.}{2014}]{ricker_transiting_2014}
 Ricker G.~R.,  et~al., 2014, \mn@doi [Journal of Astronomical Telescopes,
   Instruments, and Systems] {10.1117/1.JATIS.1.1.014003}, 1, 014003
+
+\bibitem[\protect\citeauthoryear{Valenzuela \& Pichara}{Valenzuela \&
+  Pichara}{2018}]{valenzuela_unsupervised_2018}
+Valenzuela L.,  Pichara K.,  2018, \mn@doi [Monthly Notices of the Royal
+  Astronomical Society] {10.1093/mnras/stx2913}, 474, 3259
 
 \makeatother
 \end{thebibliography}

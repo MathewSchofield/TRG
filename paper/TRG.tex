@@ -22,15 +22,19 @@
 
 \title[TRG]{TESS Asteroseismic Predictions for Red Giants using Machine Learning}
 
-\author[Mat Schofield]{Mat Schofield$^{1}$\thanks{Contact e-mail: \href{mailto:mxs191@bham.ac.uk}{mxs191@bham.ac.uk}}\thanks{Present address: Department of Physics and Astronomy, the University of Birmingham, Birmingham B15 2TT, UK}
-\author[Guy Davies]{Guy Davies}
+\author[M. Schofield et al.]{M. Schofield$^{1, 2}$\thanks{E-mail: mxs191@bham.ac.uk}, G. R. Davies$^{1, 2}$, W. J. Chaplin$^{1, 2}$, M. F. Randrianandrasana
 \\
 % List of institutions
-$^{1}$Department of Physics and Astronomy, the University of Birmingham, Birmingham B15 2TT, UK}
+$^{1}$Department of Physics and Astronomy, the University of Birmingham, Birmingham B15 2TT, UK \\
+$^{2}$Stellar Astrophysics Centre (SAC), Department of Physics and Astronomy, Aarhus University, Ny Munkegade 120, DK-8000 Aarhus C, Denmark}
+
+
+%\thanks{Contact e-mail: \href{mailto:mxs191@bham.ac.uk}{mxs191@bham.ac.uk}}\thanks{Present address: Department of Physics and Astronomy, the University of Birmingham, Birmingham B15 2TT, UK}
+
 
 
 \date{Last updated 2017 May 31; in original form 2017 May 31}
-\pubyear{2015}
+\pubyear{2018}
 
 \begin{document}
 \label{firstpage}
@@ -46,7 +50,28 @@ $^{1}$Department of Physics and Astronomy, the University of Birmingham, Birming
 
 \section{Introduction}
 
-Satellites such as $Kepler$ have allowed asteroseismology of solar-like and Red Giant stars to advance rapidly since the last century \citet{chaplin_asteroseismology_2013}. Power spectra can now be resolved to detect individual modes of oscillation in Red Giant stars \citep{davies_asteroseismology_2016}. The larger amount of available information is a perfect platform on which to use Classification. This is not a new technique to astrophysics (for example, \citet{green_three-dimensional_2015}), although it has never been applied to asteroseismic target selection.
+\subsection{Introducing Machine Learning}
+
+Astronomy is increasingly becoming a field of big-data analysis \citep{kremer_big_2017}. One of the main tools for handling this larger amount of information is Machine Learning. In most situations, Machine Learning is used to solve problems in one of two ways; Supervised or Unsupervised Learning. Supervised Learning involves problems where there is a known result. 
+
+For example, Supervised Learning has been used to classify types of variable star using previously labelled data (\citet{nun_supervised_2014}, \citet{elorrieta_machine_2016}). This previously labelled data is known as training data: this is used to train the Machine Learning algorithm. In the problem of variable stars, lightcurves that had already been classified were used to train the algorithm (this is the training dataset). This algorithm was then used to classify the lightcurves of unidentified stars (this is known as the testing dataset).
+
+In Unsupervised Learning, there are no known results (labels). The aim of Machine Learning in this case would be to find trends between variables. This could be used to identify similar stars by analysing their lightcurves without using previously classified data (for example, \citet{valenzuela_unsupervised_2018}).
+
+The aim of this work is to use Machine Learning to make predictions about mode detection probability (\pdet). In this case, \pdet is the known label, so this is a Supervised Learning problem\footnote{https://machinelearningmastery.com}.
+
+Within Supervised Learning, two common algorithms are that are used are Classification and Regression. In Regression, the relationship between variables is interpreted using a measure of uncertainty (such as using $\chi^{2}$ values). Models are fitted using the independent data, and uncertainty is measured. The models are then improved by reducing this uncertainty. Note that regression is used when the label is continuous. For example, predicting the magnitude of a star is a problem suited to regression, as a star can have any magnitude.
+
+Conversely, Classification algorithms work by assessing similarity\footnote{http://www.simafore.com}. In Classification, the training set is separated into groups based on the similarity of the data. The more information that was gained by splitting the data, the better. For example, if the problem were to separate Red Giant stars from Main-Sequence stars, a star could be classified as either a Red Giant (1), or not a Red Giant (0). In the case of identifying Red Giants, having a Luminosity above $\sim10L_{\odot}$ would be a strong indicator that the star was a Red Giant, so the data could be separated into groups here. This is not the only problem where Classification can be used on Red Giant stars (for example, see \citet{{ness_cannon:_2015}{wu_mass_2017}}).
+
+
+
+
+\subsection{Introducing Asteroseismic Target Selection}
+
+Satellites such as $Kepler$ have allowed asteroseismology of solar-like and Red Giant stars to advance rapidly since the last century \citet{chaplin_asteroseismology_2013}. Power spectra can now be resolved to detect individual modes of oscillation in Red Giant stars \citep{davies_asteroseismology_2016}.
+
+%The larger amount of available information is a perfect platform on which to use Classification. This is not a new technique to astrophysics. For example, it has been used to classify variable stars, \citet{valenzuela_unsupervised_2018}. In this work, Classifiers will be applied to asteroseismic target selection for the first time.
 
 Future space missions such as TESS \citep{ricker_transiting_2014}, K2 \citep{howell_k2_2014}, CoRoT \citep{baglin_corot:_2006} and PLATO \citep{rauer_plato_2014} will add to our understanding of stellar structure and evolution. In order to select asteroseismic targets for these missions, the potential detectability modes inside these stars needs to be estimated.
 

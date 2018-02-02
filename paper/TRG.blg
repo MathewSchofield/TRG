@@ -1,50 +1,54 @@
 This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
 Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: TRG.aux
+Stuff after "}"---line 23 of file TRG.aux
+ : \citation{ness_cannon:_2015{wu_mass_2017
+ :                                         }}
+I'm skipping whatever remains of this command
 The style file: mnras.bst
 Database file #1: TRG.bib
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Warning--empty booktitle in baglin_corot:_2006
-You've used 11 entries,
+You've used 14 entries,
             2881 wiz_defined-function locations,
-            803 strings with 24485 characters,
-and the built_in function-call counts, 4621 in all, are:
-= -- 456
-> -- 232
-< -- 9
-+ -- 129
-- -- 8
-* -- 583
-:= -- 645
+            824 strings with 25232 characters,
+and the built_in function-call counts, 6379 in all, are:
+= -- 630
+> -- 354
+< -- 17
++ -- 177
+- -- 30
+* -- 788
+:= -- 919
 add.period$ -- 0
-call.type$ -- 11
-change.case$ -- 22
-chr.to.int$ -- 11
-cite$ -- 12
-duplicate$ -- 248
-empty$ -- 256
-format.name$ -- 56
-if$ -- 818
+call.type$ -- 14
+change.case$ -- 28
+chr.to.int$ -- 14
+cite$ -- 15
+duplicate$ -- 318
+empty$ -- 324
+format.name$ -- 88
+if$ -- 1136
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 11
-newline$ -- 46
-num.names$ -- 52
-pop$ -- 61
+missing$ -- 14
+newline$ -- 55
+num.names$ -- 76
+pop$ -- 75
 preamble$ -- 1
-purify$ -- 44
+purify$ -- 56
 quote$ -- 0
-skip$ -- 143
+skip$ -- 184
 stack$ -- 0
-substring$ -- 359
-swap$ -- 73
-text.length$ -- 45
+substring$ -- 523
+swap$ -- 115
+text.length$ -- 57
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 99
+type$ -- 126
 warning$ -- 1
-while$ -- 68
+while$ -- 92
 width$ -- 0
-write$ -- 121
-(There was 1 warning)
+write$ -- 151
+(There was 1 error message)
