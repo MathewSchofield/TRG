@@ -12,13 +12,14 @@
 \newcommand{\dnu}{\ensuremath{\Delta\nu}}
 \newcommand{\teff}{\ensuremath{T_{\textrm{eff}}\:}} 
 \newcommand{\kep}{\ensuremath{Kepler}}
-\newcommand{\pdet}{\ensuremath{P_{\rm det}}}
+\newcommand{\pdet}{\ensuremath{P_{\rm det}\:}}
 
 \newcommand{\bibtex}{\textsc{Bib}\!\TeX} % bibtex. Not quite the correct typesetting, but close enough
 
 \usepackage[T1]{fontenc}
 \usepackage{ae,aecompl}
-\usepackage{newtxtext,newtxmath}
+%\usepackage{newtxtext,newtxmath}  % new version
+\usepackage{txfonts}  % old version
 
 \title[TRG]{TESS Asteroseismic Predictions for Red Giants using Machine Learning}
 
@@ -50,38 +51,34 @@ $^{2}$Stellar Astrophysics Centre (SAC), Department of Physics and Astronomy, Aa
 
 \section{Introduction}
 
-\subsection{Introducing Machine Learning}
+Satellites such as $Kepler$ have allowed asteroseismology of solar-like and Red Giant stars to advance rapidly since the last century \citet{chaplin_asteroseismology_2013}. Power spectra can now be resolved to detect individual modes of oscillation in Main Sequence and Red Giant stars (\citet{lund_standing_2017} and \citet{davies_asteroseismology_2016}, respectively).
 
-Astronomy is increasingly becoming a field of big-data analysis \citep{kremer_big_2017}. One of the main tools for handling this larger amount of information is Machine Learning. In most situations, Machine Learning is used to solve problems in one of two ways; Supervised or Unsupervised Learning. Supervised Learning involves problems where there is a known result. 
+Future space missions such as TESS \citep{ricker_transiting_2014}, K2 \citep{howell_k2_2014}, CoRoT \citep{baglin_corot:_2006} and PLATO \citep{rauer_plato_2014} will add to our understanding of stellar structure and evolution. These missions will provide a large amount of high-precision data. More than ever, the field of stellar astrophysics will require tools to perform big-data analysis \citep{kremer_big_2017}. 
 
-For example, Supervised Learning has been used to classify types of variable star using previously labelled data (\citet{nun_supervised_2014}, \citet{elorrieta_machine_2016}). This previously labelled data is known as training data: this is used to train the Machine Learning algorithm. In the problem of variable stars, lightcurves that had already been classified were used to train the algorithm (this is the training dataset). This algorithm was then used to classify the lightcurves of unidentified stars (this is known as the testing dataset).
+%In order to select asteroseismic targets for these missions, the detectability of solar-like oscillations inside these stars needs to be estimated.
 
-In Unsupervised Learning, there are no known results (labels). The aim of Machine Learning in this case would be to find trends between variables. This could be used to identify similar stars by analysing their lightcurves without using previously classified data (for example, \citet{valenzuela_unsupervised_2018}).
+One of the tools than can be used to handle this larger amount of data is Machine Learning. In this work, Machine Learning was used to create a TESS target selection function using the set of $Kepler$ Red Giant stars from \citet{davies_asteroseismology_2016}. This publicly-available algorithm can be used to select targets for any future space mission.
 
-The aim of this work is to use Machine Learning to make predictions about mode detection probability (\pdet). In this case, \pdet is the known label, so this is a Supervised Learning problem\footnote{https://machinelearningmastery.com}.
+In most situations, Machine Learning is used to solve problems in one of two ways; Supervised or Unsupervised Learning. Supervised Learning involves problems where there is a known result. 
 
-Within Supervised Learning, two common algorithms are that are used are Classification and Regression. In Regression, the relationship between variables is interpreted using a measure of uncertainty (such as using $\chi^{2}$ values). Models are fitted using the independent data, and uncertainty is measured. The models are then improved by reducing this uncertainty. Note that regression is used when the label is continuous. For example, predicting the magnitude of a star is a problem suited to regression, as a star can have any magnitude.
+Supervised Learning has been used to classify types of variable star using previously labelled data (\citet{nun_supervised_2014}, \citet{elorrieta_machine_2016}). This previously labelled data is known as training data: this is used to train the Machine Learning algorithm. In the problem of variable stars, lightcurves that had already been classified were used to train the algorithm (this is the training dataset). This algorithm was then used to classify the lightcurves of unidentified stars (this is known as the testing dataset).
 
-Conversely, Classification algorithms work by assessing similarity\footnote{http://www.simafore.com}. In Classification, the training set is separated into groups based on the similarity of the data. The more information that was gained by splitting the data, the better. For example, if the problem were to separate Red Giant stars from Main-Sequence stars, a star could be classified as either a Red Giant (1), or not a Red Giant (0). In the case of identifying Red Giants, having a Luminosity above $\sim10L_{\odot}$ would be a strong indicator that the star was a Red Giant, so the data could be separated into groups here. This is not the only problem where Classification can be used on Red Giant stars (for example, see \citet{{ness_cannon:_2015}{wu_mass_2017}}).
+In Unsupervised Learning, there are no known results (labels). The aim of Machine Learning in this case would be to find trends between variables. This could be used to identify similar stars by analysing their lightcurves without using previously labelled data (for example, \citet{valenzuela_unsupervised_2018}).
 
+The aim of this work is to use Machine Learning to make predictions about mode detection probability (\pdet). In this case, \pdet is a known label, so this is a Supervised Learning problem\footnote{https://machinelearningmastery.com}.
 
+Within Supervised Learning, two common algorithms are that are used are Classification and Regression. In Regression, the relationship between variables is interpreted using a measure of uncertainty (such as using $\chi^{2}$ tests). Models are fitted using the independent data, and uncertainty is measured. The models are then improved by reducing this uncertainty. Note that regression is used when the label is continuous. For example, predicting the magnitude of a star is a problem suited to regression, as a star can have any magnitude.
 
+Conversely, Classification algorithms work by assessing similarity\footnote{http://www.simafore.com}. In Classification, the training set is separated into groups based on the similarity of the data. The more information that was gained by splitting the data, the better. For example, if the problem were to separate Red Giant stars from Main-Sequence stars, a star could be classified as either a Red Giant (1), or not a Red Giant (0). For example, having a Luminosity above $\sim10L_{\odot}$ would be a strong indicator that the star was a Red Giant, so the data could be separated into groups here. The Classifier would continue to separate the dataset until the Red Giant and Main Sequence samples were distinct. This is not the only problem where Classification can be used on Red Giant stars (\citet{ness_cannon_2015}, \citet{wu_mass_2017}).
 
-\subsection{Introducing Asteroseismic Target Selection}
+In this work, individual fitted modes from \citet{davies_asteroseismology_2016} were used to make asteroseismic predictions for TESS. By separating the targets into those with detected modes and those without, Machine Learning was used to select targets for future observation. Section \ref{sect: dataset} describes how the timeseries of every star was treated before transforming it to a power spectra. Section \ref{sect: det_test} then goes on to describe the detection test that was run on every fitted mode. Every mode was grouped into observed (1), or unobserved (0).
 
-Satellites such as $Kepler$ have allowed asteroseismology of solar-like and Red Giant stars to advance rapidly since the last century \citet{chaplin_asteroseismology_2013}. Power spectra can now be resolved to detect individual modes of oscillation in Red Giant stars \citep{davies_asteroseismology_2016}.
-
-%The larger amount of available information is a perfect platform on which to use Classification. This is not a new technique to astrophysics. For example, it has been used to classify variable stars, \citet{valenzuela_unsupervised_2018}. In this work, Classifiers will be applied to asteroseismic target selection for the first time.
-
-Future space missions such as TESS \citep{ricker_transiting_2014}, K2 \citep{howell_k2_2014}, CoRoT \citep{baglin_corot:_2006} and PLATO \citep{rauer_plato_2014} will add to our understanding of stellar structure and evolution. In order to select asteroseismic targets for these missions, the potential detectability modes inside these stars needs to be estimated.
-
-In this work, individual fitted modes from \citet{davies_asteroseismology_2016} were used to make asteroseismic predictions for TESS. By separating the targets into those with detected modes, and those without, Machine Learning was used to select a set of targets for future observation. Section \ref{dataset} describes how the timeseries of every star was treated before transforming it to a power spectra. Section \ref{det_test} then goes on to describe the detection test that was run of every fitted mode.
-
-Lastly, Section \ref{classifier} describes classification into stars with detected modes, and stars without. This was done by giving information on every target (the frequency of maximum solar-like amplitude \numax, the large separation between modes of te same angular degree \dnu, the magnitude, and which modes were detected inside the star) was given to a supervised Classifier. This data given to the Classifier is called the training set-it was used to train the algorithm. 30\% of the sample was kept to test the algorithm-this data is known as the testing set. The Classifier recognised patterns between the variables in the training set, and made predictions on the testing set with a ?????????\% accuracy. 
+Lastly, Section \ref{classifier} describes the classification of stars into a group with detected modes, and a group without. This was done by giving a Supervised Classifier information on every target: the frequency of maximum solar-like amplitude \numax, the large separation between modes of the same angular degree \dnu, the stellar magnitude, and which modes were detected inside the star. 70\%???? of the stars were used to train the Classifier; 30\%????? of the sample was kept to test the algorithm. The Classifier recognised patterns between the variables in the training set, and made predictions on the testing set with a ?????????\% accuracy. 
 
 
+\iffalse
 \section{Transforming the lightcurves}
-\label{dataset}
+\label{sect: dataset}
 
 Firstly, the timeseries data from \kep \ observations needed to be adjusted for a different satellite and mission. This could either be done in the time or frequency domain. Both methods were tested and compared. The time domain method was chosen to transform the lightcurves, and was used in the rest of this work.
 
@@ -166,9 +163,9 @@ After noise was added to the stars and power spectra were made, a detection test
 
 
 \section{Detection Test}
-\label{det_test}
+\label{sect: det_test}
 
-Section \ref{dataset} described the method to transform the $Kepler$ lightcurves into TESS observations. A detection test was then run on the stars, to determine which modes were still visible with observation by TESS, and which could not be recovered.
+Section \ref{sect: dataset} described the method to transform the $Kepler$ lightcurves into TESS observations. A detection test was then run on the stars, to determine which modes were still visible with observation by TESS, and which could not be recovered.
 
 First, a moving median from \citet{davies_asteroseismology_2016} was used. The width of the moving median is from the star's envelope width. This predicted envelope width was calculated as
 \begin{equation}
@@ -219,12 +216,12 @@ This detection test was applied to every mode of every star in the 1000-star sam
 \section{Classification}
 \label{classifier}
 
-Section \ref{dataset} describes how the lightcurves of every star were treated before a detection test was run on the modes in Section \ref{det_test}. After this, Classification was applied to the stars to separate them into a suitable target list, and a list of stars that are not suitable for observation with TESS.
+Section \ref{sect: dataset} describes how the lightcurves of every star were treated before a detection test was run on the modes in Section \ref{sect: det_test}. After this, Classification was applied to the stars to separate them into a suitable target list, and a list of stars that are not suitable for observation with TESS.
 
 This could be done without using Machine Learning, although it takes much longer. In the age where datasets from missions such as MAST and Gaia \citep{gaia_collaboration_gaia_2016} exist, tools need to be developed to make use of the huge amount of information we now have on stars from across the sky.
 
 \subsection{Preparing the data}
-Firstly, the detection probabilities of every mode were taken from Section \ref{det_test}. Each probability was changed to a 1 or 0 depending on if a detection was made. For each mode as observed by $Kepler$,
+Firstly, the detection probabilities of every mode were taken from Section \ref{sect: det_test}. Each probability was changed to a 1 or 0 depending on if a detection was made. For each mode as observed by $Kepler$,
 \begin{equation}
 \label{eq:kep_class}
 P_{\rm det, Kep} = \left\{ \,
@@ -257,10 +254,10 @@ A classifier is an algorithm that can learn a relationship between variables. Th
 
 The 60,000 samples were separated into a training dataset, and a testing set. 70\% of the samples were used to train the classifier (46,410 stars); 30\% was used to test the algorithm (19,890 stars). To train the Classifier, the X and Y data in the training set was given to the algorithm (X$_{\rm train}$ and Y$_{\rm train}$). Once the Classifier had been made, the X data from the testing set was given to it (X$_{\rm test}$). The Classifier then predicted a set of Y data for the testing set (Y$_{\rm pred}$). This was compared to the actual Y data for the testing set (Y$_{\rm test}$).
 
-For the original $Kepler$ sample, the Classifier produced a set of Y$_{\rm pred}$ data with a score of 0.93. The data was then modified for observation by TESS using the process described in Section \ref{dataset}, and the classifier was used again. It produced a set of Y$_{\rm pred}$ data with a score of ???????????
+For the original $Kepler$ sample, the Classifier produced a set of Y$_{\rm pred}$ data with a score of 0.93. The data was then modified for observation by TESS using the process described in Section \ref{sect: dataset}, and the classifier was used again. It produced a set of Y$_{\rm pred}$ data with a score of ???????????
 
 
-
+\fi
 
 
 
