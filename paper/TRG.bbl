@@ -22,10 +22,19 @@
 Baglin A.,  et~al., 2006. p.~3749, \url
   {http://adsabs.harvard.edu/abs/2006cosp...36.3749B}
 
+\bibitem[\protect\citeauthoryear{Campante et~al.,}{Campante
+  et~al.}{2016}]{campante_asteroseismic_2016}
+Campante T.~L.,  et~al., 2016, preprint, 1608, arXiv:1608.01138
+
 \bibitem[\protect\citeauthoryear{Chaplin \& Miglio}{Chaplin \&
   Miglio}{2013}]{chaplin_asteroseismology_2013}
 Chaplin W.~J.,  Miglio A.,  2013, \mn@doi [Annual Review of Astronomy and
   Astrophysics] {10.1146/annurev-astro-082812-140938}, 51, 353
+
+\bibitem[\protect\citeauthoryear{Chaplin et~al.,}{Chaplin
+  et~al.}{2011}]{chaplin_predicting_2011}
+Chaplin W.~J.,  et~al., 2011, \mn@doi [The Astrophysical Journal]
+  {10.1088/0004-637X/732/1/54}, 732, 54
 
 \bibitem[\protect\citeauthoryear{Davies \& Miglio}{Davies \&
   Miglio}{2016}]{davies_asteroseismology_2016}
@@ -35,6 +44,11 @@ Davies G.~R.,  Miglio A.,  2016, arXiv:1601.02802 [astro-ph]
   et~al.}{2016}]{elorrieta_machine_2016}
 Elorrieta F.,  et~al., 2016, \mn@doi [Astronomy and Astrophysics]
   {10.1051/0004-6361/201628700}, 595, A82
+
+\bibitem[\protect\citeauthoryear{{Gaia Collaboration} et~al.,}{{Gaia
+  Collaboration} et~al.}{2016}]{gaia_collaboration_gaia_2016}
+{Gaia Collaboration} et~al., 2016, \mn@doi [Astronomy and Astrophysics]
+  {10.1051/0004-6361/201629512}, 595, A2
 
 \bibitem[\protect\citeauthoryear{Howell et~al.,}{Howell
   et~al.}{2014}]{howell_k2_2014}
@@ -50,6 +64,11 @@ Kremer J.,  Stensbo-Smidt K.,  Gieseke F.,  Steenstrup~Pedersen K.,   Igel C.,
   et~al.}{2017}]{lund_standing_2017}
 Lund M.~N.,  et~al., 2017, \mn@doi [The Astrophysical Journal]
   {10.3847/1538-4357/835/2/172}, 835, 172
+
+\bibitem[\protect\citeauthoryear{Mosser et~al.,}{Mosser
+  et~al.}{2012}]{mosser_characterization_2012}
+Mosser B.,  et~al., 2012, \mn@doi [Astronomy \& Astrophysics]
+  {10.1051/0004-6361/201117352}, 537, A30
 
 \bibitem[\protect\citeauthoryear{Ness, Hogg, Rix, Ho  \& Zasowski}{Ness
   et~al.}{2015}]{ness_cannon_2015}
