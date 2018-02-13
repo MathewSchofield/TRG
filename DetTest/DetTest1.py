@@ -12,12 +12,12 @@ import os
 import glob
 import sys
 import scipy.ndimage as ndim
+from scipy import interpolate
 from scipy.optimize import curve_fit
 from scipy import stats
 import timeit
 import matplotlib.pyplot as plt
 from astropy.convolution import Gaussian1DKernel, convolve
-from scipy import interpolate
 
 TRG = os.getcwd().split('DetTest')[0]
 sys.path.insert(0, TRG)
@@ -168,7 +168,7 @@ class DetTest(object):
         self.thresh: Defined in __init__. threshold for making a detection
 
         Outputs
-        prob: (int:0 or 1) the detection probability for each SNR value (i.e mode)
+        prob:  the detection probability for each SNR value (i.e mode)
         """
 
         if nbins == []:      nbins = 1
@@ -181,8 +181,9 @@ class DetTest(object):
         #sys.exit()
         self.prob = stats.chi2.sf((snrthresh+1.0) / (self.snr_modes+1.0)*2.0*nbins, 2*nbins)
 
-        self.prob[self.prob>=self.thresh] = 1  # if Pdet>threshold, mode is detected
-        self.prob[self.prob<self.thresh]  = 0  # if Pdet<threshold, mode is not detected
+        # do this in ML1.py instead. Save out exact pdet values in data_for_ML/
+        #self.prob[self.prob>=self.thresh] = 1  # if Pdet>threshold, mode is detected
+        #self.prob[self.prob<self.thresh]  = 0  # if Pdet<threshold, mode is not detected
 
     def Conv(self, data, stddev):
         """
@@ -556,10 +557,11 @@ if __name__ == "__main__":
     ts, epic, params, mags, modes = getInput()
 
     for i, fdir in enumerate(ts):
-        """ Loop through the timeseries files. 1 file (1 star) per iteration. """
+        """ Loop through the timeseries files. 1 file (1 star) per iteration.
+        Within each iteration (i.e each star), perturb the stellar magnitude 'x' times """
 
-        #sat = 'Kepler'
-        sat = 'TESS'
+        sat = 'Kepler'
+        #sat = 'TESS'
 
         ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
@@ -569,7 +571,7 @@ if __name__ == "__main__":
         """ Conditions to skip this star """
         if len(info) == 0:
             """ No APOKASC information given in 'params' file """
-            #print 'No APOKASC info for KIC', ds.epic
+            #print 'No APOKASC info for KIC', ds.epic, info
             continue
 
         if [ID for ID in modes if ds.epic in ID] == []:
@@ -592,17 +594,48 @@ if __name__ == "__main__":
 
 
 
-        x = 100  # number of iterations for every star (number of different magnitudes)
+        x = 10  # number of iterations to loop through every star (number of different magnitudes)
+        if sat == 'Kepler':
+            pdf_range = [10., 16., 100]  # range of Kp magnitudes for the PDF
+        elif sat == 'TESS':
+            pdf_range = [6., 12., 100]  # range of I-bnad magnitudes for the PDF
+
+        # rather than using a uniform distribution in magnitude, use a PDF of
+        # the Kepler/TESS noise function to get the a distribution of magnitudes
+        rand_mags = ds.rvs_from_noise_function(pdf_range = pdf_range, x=x)
+
         for j in range(x):
-            """ Perturb Kepler magnitudes before calculating detection probability.
-                Do this x times per star. Save 1 row per perturbed magnitude
-                in save_xy() (each star has x rows). """
+            """ Perturb the Kepler/TESS magnitudes 'x' times before calculating
+                detection probability. Do this x times per star. Save 1 row per
+                perturbed magnitude in save_xy() (each star has x rows). """
 
             if ds.sat == 'Kepler':  # make the original Kepler PS
-                if j == 0:
-                    kps = np.random.uniform(low=11, high=17, size=x)
+                # if j == 0:
+                #     kps = np.random.uniform(low=11, high=17, size=x)
 
-                info['kic_kepmag'] = kps[j]  # change the magnitude for this iteration
+
+                # rather than using a uniform distribution in magnitude, use a PDF of
+                # the Kepler/TESS noise function to get the a distribution of magnitudes
+                # rand_mags = ds.rvs_from_function(pdf_range = [10., 16., 100], x=x)
+
+                # pdf_range=[10., 16., 100]
+                # alpha = np.linspace(*pdf_range)
+                #
+                # # cdf[-1] is the last value of the CDF. Divide the noise function
+                # # by cdf[-1] to normalise it [this makes the last value of the CDF=1.0]
+                # cdf = integrate.cumtrapz(ds.kepler_noise_func(alpha), alpha, initial=0)
+                # cdf = cdf/cdf[-1]
+                #
+                # inv_cdf = interpolate.interp1d(cdf, alpha)
+                # a = np.random.rand(x)  # where in the noise function to sample the 'x' values
+                # rand_mags = inv_cdf(a)
+                # print rand_mags
+                # print kps
+                # sys.exit()
+
+
+
+                info['kic_kepmag'] = rand_mags[j]  # change the magnitude for this iteration
                 ds.ts()
                 ds.Periodogram()
                 ds.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
@@ -611,11 +644,19 @@ if __name__ == "__main__":
 
             elif ds.sat == 'TESS':  # transform the Kepler PS into TESS PS
 
-                if j == 0:
-                    imags = np.random.uniform(low=6., high=12., size=x)
+                # if j == 0:
+                #     imags = np.random.uniform(low=6., high=12., size=x)
+
+
+
+                # rand_mags = ds.rvs_from_function(pdf_range = [6., 12., 100], x=x)
+                # print rand_mags
+                # sys.exit()
+
+
 
                 # change magnitudes for this iteration
-                diff = imags[j]-float(mag['Imag'])
+                diff = rand_mags[j]-float(mag['Imag'])
                 mag[['Imag', 'Vmag', 'Bmag']] += diff
                 info['kic_kepmag'] += diff
 

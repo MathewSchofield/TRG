@@ -1,4 +1,4 @@
-run = '1000stars'
+run = '100stars'
 
 if run == '20stars':
     # the directories used in likeTESS1.py getInput()

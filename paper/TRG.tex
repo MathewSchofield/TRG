@@ -12,7 +12,7 @@
 \newcommand{\numax}{\ensuremath{\nu_{\textrm{max}}}}
 \newcommand{\dnu}{\ensuremath{\Delta\nu}}
 \newcommand{\teff}{\ensuremath{T_{\textrm{eff}}\:}} 
-\newcommand{\kep}{\ensuremath{Kepler}}
+\newcommand{\kep}{\ensuremath{Kepler}\:}
 \newcommand{\pdet}{\ensuremath{P_{\rm det}\:}}
 
 \newcommand{\bibtex}{\textsc{Bib}\!\TeX} % bibtex. Not quite the correct typesetting, but close enough
@@ -84,7 +84,7 @@ Lastly, Section \ref{classifier} describes the classification of stars into a gr
 Before a Classifier could be used on the Red Giants, the timeseries data from \kep \ observations needed to be adjusted for a different satellite and mission. This could either be done in the time or frequency domain. Adjustments were made in both domains, and the results were compared. %The time domain method was chosen to transform the lightcurves, and was used in the rest of this work.
 
 Several different adjustments needed to be made to the \kep \ data. One difference between the missions is the length of observation. The \kep \ mission observed for 4 years, while TESS' nominal 2 year mission will observe stars for between 27 days to 1 year, according to the star's ecliptic latitude (Figure \ref{TESS field}). This distinction is made clear in the timeseries, see Figure \ref{ts plot}.
-\iffalse
+
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.4]{cropped_TESSfield.pdf}
@@ -98,16 +98,16 @@ Several different adjustments needed to be made to the \kep \ data. One differen
 	\caption{The 4-year long Power Spectra of KIC 10587122 is plotted in blue. Overplotted is the 27-day time segment with most coverage (the period with fewest gaps in the data). Reducing the length of observation this drastically will badly hamper mode detectability.}	
 	\label{ts plot}
 \end{figure} 
-\fi
+
 As well as reducing the dataset length, the bandpass that TESS will observe in is much redder than that of \kep, Figure \ref{bandpass}. This has the effect of reducing the amplitude of stellar signals (i.e the signal due to stellar granulation and oscillation). \citet{campante_asteroseismic_2016} found this bandpass correction to be 0.85.
-\iffalse
+
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.4]{bandpass.png}
 	\caption{The bandpass of the $Kepler$ and TESS missions. TESS will observe at longer (i.e redder) wavelengths than $Kepler$. This will reduce the amplitude of oscillations and granulation, whilst the white noise level will by unaffected.}	
 	\label{bandpass}
 \end{figure} 
-\fi
+
 Thirdly, the instrumental noise level in \kep \ is different to the noise level in TESS. The noise level for the \kep \ satellite depends on the \kep \ magnitude of the star, $K_{p}$. This noise can be calculated using
 \begin{equation}
 \label{eq:kep noise}
@@ -132,7 +132,7 @@ n = 10^{-5.0} \times 10^{ 0.4 \times (20-I_{\rm mag})} .
 These three adjustments - the length of observation, the bandpass, and the noise level - were performed in both the time and frequency domains for comparison. The adjustments are outlined in Figures \ref{ts flowchart} and \ref{fr flowchart}. The resulting Power Spectra are compared in Figures \ref{Power Spectra} and \ref{overplotted PS}. After comparing the results, the decision was made to perform adjustments in the time domain before transforming to frequency. 
 
 After adjustments were made in the time domain, power spectra were generated for every star. A detection test was then run on every fitted mode of every star. 
-\iffalse
+
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.3]{diagnostic_plot1_modes}
@@ -163,7 +163,7 @@ After adjustments were made in the time domain, power spectra were generated for
 \end{figure}
 \newpage
 \twocolumn
-\fi
+
 
 \section{Detection Test}
 \label{sect: det_test}
@@ -181,25 +181,24 @@ from \citet{mosser_characterization_2012}. The moving median was used to interpo
 \end{equation}
 An example of this is shown in Figure \ref{snr}.
 
-\iffalse
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.6]{plot4_SNR7014894.pdf}
 	\caption{The power spectra of KIC 7014894 after background subtraction. The SNR value of every mode in the star was extracted from the SNR spectrum. The values for every mode in the original Kepler SNR are plotted in blue. The orange points are the SNR values after degrading the signal to 1 year of TESS observation. The green points are to 27 days.}	
 	\label{snr}
 \end{figure}
-\fi
+
 
 Once the SNR spectrum for the star was recovered, the SNR values at the mode frequencies were extracted. To ensure the correct SNR values of every mode were used, a window was fitted around each peak-bagged mode frequency. The size of the window was given as the linewidth of the mode. The highest value in the window was taken as the SNR of the mode. Figure \ref{modes} is an example of this process for one star. 
 
-\iffalse
+
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.3]{DetTest_Diagnostic_plot3.pdf}
 	\caption{A plot showing the result of the detection test, after running on every mode in 20 stars. The results of the original power spectra are plotted in blue. The results of 1 year of TESS observation are in orange. 27 days of TESS observation is in green. At this short an observation, detecting individual modes will be extremely difficult.}	
 	\label{modes}
 \end{figure}
-\fi
+
 
 Once all mode SNR values for the star were calculated, a detection test was run on each mode \citep{chaplin_predicting_2011}, \citep{campante_asteroseismic_2016}.
 
@@ -265,11 +264,16 @@ The 60,000 samples were separated into a training dataset, and a testing set. 70
 For the original $Kepler$ sample, the Classifier produced a set of Y$_{\rm pred}$ data with a score of 0.93. The data was then modified for observation by TESS using the process described in Section \ref{sect: dataset}, and the classifier was used again. It produced a set of Y$_{\rm pred}$ data with a score of ???????????
 
 
+\section{Conclusion}
+\label{sect: conc}
 
+For the first time, Machine Learning was applied to TESS target selection.
+Problem with 27 days: TESS white noise is too high, bin width is too large.
+4 years of Kepler data works (scored 0.93). This confirms the proof of concept that Classifiers can be used as a way to select targets before future missions. Classification vastly reduces the computation time required to produce a selection function.
 
+Although classification is a valid target selection method, it Cannot be applied to 27 days of TESS because the white noise level is too high and the length of observation is too short.
 
-
-
+It is important to note that there are two sources of noise to consider with this \kep dataset. white noise from equations \ref{eq:kep noise} and \ref{eq:tess noise} and stellar shot noise. Each star in the dataset has one timeseries with one set of fitted modes available. One realisation of the star. This gives only one value of the stellar shot noise. This is not an issue with 4 years fo Kepler data (where modes are easily detectable). It is also not an issue for 27 days of TESS, when white noise has a much bigger impact on mode detectability. In order to test if this is a significant faqctor for 1 year of TESS data...
 
 
 

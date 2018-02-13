@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import scipy.ndimage as ndim
+from scipy import interpolate
+import scipy.integrate as integrate
 import sys
 import glob
 import gatspy
@@ -318,10 +320,95 @@ class Dataset(object):
 
         self.TESSnoise = noise2 * 1e6  # in ppm
 
+    def TESS_noise_func(self, imag, exptime = 30*60., teff = 6000., e_lat = 30, g_lng = 96, g_lat = -30, subexptime = 2.0,\
+    frac_aper = 0.76, e_pix_ro = 10, geom_area = 60.0, pix_scale = 21.1, sys_limit = 0):
+        """ The TESS noise function.
+        Calculate the CDF of this function.
+        Divide by the last value of the CDF to normalise this function.
+        Draw samples from the inverse CDF to get TESS mags from the correct distribution. """
+
+        N = np.ceil(10.0**-5.0 * 10.0**(0.4*(20.0-imag)))
+        npix_aper = 10*(N+10)
+
+        omega_pix = pix_scale**2.0
+        n_exposures = exptime/subexptime
+
+        # electrons from the star
+        megaph_s_cm2_0mag = 1.6301336 + 0.14733937*(teff-5000.0)/5000.0
+        e_star = 10.0**(-0.4*imag) * 10.0**6 * megaph_s_cm2_0mag * geom_area * exptime * frac_aper
+        e_star_sub = e_star*subexptime/exptime
+
+        # e/pix from zodi
+        dlat = (abs(e_lat)-90.0)/90.0
+        vmag_zodi = 23.345 - (1.148*dlat**2.0)
+        e_pix_zodi = 10.0**(-0.4*(vmag_zodi-22.8)) * (2.39*10.0**-3) * geom_area * omega_pix * exptime
+
+        # e/pix from background stars
+        dlat = abs(g_lat)/40.0*10.0**0
+
+        dlon = g_lng
+        q = np.where(dlon>180.0)
+        if len(q[0])>0:
+        	dlon[q] = 360.0-dlon[q]
+
+        dlon = abs(dlon)/180.0*10.0**0
+        p = [18.97338*10.0**0, 8.833*10.0**0, 4.007*10.0**0, 0.805*10.0**0]
+        imag_bgstars = p[0] + p[1]*dlat + p[2]*dlon**(p[3])
+        e_pix_bgstars = 10.0**(-0.4*imag_bgstars) * 1.7*10.0**6 * geom_area * omega_pix * exptime
+
+        # compute noise sources
+        noise_star = np.sqrt(e_star) / e_star
+        noise_sky  = np.sqrt(npix_aper*(e_pix_zodi + e_pix_bgstars)) / e_star
+        noise_ro   = np.sqrt(npix_aper*n_exposures)*e_pix_ro / e_star
+        noise_sys  = 0.0*noise_star + sys_limit/(1*10.0**6)/np.sqrt(exptime/3600.0)
+
+        noise1 = np.sqrt(noise_star**2.0 + noise_sky**2.0 + noise_ro**2.0)
+        noise2 = np.sqrt(noise_star**2.0 + noise_sky**2.0 + noise_ro**2.0 + noise_sys**2.0)
+
+        return noise2 * 1e6  # in ppm
+
     def kepler_noise(self, Kp):
         """ calculate the noise for a source from Kepler """
         c = 1.28 * 10**(0.4*(12.-Kp) + 7.)  # detections per cadence, (5) eqn 17.
         self.KPnoise = 1e6/c * np.sqrt(c + 9.5 * 1e5*(14./Kp)**5) # in ppm
+
+    def kepler_noise_func(self, Kp):
+        """ The Kepler noise function.
+        Calculate the CDF of this function.
+        Divide by the last value of the CDF to normalise this function.
+        Draw samples from the inverse CDF to get Kepler mags from the correct distribution. """
+        c = 1.28 * 10**(0.4*(12.-Kp) + 7.)  # detections per cadence, (5) eqn 17.
+        noise_func = 1e6/c * np.sqrt(c + 9.5 * 1e5*(14./Kp)**5) # in ppm
+        return noise_func
+
+    def rvs_from_noise_function(self, pdf_range, x):
+        """ Calculate alpha. Get the PDF from alpha. Calculate the CDF from the PDF.
+        Invert this, and draw numbers from the distribution.
+        Used to get stellar magnitudes from the Kepler/TESS noise function.
+        See Hacks/rvs_from_kde_example.py
+
+        Kewargs
+        pdf_range: The range over which to calculate the PDF, and the number
+                   of points to integrate the function at.
+        x:         The number of values to sample the PDF at.
+        """
+
+        alpha = np.linspace(*pdf_range)  # the values to calculate the PDF at
+
+        # cdf[-1] is the last value of the CDF. Divide the noise function
+        # by cdf[-1] to normalise it [this makes the last value of the CDF=1.0]
+        if self.sat == 'Kepler':
+            cdf = integrate.cumtrapz(self.kepler_noise_func(alpha), alpha, initial=0)
+
+        elif self.sat == 'TESS':
+            cdf = integrate.cumtrapz(self.TESS_noise_func(alpha), initial=0)
+
+        cdf = cdf/cdf[-1]
+
+        inv_cdf = interpolate.interp1d(cdf, alpha)
+        a = np.random.rand(x)  # where in the noise function to sample the 'x' values
+        rand_vals = inv_cdf(a)  # get random values from the distribution
+        return rand_vals
 
     def PS_add_noise(self):
         """ Add Kepler or TESS noise after computing the power spectrum. """

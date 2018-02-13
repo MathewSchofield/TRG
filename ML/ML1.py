@@ -47,6 +47,36 @@ class Machine_Learning(object):
 
         self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
 
+    def pdet_bins(self, n=5, v=True):
+        """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
+        (i.e any value from 0.00 to 1.00), in order to apply Classification.
+        n: the number of discrete bins to group pdet values into. """
+
+        prob = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
+        if v:  print prob
+
+        if n == 3:
+            prob[(prob<=0.5)] = 0
+            prob[(prob>0.5) & (prob<=0.9)] = 1
+            prob[(prob>1.9) & (prob<=1.0)] = 2
+
+        if n == 4:
+            prob[(prob<=0.4)] = 0
+            prob[(prob>0.4) & (prob<=0.6)] = 1
+            prob[(prob>0.6) & (prob<=0.9)] = 2
+            prob[(prob>0.9) & (prob<=1.0)] = 3
+
+        if n == 5:
+            prob[(prob<=0.2)] = 0
+            prob[(prob>0.2) & (prob<=0.4)] = 1
+            prob[(prob>0.4) & (prob<=0.6)] = 2
+            prob[(prob>0.6) & (prob<=0.8)] = 3
+            prob[(prob>0.8) & (prob<=1.0)] = 4
+
+        self.xy[['Pdet1', 'Pdet2', 'Pdet3']] = prob
+        if v:  print prob
+
+
     def random_forest_classifier(self):
         """ Perform a Random Forest Classifier (made up of many decision trees)
         on the XY data. Y data must be given as 0 or 1 for each mode (detected or not). """
@@ -149,8 +179,9 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=27)
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='Kepler', Tobs=365)
     ml.loadData()
+    ml.pdet_bins()
     ml.random_forest_classifier()
     #ml.random_forest_regression()
 
