@@ -41,12 +41,13 @@ class DetTest(object):
         self.snr_modes = np.array([])  # the self.snr values at mode frequencies
         self.prob = []
 
-        if ds.sat == 'Kepler':
-            self.thresh = 0.9  # threshold for making a detection
-        if (ds.sat == 'TESS') and (ds.Tobs==365):
-            self.thresh = 0.9  # threshold for making a detection for 1 year
-        if (ds.sat == 'TESS') and (ds.Tobs==27):
-            self.thresh = 0.5  # threshold for making a detection for 27 days
+        # do this in ML1.py instead. Save out exact pdet values in data_for_ML/
+        # if ds.sat == 'Kepler':
+        #     self.thresh = 0.9  # threshold for making a detection
+        # if (ds.sat == 'TESS') and (ds.Tobs==365):
+        #     self.thresh = 0.9  # threshold for making a detection for 1 year
+        # if (ds.sat == 'TESS') and (ds.Tobs==27):
+        #     self.thresh = 0.5  # threshold for making a detection for 27 days
 
         # the location of the probability file for the star (to save) in Info2Save()
         self.probfile = os.getcwd() + os.sep + 'DetTest1_results/Info2Save' +\
@@ -564,10 +565,10 @@ if __name__ == "__main__":
         """ Loop through the timeseries files. 1 file (1 star) per iteration.
         Within each iteration (i.e each star), perturb the stellar magnitude 'x' times """
 
-        #sat = 'Kepler'
-        sat = 'TESS'
+        sat = 'Kepler'
+        #sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
@@ -602,7 +603,7 @@ if __name__ == "__main__":
         if sat == 'Kepler':
             pdf_range = [10., 16., 100]  # range of Kp magnitudes for the PDF
         elif sat == 'TESS':
-            pdf_range = [6., 12., 100]  # range of I-bnad magnitudes for the PDF
+            pdf_range = [6., 12., 100]  # range of I-band magnitudes for the PDF
 
         # rather than using a uniform distribution in magnitude, use a PDF of
         # the Kepler/TESS noise function to get the a distribution of magnitudes
@@ -644,10 +645,6 @@ if __name__ == "__main__":
             #star.Diagnostic_plot2()
             #star.Diagnostic_plot3()
             #star.plot4()
-            #sys.exit()
-            #print list(vars(ds))
-            #print star.prob
-
 
 
             output = data_for_ML(star)  # save X, Y data for Machine Learning

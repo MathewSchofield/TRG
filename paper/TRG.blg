@@ -6,45 +6,45 @@ Database file #1: TRG.bib
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Warning--empty booktitle in baglin_corot:_2006
-You've used 17 entries,
+You've used 20 entries,
             2881 wiz_defined-function locations,
-            846 strings with 26619 characters,
-and the built_in function-call counts, 7865 in all, are:
-= -- 788
-> -- 438
-< -- 19
-+ -- 216
-- -- 40
-* -- 975
-:= -- 1135
+            868 strings with 33529 characters,
+and the built_in function-call counts, 9106 in all, are:
+= -- 902
+> -- 512
+< -- 21
++ -- 253
+- -- 46
+* -- 1138
+:= -- 1318
 add.period$ -- 0
-call.type$ -- 17
-change.case$ -- 34
-chr.to.int$ -- 17
-cite$ -- 18
-duplicate$ -- 384
-empty$ -- 392
-format.name$ -- 108
-if$ -- 1404
+call.type$ -- 20
+change.case$ -- 40
+chr.to.int$ -- 20
+cite$ -- 21
+duplicate$ -- 449
+empty$ -- 458
+format.name$ -- 124
+if$ -- 1618
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 17
-newline$ -- 64
-num.names$ -- 92
-pop$ -- 91
+missing$ -- 20
+newline$ -- 73
+num.names$ -- 108
+pop$ -- 106
 preamble$ -- 1
-purify$ -- 68
+purify$ -- 80
 quote$ -- 0
-skip$ -- 219
+skip$ -- 254
 stack$ -- 0
-substring$ -- 674
-swap$ -- 137
-text.length$ -- 69
+substring$ -- 759
+swap$ -- 159
+text.length$ -- 81
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 153
+type$ -- 180
 warning$ -- 1
-while$ -- 112
+while$ -- 132
 width$ -- 0
-write$ -- 181
+write$ -- 211
 (There was 1 warning)

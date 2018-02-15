@@ -17,13 +17,14 @@ import matplotlib.pyplot as plt
 TRG = os.getcwd().split('ML')[0]
 sys.path.insert(0, TRG)
 from plotTemplates import generalPlot
-from config import *  # the directories to find the data files (ML_data_dir)
+from config import *  # the directories of the data files (ML_data_dir)
 
+from sklearn import preprocessing, utils
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.multioutput import MultiOutputRegressor
-from sklearn.metrics import accuracy_score
-from sklearn import preprocessing, utils
+from sklearn.metrics import classification_report, confusion_matrix,\
+    accuracy_score, precision_score
 
 
 class Machine_Learning(object):
@@ -47,7 +48,7 @@ class Machine_Learning(object):
 
         self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
 
-    def pdet_bins(self, n=5, v=True):
+    def pdet_bins(self, n=3, v=False):
         """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
         (i.e any value from 0.00 to 1.00), in order to apply Classification.
         n: the number of discrete bins to group pdet values into. """
@@ -55,18 +56,30 @@ class Machine_Learning(object):
         prob = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
         if v:  print prob
 
-        if n == 3:
+        if n == 2:
+            self.labels = [0, 1]  # to calculate precision
+            if self.Tobs == 27:
+                prob[(prob<=0.5)] = 0
+                prob[(prob>0.5)]  = 1
+            else:
+                prob[(prob<=0.9)] = 0
+                prob[(prob>0.9)]  = 1
+
+        elif n == 3:
+            self.labels = [0, 1, 2]  # to calculate precision
             prob[(prob<=0.5)] = 0
             prob[(prob>0.5) & (prob<=0.9)] = 1
-            prob[(prob>1.9) & (prob<=1.0)] = 2
+            prob[(prob>0.9) & (prob<1.0)] = 2
 
-        if n == 4:
+        elif n == 4:
+            self.labels = [0, 1, 2, 3]  # to calculate precision
             prob[(prob<=0.4)] = 0
             prob[(prob>0.4) & (prob<=0.6)] = 1
             prob[(prob>0.6) & (prob<=0.9)] = 2
             prob[(prob>0.9) & (prob<=1.0)] = 3
 
-        if n == 5:
+        elif n == 5:
+            self.labels = [0, 1, 2, 3, 4]  # to calculate precision
             prob[(prob<=0.2)] = 0
             prob[(prob>0.2) & (prob<=0.4)] = 1
             prob[(prob>0.4) & (prob<=0.6)] = 2
@@ -74,53 +87,60 @@ class Machine_Learning(object):
             prob[(prob>0.8) & (prob<=1.0)] = 4
 
         self.xy[['Pdet1', 'Pdet2', 'Pdet3']] = prob
+        self.n = n
         if v:  print prob
-
 
     def random_forest_classifier(self):
         """ Perform a Random Forest Classifier (made up of many decision trees)
-        on the XY data. Y data must be given as 0 or 1 for each mode (detected or not). """
-
-        rs = 42  # random state
+        on the XY data. Y data must be given as discrete values
+        e.g 0 or 1 for each mode (detected or not). """
 
         params = ['numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
                   'Vmag', 'B-V', 'V-I', 'Imag']
         x = self.xy[params].as_matrix()
         y = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
 
-        x_train, x_test, y_train, y_test = train_test_split(x,
-                                                            y,
+        x_train, x_test, y_train, y_test = train_test_split(x, y,
                                                             test_size=0.3,
-                                                            random_state=rs)
-        print 'x training/testing set: ', np.shape(x_train), '/', np.shape(x_test)
-        print 'y training/testing set: ', np.shape(y_train), '/', np.shape(y_test)
+                                                            random_state=42)
+        print self.sat, '; Tobs:', self.Tobs, ';', self.n, 'Y-data classes', '\n'
+        # print 'x training/testing set: ', np.shape(x_train), '/', np.shape(x_test)
+        # print 'y training/testing set: ', np.shape(y_train), '/', np.shape(y_test)
         #print 'y_test is a', (utils.multiclass.type_of_target(y_test))
 
-        rfc = RandomForestClassifier(random_state=rs, max_depth=100, max_features=10,
-            min_samples_leaf=10)
+        rfc = RandomForestClassifier(random_state=42, max_depth=100,
+                                     max_features=10, min_samples_leaf=10)
         rfc = rfc.fit(x_train, y_train)
         y_pred = rfc.predict(x_test)  # predict on new data
-        rfc_test = rfc.score(x_test, y_test)  # how well has the classifier done
-        print 'DTC Test: ', rfc_test
-        print 'Feature importance:', rfc.feature_importances_
+        #print y_test, '\n', y_pred
 
-        from sklearn.metrics import classification_report
-        from sklearn.metrics import confusion_matrix
-        print(classification_report(y_test, y_pred))
-        #print(confusion_matrix(y_test, y_pred))
-        #cv_score = cross_val_score(rfc, x_train, y_train)
-        #print("Accuracy: %0.2f (+/- %0.2f)" % (cv_score.mean(), cv_score.std() * 2))
+        if self.n == 2:
+            """ How well has the classifier done. Only works with binary labels """
+            rfc_test = rfc.score(x_test, y_test)
+            cv_score = cross_val_score(rfc, x_train, y_train)
+            print 'DTC Test: ', rfc_test
+            print "Accuracy:  %0.2f (+/- %0.2f)" % (cv_score.mean(), cv_score.std() * 2)
+            print 'Accuracy:', accuracy_score(y_test, y_pred).mean(), accuracy_score(y_test, y_pred).std()
+            print 'Classification report:', (classification_report(y_test, y_pred))
+            print 'Confisuion matrix:', (confusion_matrix(y_test, y_pred))
+
+        print 'Feature importance:', rfc.feature_importances_
+        print 'Hamming loss:', np.sum(np.not_equal(y_test, y_pred))/float(y_test.size)
+
+        av = 'weighted'
+        print 'Precision1:', precision_score(y_test[:,0], y_pred[:,0], labels=self.labels, average=av)
+        print 'Precision2:', precision_score(y_test[:,1], y_pred[:,1], labels=self.labels, average=av)
+        print 'Precision3:', precision_score(y_test[:,2], y_pred[:,2], labels=self.labels, average=av)
 
     def random_forest_regression(self):
         """ Perform Random Forest Regression on the X, Y data.
             RF: Random Forest
             MRF: Multi Random Forest """
 
-        #self.y = self.y[['SNR2', 'SNR3']]
-        #print self.y
-        #sys.exit()
-        x = self.x[['Kp', 'dnu', 'numax']].as_matrix()
-        y = self.y.as_matrix()
+        params = ['numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
+                  'Vmag', 'B-V', 'V-I', 'Imag']
+        x = self.xy[params].as_matrix()
+        y = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
 
         test_size = 0.2  # use 30% of the data to test the algorithm (i.e 70% to train)
         random_state = 42  # keep this constant to keep the results constant
@@ -179,7 +199,7 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='Kepler', Tobs=365)
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=365)
     ml.loadData()
     ml.pdet_bins()
     ml.random_forest_classifier()

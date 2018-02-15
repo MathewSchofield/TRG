@@ -40,6 +40,11 @@ Chaplin W.~J.,  et~al., 2011, \mn@doi [The Astrophysical Journal]
   Miglio}{2016}]{davies_asteroseismology_2016}
 Davies G.~R.,  Miglio A.,  2016, arXiv:1601.02802 [astro-ph]
 
+\bibitem[\protect\citeauthoryear{Eisenstein et~al.,}{Eisenstein
+  et~al.}{2011}]{eisenstein_sdss-iii:_2011}
+Eisenstein D.~J.,  et~al., 2011, \mn@doi [The Astronomical Journal]
+  {10.1088/0004-6256/142/3/72}, 142, 72
+
 \bibitem[\protect\citeauthoryear{Elorrieta et~al.,}{Elorrieta
   et~al.}{2016}]{elorrieta_machine_2016}
 Elorrieta F.,  et~al., 2016, \mn@doi [Astronomy and Astrophysics]
@@ -67,8 +72,8 @@ Lund M.~N.,  et~al., 2017, \mn@doi [The Astrophysical Journal]
 
 \bibitem[\protect\citeauthoryear{Mosser et~al.,}{Mosser
   et~al.}{2012}]{mosser_characterization_2012}
-Mosser B.,  et~al., 2012, \mn@doi [Astronomy \& Astrophysics]
-  {10.1051/0004-6361/201117352}, 537, A30
+Mosser B.,  et~al., 2012, \mn@doi [A\&A] {10.1051/0004-6361/201117352}, 537,
+  A30
 
 \bibitem[\protect\citeauthoryear{Ness, Hogg, Rix, Ho  \& Zasowski}{Ness
   et~al.}{2015}]{ness_cannon_2015}
@@ -79,6 +84,17 @@ Ness M.,  Hogg D.~W.,  Rix H.-W.,  Ho A. Y.~Q.,   Zasowski G.,  2015, \mn@doi
   et~al.}{2014}]{nun_supervised_2014}
 Nun I.,  Pichara K.,  Protopapas P.,   Kim D.-W.,  2014, \mn@doi [The
   Astrophysical Journal] {10.1088/0004-637X/793/1/23}, 793, 23
+
+\bibitem[\protect\citeauthoryear{Pinsonneault et~al.,}{Pinsonneault
+  et~al.}{2014}]{pinsonneault_apokasc_2014}
+Pinsonneault M.~H.,  et~al., 2014, \mn@doi [The Astrophysical Journal
+  Supplement Series] {10.1088/0067-0049/215/2/19}, 215, 19
+
+\bibitem[\protect\citeauthoryear{Placek, Knuth  \& Angerhausen}{Placek
+  et~al.}{2016}]{placek_combining_2016}
+Placek B.,  Knuth K.~H.,   Angerhausen D.,  2016, \mn@doi [Publications of the
+  Astronomical Society of the Pacific] {10.1088/1538-3873/128/965/074503}, 128,
+  074503
 
 \bibitem[\protect\citeauthoryear{Rauer et~al.,}{Rauer
   et~al.}{2014}]{rauer_plato_2014}
