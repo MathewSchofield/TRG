@@ -608,6 +608,7 @@ if __name__ == "__main__":
         # rather than using a uniform distribution in magnitude, use a PDF of
         # the Kepler/TESS noise function to get the a distribution of magnitudes
         rand_mags = ds.rvs_from_noise_function(pdf_range = pdf_range, x=x)
+        #ds.Plot2()  # plot the noise functions
 
         for j in range(x):
             """ Perturb the Kepler/TESS magnitudes 'x' times before calculating
@@ -621,7 +622,6 @@ if __name__ == "__main__":
                 ds.Periodogram()
                 ds.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
                 ds.PS_add_noise()  # add noise to the power spectrum
-
 
             elif ds.sat == 'TESS':  # transform the Kepler PS into TESS PS
 

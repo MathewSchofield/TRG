@@ -464,6 +464,24 @@ class Dataset(object):
         plt.ylabel(r'Power $\rm ppm^{2} \mu Hz^{-1}$')
         plt.show()
 
+    def Plot2(self):
+        """ Plot the Kepler and TESS noise functions. """
+
+        mags = np.linspace(10, 16, 1000)
+        kep_noise = map(self.kepler_noise_func, mags)
+        tess_noise = map(self.TESS_noise_func, mags)
+
+        plt.rc('font', size=14)
+        fig, ax = plt.subplots()
+        plt.plot(mags, kep_noise/kep_noise[-1], label=r'$Kepler$ $\sigma$')
+        plt.plot(mags, tess_noise/tess_noise[-1], c='r', label=r'TESS $\sigma$')
+        plt.xlabel(r'magnitude ($K_{p}$ or $I_{c}$)')
+        plt.ylabel(r'PDF')
+        plt.legend()
+        plt.show()
+        fig.savefig('DetTest1_plots/Plot2_noise.pdf')
+        sys.exit()
+
     def Smoo(self, smoo_scale):
         """ smooth the input power using a convolve function """
 

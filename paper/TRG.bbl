@@ -106,10 +106,18 @@ Rauer H.,  et~al., 2014, \mn@doi [Experimental Astronomy]
 Ricker G.~R.,  et~al., 2014, \mn@doi [Journal of Astronomical Telescopes,
   Instruments, and Systems] {10.1117/1.JATIS.1.1.014003}, 1, 014003
 
+\bibitem[\protect\citeauthoryear{Steinhardt \& Jermyn}{Steinhardt \&
+  Jermyn}{2018}]{steinhardt_nonparametric_2018}
+Steinhardt C.~L.,  Jermyn A.~S.,  2018, \mn@doi [Publications of the
+  Astronomical Society of the Pacific] {10.1088/1538-3873/aaa22a}, 130, 023001
+
 \bibitem[\protect\citeauthoryear{Valenzuela \& Pichara}{Valenzuela \&
   Pichara}{2018}]{valenzuela_unsupervised_2018}
 Valenzuela L.,  Pichara K.,  2018, \mn@doi [Monthly Notices of the Royal
   Astronomical Society] {10.1093/mnras/stx2913}, 474, 3259
+
+\bibitem[\protect\citeauthoryear{Wegner}{Wegner}{1960}]{wegner_technique_1960}
+Wegner P.,  1960, \mn@doi [Commun. ACM] {10.1145/367236.367286}, 3, 322
 
 \bibitem[\protect\citeauthoryear{Wu et~al.,}{Wu et~al.}{2017}]{wu_mass_2017}
 Wu Y.,  et~al., 2017, preprint, 1712, arXiv:1712.09779
