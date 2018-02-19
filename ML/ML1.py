@@ -48,13 +48,19 @@ class Machine_Learning(object):
 
         self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
 
-    def pdet_bins(self, n=3, v=False):
+    def pdet_bins(self, n=3, v=True, plot=False):
         """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
         (i.e any value from 0.00 to 1.00), in order to apply Classification.
         n: the number of discrete bins to group pdet values into. """
 
         prob = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
         if v:  print prob
+        if plot:
+            plt.hist(self.xy['Pdet1'], bins=100)
+            plt.hist(self.xy['Pdet2'], bins=100)
+            plt.hist(self.xy['Pdet3'], bins=100)
+            plt.show()
+            sys.exit()
 
         if n == 2:
             self.labels = [0, 1]  # to calculate precision
@@ -67,28 +73,42 @@ class Machine_Learning(object):
 
         elif n == 3:
             self.labels = [0, 1, 2]  # to calculate precision
-            prob[(prob<=0.5)] = 0
-            prob[(prob>0.5) & (prob<=0.9)] = 1
             prob[(prob>0.9) & (prob<1.0)] = 2
+            prob[(prob>0.5) & (prob<=0.9)] = 1
+            prob[(prob<=0.5)] = 0
 
         elif n == 4:
             self.labels = [0, 1, 2, 3]  # to calculate precision
-            prob[(prob<=0.4)] = 0
-            prob[(prob>0.4) & (prob<=0.6)] = 1
-            prob[(prob>0.6) & (prob<=0.9)] = 2
-            prob[(prob>0.9) & (prob<=1.0)] = 3
+            prob[(prob>0.7) & (prob<=1.0)] = 3
+            prob[(prob>0.5) & (prob<=0.7)] = 2
+            prob[(prob>0.3) & (prob<=0.5)] = 1
+            prob[(prob<=0.3)] = 0
 
         elif n == 5:
             self.labels = [0, 1, 2, 3, 4]  # to calculate precision
-            prob[(prob<=0.2)] = 0
-            prob[(prob>0.2) & (prob<=0.4)] = 1
-            prob[(prob>0.4) & (prob<=0.6)] = 2
-            prob[(prob>0.6) & (prob<=0.8)] = 3
             prob[(prob>0.8) & (prob<=1.0)] = 4
+            prob[(prob>0.6) & (prob<=0.8)] = 3
+            prob[(prob>0.4) & (prob<=0.6)] = 2
+            prob[(prob>0.2) & (prob<=0.4)] = 1
+            prob[(prob<=0.2)] = 0
+
+        elif n == 6:
+            self.labels = [0, 1, 2, 3, 4, 5]  # to calculate precision
+            prob[(prob>0.9) & (prob<=1.0)] = 5
+            prob[(prob>0.8) & (prob<=0.9)] = 4
+            prob[(prob>0.6) & (prob<=0.8)] = 3
+            prob[(prob>0.4) & (prob<=0.6)] = 2
+            prob[(prob>0.2) & (prob<=0.4)] = 1
+            prob[(prob<=0.2)] = 0
 
         self.xy[['Pdet1', 'Pdet2', 'Pdet3']] = prob
         self.n = n
         if v:  print prob
+        if v:  print '% rows in \'0\' class:', len(prob[prob==0])/float(prob.shape[0]*prob.shape[1])
+        if v:  print '% rows in \'1\' class:', len(prob[prob==1])/float(prob.shape[0]*prob.shape[1])
+        if v:  print '% rows in \'2\' class:', len(prob[prob==2])/float(prob.shape[0]*prob.shape[1])
+        if v:  print '% rows in \'3\' class:', len(prob[prob==3])/float(prob.shape[0]*prob.shape[1])
+        if v:  print '% rows in \'4\' class:', len(prob[prob==4])/float(prob.shape[0]*prob.shape[1])
 
     def random_forest_classifier(self):
         """ Perform a Random Forest Classifier (made up of many decision trees)
@@ -122,7 +142,6 @@ class Machine_Learning(object):
             print "Accuracy:  %0.2f (+/- %0.2f)" % (cv_score.mean(), cv_score.std() * 2)
             print 'Accuracy:', accuracy_score(y_test, y_pred).mean(), accuracy_score(y_test, y_pred).std()
             print 'Classification report:', (classification_report(y_test, y_pred))
-            print 'Confisuion matrix:', (confusion_matrix(y_test, y_pred))
 
         print 'Feature importance:', rfc.feature_importances_
         print 'Hamming loss:', np.sum(np.not_equal(y_test, y_pred))/float(y_test.size)
@@ -199,7 +218,7 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='Kepler', Tobs=365)
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=27)
     ml.loadData()
     ml.pdet_bins()
     ml.random_forest_classifier()
