@@ -218,7 +218,7 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=27)
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=365)
     ml.loadData()
     ml.pdet_bins()
     ml.random_forest_classifier()

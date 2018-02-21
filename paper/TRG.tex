@@ -334,9 +334,11 @@ TESS    & 27 days & 0.74                 & 0.26         \\
 \label{tab: results}
 \end{table}
 
-The results for the original \kep dataset and for 1-year of TESS data are very good; the Classifier was able to replicate the mode detection predictions of the stars in these cases. This means that a Classifier can be used as a tool for target selection for future missions. Once the Classifier predicted \pdet values, the stars could be ranked from those with many detected modes, to those with the fewest. This could be used as the target selection function of solar-like oscillators for TESS.
+The classifier was adjusted in order to improve the predictions made by the classifier on the \kep and TESS datasets. This was done by varying Equation \ref{eq:class}. It was varied by changing the number of classes and range of \pdet values for each class. The number of classes was varied from 2 (i.e the mode was detected (1) or it was not (0)) to 6. The width of each bin was also varied to ensure that bins were not underpopulated. It was found that the 3 classes and \pdet ranges given in equation \ref{eq:class} gave the best predictions for the 3 \kep and TESS datasets. 
 
-For the 27-day TESS dataset, the Classifier was only able to correctly predict the \pdet values of 74\% of the modes. This is likely to be because with these TESS targets the dataset is too short, and the white noise level is too high for individual modes to be reliably detected. In this case, the Classifier could not be expected to perform better. It is arguably no less reliable than a mode detection test, although it is much faster for large datasets. 
+The results for the original \kep dataset and for 1-year of TESS data are very good; the Classifier was able to replicate the mode detection predictions of the stars in these cases. This means that a Classifier can be used as a tool for target selection for future missions. Once the Classifier predicted \pdet values, the stars could be ranked from those with many detected modes, to those with the fewest. In this way, the Classifier could be used as the target selection function of solar-like oscillators for TESS. 
+
+For the 27-day TESS dataset, the Classifier was only able to correctly predict the \pdet values of 74\% of the modes. This is likely to be because with these TESS targets, the dataset is too short and the white noise level is too high for individual modes to be reliably detected. In this case, the Classifier could not be expected to perform better. It is arguably no less reliable than a mode detection test, although it is much faster for large datasets. 
 
 
 
