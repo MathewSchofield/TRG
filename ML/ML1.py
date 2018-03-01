@@ -1,9 +1,9 @@
 """
-Machine Learning using Random Forest and Multi Random Forest Regression.
-Use Machine Learning to estimate the SNR values of stars.
+Machine Learning using a Random Forest Classifier.
+Use Machine Learning to estimate the Pdet values of stars.
 
 X data: dnu, numax, magnitudes.
-Y daya: SNR values.
+Y daya: Pdet values.
 """
 
 import warnings
@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 TRG = os.getcwd().split('ML')[0]
 sys.path.insert(0, TRG)
 from plotTemplates import generalPlot
-from config import *  # the directories of the data files (ML_data_dir)
+from config import *  # the directories of the data files (ML_data_dir and pins_floc)
 
 from sklearn import preprocessing, utils
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -36,10 +36,69 @@ class Machine_Learning(object):
         self.sat = sat
         self.Tobs = Tobs
 
+    def get_parallaxes(self):
+        """ Use Tycho2 IDs from Simbad to make a query to TGAS,
+        to download and match parallaxes with TYC and KIC IDs. """
+
+        a = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC.csv', sep=';')
+        print a
+        print list(a)
+        print a['typed ident ']
+        print a['                    identifier                    '].str.split('  ').iloc[0][:]
+        #print pd.DataFrame(a['                    identifier                    '].str.split('  '))#.iloc[:,0]
+        sys.exit()
+
+        # NOTE: Step 1: Go from Simbad file with Kic and TYC ID file ready for TGAS with only TYC
+        a = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC2.tsv', sep='\s+')
+        b = pd.DataFrame(a['typed'].str.split('   ',1).tolist())  # get the Tycho ID values only
+        b = 'TYC ' + b[0]  # add 'TYC ' onto the start of the ID name
+        c = b[b.str.contains('-')]  # only keep stars that have TYC IDs to search in TGAS
+        print b.shape, c.shape
+        print c
+        c.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC2.csv', index=False)
+        sys.exit()
+
+
+        # NOTE: Step 2: Get every TGAS TYC ID and parallax in 1 file to match with the TYC IDs of the Kepler Red Giants
+        for i in range(16):  # loop through the files
+            if i<10:
+                i = '0' + str(i)
+            i = str(i)
+            print i
+
+            tgas = pd.read_csv('/home/mxs191/Desktop/phd_y2/Gaia/TGAS/tgas_parts/TgasSource_000-000-0' + i + '.csv')
+            print tgas.shape
+
+            if i == '00':
+                plx = tgas[['tycho2_id', 'parallax']]
+            else:
+                plx = pd.concat([plx, tgas[['tycho2_id', 'parallax']]])
+
+        print plx.shape
+        plx.dropna(inplace=True)
+        print plx.shape
+        plx['tycho2_id'] = 'TYC ' + plx['tycho2_id']
+        plx.to_csv('/home/mxs191/Desktop/phd_y2/Gaia/TGAS/TYC_plx.csv', index=False)
+        sys.exit()
+
+
+        # NOTE: Step 3: Merge the TYC values of the 1000stars to the TYC and plx values from the entire DR1
+        tyc  = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC2.csv', names=['TYC'])
+        tgas = pd.read_csv('/home/mxs191/Desktop/phd_y2/Gaia/TGAS/TYC_plx.csv')
+        print tyc
+        print tgas
+        print tyc.shape, tgas.shape, list(tyc), list(tgas)
+        both = pd.merge(left=tyc, right=tgas[['tycho2_id', 'parallax']], left_on='TYC', right_on='tycho2_id', how='inner')
+        print both
+        both[['tycho2_id', 'parallax']].to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/TYC_plx.csv', index=False)
+        sys.exit()
+
     def loadData(self):
-        """ Load the X and Y data for the Kepler or TESS sample.
-        Remove rows where all values are zero. Note: Kepler file does not have
-        a 'Tobs' time in the filename. """
+        """ 1.  Load the X and Y data for the Kepler or TESS sample (Note: Kepler
+                file does not have a 'Tobs' time in the filename.)
+            2.  Remove rows where all values are zero.
+            3.  Add log(g) values from Pinsonneualt (2014).
+            4.  Add parallax values from TGAS (see get_parallaxes() functiion). """
 
         if os.path.isfile(self.data_loc + '_' + self.sat + str(self.Tobs) + '_XY.csv'):
             self.xy = pd.read_csv(self.data_loc + '_' + self.sat + str(self.Tobs) + '_XY.csv')
@@ -48,7 +107,20 @@ class Machine_Learning(object):
 
         self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
 
-    def pdet_bins(self, n=3, v=True, plot=False):
+        pins = pd.read_csv(pins_floc, sep=';')
+        self.xy = pd.merge(left=self.xy, right=pins[['KIC', 'log.g1', 'log.g2']],
+                        left_on='KIC', right_on='KIC', how='inner')
+        self.xy = self.xy[self.xy['log.g1'] != '         ']  # remove rows with log(g)values
+        self.xy[['log.g1', 'log.g2']] = self.xy[['log.g1', 'log.g2']].apply(pd.to_numeric, errors='coerce')
+
+
+        plx = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/TYC_plx.csv')
+        self.xy = pd.merge()
+
+        sys.exit()
+
+
+    def pdet_bins(self, n=3, v=False, plot=False):
         """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
         (i.e any value from 0.00 to 1.00), in order to apply Classification.
         n: the number of discrete bins to group pdet values into. """
@@ -115,9 +187,15 @@ class Machine_Learning(object):
         on the XY data. Y data must be given as discrete values
         e.g 0 or 1 for each mode (detected or not). """
 
-        params = ['numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
-                  'Vmag', 'B-V', 'V-I', 'Imag']
-        x = self.xy[params].as_matrix()
+        if self.sat == 'kepler':
+            x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'log.g1']
+        else:
+            x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
+                        'Vmag', 'B-V', 'V-I', 'Imag', 'log.g1']
+
+        #params = ['numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
+        #          'Vmag', 'B-V', 'V-I', 'Imag', 'log.g1']
+        x = self.xy[x_labels].as_matrix()
         y = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
 
         x_train, x_test, y_train, y_test = train_test_split(x, y,
@@ -129,7 +207,7 @@ class Machine_Learning(object):
         #print 'y_test is a', (utils.multiclass.type_of_target(y_test))
 
         rfc = RandomForestClassifier(random_state=42, max_depth=100,
-                                     max_features=10, min_samples_leaf=10)
+                                     min_samples_leaf=10)  # max_features=10
         rfc = rfc.fit(x_train, y_train)
         y_pred = rfc.predict(x_test)  # predict on new data
         #print y_test, '\n', y_pred
@@ -218,7 +296,8 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=365)
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='Kepler', Tobs=27)
+    ml.get_parallaxes()
     ml.loadData()
     ml.pdet_bins()
     ml.random_forest_classifier()

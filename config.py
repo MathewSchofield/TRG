@@ -1,5 +1,7 @@
 run = '1000stars'
 
+pins_floc = '/home/mxs191/Desktop/MathewSchofield/TRG/GetData/Pinsonneault2014.csv'
+
 if run == '20stars':
     # the directories used in likeTESS1.py getInput()
     data_dir = '/home/mxs191/Desktop/MathewSchofield/TRG/GetData/20Stars/'
