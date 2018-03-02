@@ -41,14 +41,6 @@ class Machine_Learning(object):
         to download and match parallaxes with TYC and KIC IDs.
         Match this file in loadData()"""
 
-        a = pd.read_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC.csv', sep=';')
-        print a
-        print list(a)
-        print a['typed ident ']
-        print a['                    identifier                    '].str.split('  ')
-        #print pd.DataFrame(a['                    identifier                    '].str.split('  '))#.iloc[:,0]
-        sys.exit()
-
         # NOTE: Step 1: Go from Simbad file with Kic and TYC ID file ready for TGAS with only TYC
         a = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC2.tsv', sep='\s+')
         b = pd.DataFrame(a['typed'].str.split('   ',1).tolist())  # get the Tycho ID values only
@@ -56,7 +48,7 @@ class Machine_Learning(object):
         c = b[b.str.contains('-')]  # only keep stars that have TYC IDs to search in TGAS
         print b.shape, c.shape
         print c
-        c.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC2.csv', index=False)
+        c.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC.csv', index=False)
         sys.exit()
 
 
@@ -84,7 +76,7 @@ class Machine_Learning(object):
 
 
         # NOTE: Step 3: Merge the TYC values of the 1000stars to the TYC and plx values from the entire DR1
-        tyc  = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC2.csv', names=['TYC'])
+        tyc  = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC.csv', names=['TYC'])
         tgas = pd.read_csv('/home/mxs191/Desktop/phd_y2/Gaia/TGAS/TYC_plx.csv')
         print tyc
         print tgas
