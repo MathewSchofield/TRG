@@ -38,7 +38,8 @@ class Machine_Learning(object):
 
     def get_parallaxes(self):
         """ Use Tycho2 IDs from Simbad to make a query to TGAS,
-        to download and match parallaxes with TYC and KIC IDs. """
+        to download and match parallaxes with TYC and KIC IDs.
+        Match this file in loadData()"""
 
         a = pd.read_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC.csv', sep=';')
         print a
@@ -93,6 +94,20 @@ class Machine_Learning(object):
         both[['tycho2_id', 'parallax']].to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/TYC_plx.csv', index=False)
         sys.exit()
 
+
+        # NOTE: Step 4: clean up dataframe with KIC and TYC IDs. Merge with parallaxes
+        plx = pd.read_csv(plx_floc)
+
+        ids = pd.read_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC.csv', sep=';|')
+        ids.rename(columns={'typed ident ':'kic', '                    identifier':'tyc'}, inplace=True)
+        ids['tyc'] = ids['tyc'].astype(str).str[:-12].str.strip()
+        ids['kic'] = ids['kic'].astype(str).str.strip().str.rstrip()
+        ids.to_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC2.csv', index=False)
+
+        both = pd.merge(left=ids, right=plx, left_on='tyc', right_on='tycho2_id', how='inner')
+        both.to_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC_plx.csv', index=False)
+        sys.exit()
+
     def loadData(self, add_logg=True, add_parallax=True):
         """ 1.  Load the X and Y data for the Kepler or TESS sample (Note: Kepler
                 file does not have a 'Tobs' time in the filename.)
@@ -112,21 +127,14 @@ class Machine_Learning(object):
             pins = pd.read_csv(pins_floc, sep=';')
             self.xy = pd.merge(left=self.xy, right=pins[['KIC', 'log.g1', 'log.g2']],
                             left_on='KIC', right_on='KIC', how='inner')
-            self.xy = self.xy[self.xy['log.g1'] != '         ']  # remove rows with log(g)values
+            self.xy = self.xy[self.xy['log.g1'] != '         ']  # remove rows without log(g) values
             self.xy[['log.g1', 'log.g2']] = self.xy[['log.g1', 'log.g2']].apply(pd.to_numeric, errors='coerce')
 
         if add_parallax:
-            plx = pd.read_csv(plx_floc)
-
-            ids = pd.read_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC.csv', sep=';|')
-            ids.rename(columns={'typed ident ':'kic', '                    identifier':'tyc'}, inplace=True)
-            ids['tyc'] = ids['tyc'].astype(str).str[:-12].str.strip()
-            ids['kic'] = ids['kic'].astype(str).str.strip().str.rstrip()
-
-            both = pd.merge(left=ids, right=plx, left_on='tyc', right_on='tycho2_id', how='inner')
+            plx = pd.read_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC_plx.csv')
 
             self.xy['KIC'] = 'KIC ' + self.xy['KIC'].astype(str).str[:-2].str.strip().str.rstrip()
-            self.xy = pd.merge(left=self.xy, right=both[['kic', 'tyc', 'parallax']], left_on='KIC', right_on='kic', how='inner')
+            self.xy = pd.merge(left=self.xy, right=plx[['kic', 'tyc', 'parallax']], left_on='KIC', right_on='kic', how='inner')
 
     def pdet_bins(self, n=3, v=False, plot=False):
         """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
