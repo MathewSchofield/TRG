@@ -8,8 +8,6 @@ __pycache__/
 # Data files and plots
 #*.csv
 *.dat
-*.png
-*.pdf
 DetTest/config.py
 likeTESS/config.py
 
