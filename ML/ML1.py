@@ -88,7 +88,7 @@ class Machine_Learning(object):
 
 
         # NOTE: Step 4: clean up dataframe with KIC and TYC IDs. Merge with parallaxes
-        plx = pd.read_csv(plx_floc)
+        plx = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/TYC_plx.csv')
 
         ids = pd.read_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC.csv', sep=';|')
         ids.rename(columns={'typed ident ':'kic', '                    identifier':'tyc'}, inplace=True)
@@ -123,7 +123,7 @@ class Machine_Learning(object):
             self.xy[['log.g1', 'log.g2']] = self.xy[['log.g1', 'log.g2']].apply(pd.to_numeric, errors='coerce')
 
         if add_parallax:
-            plx = pd.read_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC_plx.csv')
+            plx = pd.read_csv(plx_floc)
 
             self.xy['KIC'] = 'KIC ' + self.xy['KIC'].astype(str).str[:-2].str.strip().str.rstrip()
             self.xy = pd.merge(left=self.xy, right=plx[['kic', 'tyc', 'parallax']], left_on='KIC', right_on='kic', how='inner')
@@ -194,8 +194,6 @@ class Machine_Learning(object):
         """ Perform a Random Forest Classifier (made up of many decision trees)
         on the XY data. Y data must be given as discrete values
         e.g 0 or 1 for each mode (detected or not). """
-
-        print self.xy
 
         # if self.sat == 'Kepler':
         #     x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'log.g1', 'parallax']

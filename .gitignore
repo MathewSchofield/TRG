@@ -8,8 +8,6 @@ __pycache__/
 # Data files and plots
 #*.csv
 *.dat
-DetTest/config.py
-likeTESS/config.py
 config.py
 
 # exceptions - data to test code with

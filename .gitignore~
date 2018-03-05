@@ -10,6 +10,7 @@ __pycache__/
 *.dat
 DetTest/config.py
 likeTESS/config.py
+config.py
 
 # exceptions - data to test code with
 !GetData/20Stars
