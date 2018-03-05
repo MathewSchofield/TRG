@@ -38,15 +38,8 @@ class Machine_Learning(object):
 
     def get_parallaxes(self):
         """ Use Tycho2 IDs from Simbad to make a query to TGAS,
-        to download and match parallaxes with TYC and KIC IDs. """
-
-        a = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC.csv', sep=';')
-        print a
-        print list(a)
-        print a['typed ident ']
-        print a['                    identifier                    '].str.split('  ').iloc[0][:]
-        #print pd.DataFrame(a['                    identifier                    '].str.split('  '))#.iloc[:,0]
-        sys.exit()
+        to download and match parallaxes with TYC and KIC IDs.
+        Match this file in loadData()"""
 
         # NOTE: Step 1: Go from Simbad file with Kic and TYC ID file ready for TGAS with only TYC
         a = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC2.tsv', sep='\s+')
@@ -55,7 +48,7 @@ class Machine_Learning(object):
         c = b[b.str.contains('-')]  # only keep stars that have TYC IDs to search in TGAS
         print b.shape, c.shape
         print c
-        c.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC2.csv', index=False)
+        c.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC.csv', index=False)
         sys.exit()
 
 
@@ -83,7 +76,7 @@ class Machine_Learning(object):
 
 
         # NOTE: Step 3: Merge the TYC values of the 1000stars to the TYC and plx values from the entire DR1
-        tyc  = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC2.csv', names=['TYC'])
+        tyc  = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC.csv', names=['TYC'])
         tgas = pd.read_csv('/home/mxs191/Desktop/phd_y2/Gaia/TGAS/TYC_plx.csv')
         print tyc
         print tgas
@@ -93,12 +86,27 @@ class Machine_Learning(object):
         both[['tycho2_id', 'parallax']].to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/TYC_plx.csv', index=False)
         sys.exit()
 
-    def loadData(self):
+
+        # NOTE: Step 4: clean up dataframe with KIC and TYC IDs. Merge with parallaxes
+        plx = pd.read_csv(plx_floc)
+
+        ids = pd.read_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC.csv', sep=';|')
+        ids.rename(columns={'typed ident ':'kic', '                    identifier':'tyc'}, inplace=True)
+        ids['tyc'] = ids['tyc'].astype(str).str[:-12].str.strip()
+        ids['kic'] = ids['kic'].astype(str).str.strip().str.rstrip()
+        ids.to_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC2.csv', index=False)
+
+        both = pd.merge(left=ids, right=plx, left_on='tyc', right_on='tycho2_id', how='inner')
+        both.to_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC_plx.csv', index=False)
+        sys.exit()
+
+    def loadData(self, add_logg=True, add_parallax=True):
         """ 1.  Load the X and Y data for the Kepler or TESS sample (Note: Kepler
                 file does not have a 'Tobs' time in the filename.)
             2.  Remove rows where all values are zero.
-            3.  Add log(g) values from Pinsonneualt (2014).
-            4.  Add parallax values from TGAS (see get_parallaxes() functiion). """
+            3.  add_logg (Bool; kewarg):      Add log(g) values from Pinsonneualt (2014).
+            4.  add_parallax (Bool; kewarg):  Add parallax values from TGAS
+                                              (see get_parallaxes() functiion). """
 
         if os.path.isfile(self.data_loc + '_' + self.sat + str(self.Tobs) + '_XY.csv'):
             self.xy = pd.read_csv(self.data_loc + '_' + self.sat + str(self.Tobs) + '_XY.csv')
@@ -107,18 +115,18 @@ class Machine_Learning(object):
 
         self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
 
-        pins = pd.read_csv(pins_floc, sep=';')
-        self.xy = pd.merge(left=self.xy, right=pins[['KIC', 'log.g1', 'log.g2']],
-                        left_on='KIC', right_on='KIC', how='inner')
-        self.xy = self.xy[self.xy['log.g1'] != '         ']  # remove rows with log(g)values
-        self.xy[['log.g1', 'log.g2']] = self.xy[['log.g1', 'log.g2']].apply(pd.to_numeric, errors='coerce')
+        if add_logg:
+            pins = pd.read_csv(pins_floc, sep=';')
+            self.xy = pd.merge(left=self.xy, right=pins[['KIC', 'log.g1', 'log.g2']],
+                            left_on='KIC', right_on='KIC', how='inner')
+            self.xy = self.xy[self.xy['log.g1'] != '         ']  # remove rows without log(g) values
+            self.xy[['log.g1', 'log.g2']] = self.xy[['log.g1', 'log.g2']].apply(pd.to_numeric, errors='coerce')
 
+        if add_parallax:
+            plx = pd.read_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC_plx.csv')
 
-        plx = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/TYC_plx.csv')
-        self.xy = pd.merge()
-
-        sys.exit()
-
+            self.xy['KIC'] = 'KIC ' + self.xy['KIC'].astype(str).str[:-2].str.strip().str.rstrip()
+            self.xy = pd.merge(left=self.xy, right=plx[['kic', 'tyc', 'parallax']], left_on='KIC', right_on='kic', how='inner')
 
     def pdet_bins(self, n=3, v=False, plot=False):
         """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
@@ -187,14 +195,16 @@ class Machine_Learning(object):
         on the XY data. Y data must be given as discrete values
         e.g 0 or 1 for each mode (detected or not). """
 
-        if self.sat == 'kepler':
-            x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'log.g1']
-        else:
-            x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
-                        'Vmag', 'B-V', 'V-I', 'Imag', 'log.g1']
+        print self.xy
 
-        #params = ['numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
-        #          'Vmag', 'B-V', 'V-I', 'Imag', 'log.g1']
+        # if self.sat == 'Kepler':
+        #     x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'log.g1', 'parallax']
+        # else:
+        #     x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
+        #                 'Vmag', 'B-V', 'V-I', 'Imag', 'log.g1', 'parallax']
+
+        x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
+                    'Vmag', 'B-V', 'V-I', 'Imag', 'log.g1', 'parallax']
         x = self.xy[x_labels].as_matrix()
         y = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
 
@@ -296,8 +306,8 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='Kepler', Tobs=27)
-    ml.get_parallaxes()
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=365)
+    #ml.get_parallaxes()
     ml.loadData()
     ml.pdet_bins()
     ml.random_forest_classifier()
