@@ -599,7 +599,7 @@ if __name__ == "__main__":
 
 
 
-        x = 100  # number of iterations to loop through every star (number of different magnitudes)
+        x = 100  # number of iterations to loop through every star (number of different magnitudes per star)
         if sat == 'Kepler':
             pdf_range = [10., 16., 100]  # range of Kp magnitudes for the PDF
         elif sat == 'TESS':

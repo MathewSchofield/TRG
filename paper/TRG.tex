@@ -17,6 +17,7 @@
 \newcommand{\kp}{\ensuremath{K_{p}\:}}
 \newcommand{\tobs}{\ensuremath{T_{\textrm{obs}}\:}} 
 \newcommand{\imag}{\ensuremath{I_{\textrm{mag}}\:}} 
+\newcommand{\msol}{\ensuremath{M_{\odot}\:}} 
 
 \newcommand{\bibtex}{\textsc{Bib}\!\TeX} % bibtex. Not quite the correct typesetting, but close enough
 
@@ -47,10 +48,11 @@ $^{2}$Stellar Astrophysics Centre (SAC), Department of Physics and Astronomy, Aa
 \maketitle
 
 \begin{abstract}
-{\it Summary}: This paper presents a method to predict Red Giant mode detectability with TESS using a Machine Learning Classifier. It requires only the global parameters \dnu, \numax, [M/H], \teff, the stellar magnitude and length of observation. \newline
+{\it Summary}: This paper presents a method to identify the detectable solar-like modes in Red Giant with TESS using a Machine Learning Classifier. It requires only the global parameters \dnu, \numax, [M/H], \teff, the stellar magnitude and length of observation. \newline
 {\it Method}: Lightcurves for \kep \ stars with fitted radial mode frequencies were used to generate equivalent TESS lightcurves. The length of observation was reduced, \kep \ white noise was removed, the bandpass was adjusted, and TESS white noise was added. A detection test was then run on 3 observed modes in these 'TESS-like' lightcurves. Classifiers were then used to predict mode detectability with TESS based upon the global asteroseismic and spectroscopic parameters. The Classifier successfully predicted mode detectability in the original \kep stars, and for 1 year of TESS-like data.\newline
 {\it Application}: By changing only the length of dataset, instrumental noise level and bandpass of observation, this tool can make solar-like detection predictions for future missions such as K2, PLATO and CoRoT. It can make predictions and select targets much faster than traditional detection tests. It is especially useful in an age where extremely large datasets from MAST and Gaia are available (\citet{eisenstein_sdss-iii:_2011}, \citet{gaia_collaboration_gaia_2016}).
 \end{abstract}
+
 
 
 \section{Introduction}
@@ -59,23 +61,27 @@ Satellites such as $Kepler$ have allowed asteroseismology of solar-like and Red 
 
 Future space missions such as TESS \citep{ricker_transiting_2014}, K2 \citep{howell_k2_2014}, CoRoT \citep{baglin_corot:_2006} and PLATO \citep{rauer_plato_2014} will add to our understanding of stellar structure and evolution. These missions will provide a large amount of high-precision data. More than ever, the field of stellar astrophysics will require tools to perform big-data analysis \citep{kremer_big_2017}. 
 
-%In order to select asteroseismic targets for these missions, the detectability of solar-like oscillations inside these stars needs to be estimated.
+One of the tools than can be used to handle the larger amount of data from future missions is Machine Learning. In this work, Machine Learning was used to create a TESS target selection function using the set of $Kepler$ Red Giant Branch, Red Clump and Secondary Clump stars from \citet{davies_asteroseismology_2016}. The algorithm made in this work is publicly-available\footnote{https://github.com/MathewSchofield/TRG}. It can be downloaded and used as a target selection function for any future space mission.
 
-One of the tools than can be used to handle the larger amount of data from future missions is Machine Learning. In this work, Machine Learning was used to create a TESS target selection function using the set of $Kepler$ Red Giant stars from \citet{davies_asteroseismology_2016}. This publicly-available algorithm\footnote{https://github.com/MathewSchofield/TRG} can be downloaded and used as a target selection function for any future space mission.
+% red clump stars all have very similar core masses. secondary clump stars lie in the same teff/lum space but have different core masses. 2CL stars are slightly too massive ($\geq$ 1.8 \msol) to undergo helium flash. If a star is large enough, it will undergo the helium flash and become a RC star.
 
-In most situations Machine Learning is used to solve problems in one of two ways: either by using Supervised or Unsupervised Learning. Supervised Learning involves problems where there is a known result. 
+In most situations, Machine Learning is used to solve problems in one of two ways: either by using Supervised or Unsupervised Learning. Unsupervised Learning involves problems where there are no known labels or results. Conversely, Supervised Learning involves problems where there is a known result.
 
-Supervised Learning has been used to classify types of variable star using previously labelled data (\citet{nun_supervised_2014}, \citet{elorrieta_machine_2016}). This previously labelled data is known as training data: this is used to train the Machine Learning algorithm. In the problem of variable stars, lightcurves that had already been classified were used to train the algorithm (this is the training dataset). This algorithm was then used to classify the lightcurves of unidentified stars (this is known as the testing dataset).
+In Unsupervised Learning, there are no known results/labels. The aim of Machine Learning in this case would be to find trends between variables. This has been be used to identify the evolutionary stage of stars by analysing their lightcurves without using previously labelled data. The evolutionary stage of variable stars has been determined in this way using an Unsupervised Classifier \citep{valenzuela_unsupervised_2018}. Similarly, a neural network has been used to identify the evolutionary stage of Red Giant stars (\citet{hon_deep_2017}, \citet{hon_deep_2018}).
 
-In Unsupervised Learning, there are no known results/labels. The aim of Machine Learning in this case would be to find trends between variables. This has been be used to identify similar stars by analysing their lightcurves without using previously labelled data \citep{valenzuela_unsupervised_2018}).
+Supervised Learning has also been used to classify the evolutionary stage of variable stars (\citet{nun_supervised_2014}, \citet{elorrieta_machine_2016}). In these papers, classifying evolutionary stage was treated as a Supervised problem because previously labelled data was used. This previously labelled data is known as training data: this is used to train the Machine Learning algorithm. In the problem of variable stars, lightcurves that had already been classified were used to train the algorithm (this is the training dataset). This algorithm was then used to classify the lightcurves of unidentified stars (this is known as the testing dataset). In this way, the authors were able to identify the evolutionary stage of every star in their sample.
 
-The aim of this work is to use Machine Learning to make predictions about mode detectability (\pdet) in Red Giant stars. In this case, \pdet is a known label, so this is a Supervised Learning problem\footnote{https://machinelearningmastery.com}.
+In this work, a classifier was \textit{not} used to identify the evolutionary stage of stars. For the first time, a Supervised Classifier was used here to identify which solar-like modes could be detected inside Red Giant stars with TESS. These modes were given to the Classifier as known labels, so this is a Supervised Learning problem\footnote{https://machinelearningmastery.com}.
+
+A Classifier was used here to identify which solar-like modes could be detected inside Red Giant stars with TESS. As a result, this algorithm can be used as the target selection function for TESS. Furthermore, this code has been written specifically for easy adaption to other satellites. It can therefore also be used as the target selection function for K2, CoRoT and PLATO.
+
+%The aim of this work is to use Machine Learning to make predictions about mode detectability (\pdet) in Red Giant stars. In this case, \pdet is a known label, so this is a Supervised Learning problem\footnote{https://machinelearningmastery.com}.
 
 Within Supervised Learning, two common algorithms that are used are Classification and Regression. In Regression, the relationship between variables is interpreted using a measure of uncertainty (such as using $\chi^{2}$ tests). Models are fitted using the independent data, and uncertainty is measured. The models are then improved by reducing this uncertainty. Note that regression is used when the label is continuous. For example, predicting the magnitude of a star is a problem suited to regression, as a star can have any magnitude \citep{steinhardt_nonparametric_2018}.
 
-Conversely, Classification algorithms work by assessing similarity\footnote{http://www.simafore.com}. In Classification, the training set is separated into groups based on the similarity of the data. The more information that was gained by splitting the data, the better. For example, if the problem were to separate Red Giant stars from Main-Sequence stars, a star could be classified as either a Red Giant (1), or not a Red Giant (0). In this example, having a Luminosity above $\sim10L_{\odot}$ would be a strong indicator that the star was a Red Giant so the data could be separated into groups here. The Classifier would continue to separate the dataset until the Red Giant and Main Sequence samples were distinct. This is not the only problem where Classification can be used on Red Giant stars (\citet{ness_cannon_2015}, \citet{wu_mass_2017}).
+Conversely, Classification algorithms work by assessing similarity\footnote{http://www.simafore.com}. In Classification, the training set is separated into groups based on the similarity of the data. The more information that was gained by splitting the data, the better. For example, if the problem were to separate Red Giant stars from Main-Sequence stars, a star could be classified as either a Red Giant (1), or not a Red Giant (0). In this example, having a Luminosity above $\sim10L_{\odot}$ would be a strong indicator that the star was a Red Giant so the data could be separated into groups here. The Classifier would continue to separate the dataset until the Red Giant and Main Sequence samples were distinct. Examples of Classifiers being used to identify the evolutionary stages of stars cab be found in \citet{ness_cannon_2015} and \citet{wu_mass_2017}.
 
-In this work, individual fitted modes from \citet{davies_asteroseismology_2016} were used to make asteroseismic predictions for TESS with a Supervised Classifier. By separating the targets into those with detected modes and those without, a Classifier was used to select the optimal targets for future observation.
+In this work, a Classifier was not used to identify the evolutionary stage of stars. Instead, it was used to identify which solar-like modes could be detected by TESS, and which could not. individual fitted modes from \citet{davies_asteroseismology_2016} were degraded to look like TESS observations. The detectable solar-like modes from this degraded set were then identified by a Classifier. By separating the stars into those with detected modes and those without, a Classifier was used to select the optimal targets for TESS to observe.
 
 Firstly, Section \ref{sect: size} describes how the size of the datasets were increased to improve the predictive ability of the Classifier. Section \ref{sect: dataset} then describes how the timeseries of every star were treated before transforming them into power spectra. Section \ref{sect: det_test} goes on to describe the detection test that was run on the solar-like oscillations. This returned a probability of detection \pdet for every mode. Each mode was grouped into a discrete class depending upon it's detection probability; each mode was either very likely to be observed (2), quite likely (1), or unlikely (0).
 
@@ -195,7 +201,7 @@ First, a moving median from \citet{davies_asteroseismology_2016} was used to est
 \begin{equation}
 \Gamma_{\rm env} = 0.66 * \numax^{0.88},
 \end{equation}
-from \citet{mosser_characterization_2012}. The moving median was used to interpolate between frequencies in the power spectrum. It provided an estimate of the total background in the power spectrum. This background was divided out of the power spectrum to the get Signal-to-Noise ratio of the spectrum,
+from \citet{mosser_characterization_2012}. The moving median was used to interpolate between frequencies in the power spectrum. It provided an estimate of the Background in the power spectrum (ppm$^{2} \mu\rm Hz^{-1}$). This background was divided out of the Power (ppm$^{2} \mu\rm Hz^{-1}$) in the power spectrum to the get Signal-to-Noise ratio of the spectrum,
 \begin{equation}
 \label{eq:snr}
 {\rm SNR} = P/B.
@@ -204,7 +210,7 @@ Once the SNR spectrum for the star was recovered, the SNR values at the mode fre
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.6]{plot4_SNR7014894.pdf}
-	\caption{The SNR spectrum of KIC 7014894 after background subtraction. The SNR values of the radial modes in the star were extracted from this spectrum. The values of every mode in the original Kepler spectrum are plotted in blue. The overplotted orange points are the SNR values after degrading the signal to 1 year of TESS observation. Similarly, the green points are the SNR values of 27 days of TESS observations. The white noise level and reduced observation time severely reduce the SNR of TESS observations compared to \kep.}	
+	\caption{The SNR spectrum of KIC 7014894 after background subtraction. The SNR values of the radial modes in the star were extracted from this spectrum. The highest SNR value within the linewidth of each mode is taken to be the SNR value of that mode. The mode linewidths are shown as blue lines. The values of every mode in the original Kepler spectrum are plotted in blue. The overplotted orange points are the SNR values after degrading the signal to 1 year of TESS observation. Similarly, the green points are the SNR values of 27 days of TESS observations. The white noise level and reduced observation time severely reduce the SNR of TESS observations compared to \kep.}	
 	\label{snr}
 \end{figure}
 
@@ -216,7 +222,7 @@ The probability $P$ that the SNR of the mode lies above some threshold ${\rm SNR
 {P \rm ({ SNR \geq SNR_{thresh}})} =  p .
 \end{equation}
 
-A false-alarm probability $p$ of 5\% was set; there is a 95\% chance that the signal is due to solar-like oscillations, rather than noise. Equation \ref{eq:pdet} is solved for $\rm SNR_{thresh}$ by substituting $P$ with
+A false-alarm probability $p$ of 1\% was set; there is a 99\% chance that the signal is due to solar-like oscillations, rather than noise. Equation \ref{eq:pdet} is solved for $\rm SNR_{thresh}$ by substituting $P$ with
 \begin{equation}
 \label{eq:prob}
 P = \int_{x}^{\infty} \frac{e^{-x}}{\Gamma(N)} x^{N-1} dx .
