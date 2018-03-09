@@ -100,13 +100,15 @@ class Machine_Learning(object):
         both.to_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC_plx.csv', index=False)
         sys.exit()
 
-    def loadData(self, add_logg=True, add_parallax=True):
+    def loadData(self, add_logg=True, add_parallax=True, clas=True):
         """ 1.  Load the X and Y data for the Kepler or TESS sample (Note: Kepler
                 file does not have a 'Tobs' time in the filename.)
             2.  Remove rows where all values are zero.
             3.  add_logg (Bool; kewarg):      Add log(g) values from Pinsonneualt (2014).
             4.  add_parallax (Bool; kewarg):  Add parallax values from TGAS
-                                              (see get_parallaxes() functiion). """
+                                              (see get_parallaxes() function).
+            5. clas (Bool; kewarg):            Load stellar classifications file
+                                              from Elsworth (2016).  """
 
         if os.path.isfile(self.data_loc + '_' + self.sat + str(self.Tobs) + '_XY.csv'):
             self.xy = pd.read_csv(self.data_loc + '_' + self.sat + str(self.Tobs) + '_XY.csv')
@@ -114,6 +116,20 @@ class Machine_Learning(object):
             self.xy = pd.read_csv(self.data_loc + '_' + self.sat + '_XY.csv')
 
         self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
+
+        if clas:
+            evo = pd.read_csv(clas_floc, sep='\s+')
+            #evo['KIC_number'] = 'KIC ' + evo['KIC_number']
+
+            # print self.xy.shape
+            self.xy = pd.merge(left=self.xy, right=evo,
+                left_on='KIC', right_on='KIC_number', how='inner')
+            # print self.xy.shape, list(self.xy)
+            #print self.xy[['KIC', 'KIC_number', 'Classification']]
+
+            # print rgb.shape, rc.shape, cl2.shape, rgb.shape[0] + rc.shape[0] + cl2.shape[0]
+            # sys.exit()
+
 
         if add_logg:
             pins = pd.read_csv(pins_floc, sep=';')
@@ -127,6 +143,10 @@ class Machine_Learning(object):
 
             self.xy['KIC'] = 'KIC ' + self.xy['KIC'].astype(str).str[:-2].str.strip().str.rstrip()
             self.xy = pd.merge(left=self.xy, right=plx[['kic', 'tyc', 'parallax']], left_on='KIC', right_on='kic', how='inner')
+
+        # print self.xy.shape
+        # sys.exit()
+
 
     def pdet_bins(self, n=3, v=False, plot=False):
         """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
@@ -190,19 +210,23 @@ class Machine_Learning(object):
         if v:  print '% rows in \'3\' class:', len(prob[prob==3])/float(prob.shape[0]*prob.shape[1])
         if v:  print '% rows in \'4\' class:', len(prob[prob==4])/float(prob.shape[0]*prob.shape[1])
 
-    def random_forest_classifier(self):
+    def random_forest_classifier(self, subset='2CL', save=True):
         """ Perform a Random Forest Classifier (made up of many decision trees)
         on the XY data. Y data must be given as discrete values
-        e.g 0 or 1 for each mode (detected or not). """
+        e.g 0 or 1 for each mode (detected or not).
 
-        # if self.sat == 'Kepler':
-        #     x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'log.g1', 'parallax']
-        # else:
-        #     x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
-        #                 'Vmag', 'B-V', 'V-I', 'Imag', 'log.g1', 'parallax']
+        subset ('all', 'RGB', 'RC', '2CL'):  If not 'all' stars, only use a
+                                             subset of the stars.
+        save (Bool; kewarg):  Save the precision and hamming loss of
+                              the results to a file.  """
 
-        x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
-                    'Vmag', 'B-V', 'V-I', 'Imag', 'log.g1', 'parallax']
+        if subset!='all':
+            self.xy = self.xy[self.xy['Classification']==subset]
+            print self.xy.shape
+
+        # x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
+        #             'Vmag', 'B-V', 'V-I', 'Imag', 'log.g1', 'parallax']
+        x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'log.g1', 'parallax']
         x = self.xy[x_labels].as_matrix()
         y = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
 
@@ -210,18 +234,19 @@ class Machine_Learning(object):
                                                             test_size=0.3,
                                                             random_state=42)
         print self.sat, '; Tobs:', self.Tobs, ';', self.n, 'Y-data classes', '\n'
-        # print 'x training/testing set: ', np.shape(x_train), '/', np.shape(x_test)
-        # print 'y training/testing set: ', np.shape(y_train), '/', np.shape(y_test)
-        #print 'y_test is a', (utils.multiclass.type_of_target(y_test))
 
         rfc = RandomForestClassifier(random_state=42, max_depth=100,
-                                     min_samples_leaf=10)  # max_features=10
+                                     min_samples_leaf=10)#, max_features=8)
         rfc = rfc.fit(x_train, y_train)
         y_pred = rfc.predict(x_test)  # predict on new data
-        #print y_test, '\n', y_pred
+
+        p1 = precision_score(y_test[:,0], y_pred[:,0], labels=self.labels, average='weighted')
+        p2 = precision_score(y_test[:,1], y_pred[:,1], labels=self.labels, average='weighted')
+        p3 = precision_score(y_test[:,2], y_pred[:,2], labels=self.labels, average='weighted')
+        hl = np.sum(np.not_equal(y_test, y_pred))/float(y_test.size)
 
         if self.n == 2:
-            """ How well has the classifier done. Only works with binary labels """
+            """ How well has the classifier done. Only works with 2 (binary) labels """
             rfc_test = rfc.score(x_test, y_test)
             cv_score = cross_val_score(rfc, x_train, y_train)
             print 'DTC Test: ', rfc_test
@@ -230,12 +255,39 @@ class Machine_Learning(object):
             print 'Classification report:', (classification_report(y_test, y_pred))
 
         print 'Feature importance:', rfc.feature_importances_
-        print 'Hamming loss:', np.sum(np.not_equal(y_test, y_pred))/float(y_test.size)
+        print 'Hamming loss:', hl
 
-        av = 'weighted'
-        print 'Precision1:', precision_score(y_test[:,0], y_pred[:,0], labels=self.labels, average=av)
-        print 'Precision2:', precision_score(y_test[:,1], y_pred[:,1], labels=self.labels, average=av)
-        print 'Precision3:', precision_score(y_test[:,2], y_pred[:,2], labels=self.labels, average=av)
+        print 'Precision1:', p1
+        print 'Precision2:', p2
+        print 'Precision3:', p3
+
+        if save:
+            if self.sat == 'Kepler': self.Tobs = 4*365  # days
+
+            if os.path.isfile('ML1_results.csv'):  # add to the file
+                output = pd.read_csv('ML1_results.csv')
+                #print output
+
+                row_to_add = {'Sat':self.sat, 'Tobs':self.Tobs, 'Subset':subset,
+                     'Number_of_stars':len(self.xy), 'Pres1':p1, 'Pres2':p2,
+                     'Pres3':p3, 'HL':hl}
+                row_to_add = pd.DataFrame(data=row_to_add, index=[0])
+                output = output.append(row_to_add, ignore_index=True)
+                output.drop_duplicates(subset=['Sat', 'Tobs', 'Subset'], inplace=True)
+
+                output = output[['Sat','Tobs','Subset','Number_of_stars','Pres1',
+                    'Pres2','Pres3','HL']]  # save the file in this order
+                output.to_csv('ML1_results.csv', index=False)
+                print output
+
+            else:
+                d = {'Sat':self.sat, 'Tobs':self.Tobs, 'Subset':subset,
+                     'Number_of_stars':len(self.xy), 'Pres1':p1, 'Pres2':p2,
+                     'Pres3':p3, 'HL':hl}
+                output = pd.DataFrame(data=d, index=[0])
+                output = output[['Sat','Tobs','Subset','Number_of_stars','Pres1',
+                    'Pres2','Pres3','HL']]  # save the file in this order
+                output.to_csv('ML1_results.csv', index=False)  # make the file
 
     def random_forest_regression(self):
         """ Perform Random Forest Regression on the X, Y data.
@@ -304,12 +356,12 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=365)
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='Kepler', Tobs=365)
     #ml.get_parallaxes()
     ml.loadData()
     ml.pdet_bins()
     ml.random_forest_classifier()
-    #ml.random_forest_regression()
+
 
 
 

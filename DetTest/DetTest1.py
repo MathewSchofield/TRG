@@ -38,6 +38,7 @@ class DetTest(object):
         self.ds = ds
         self.bkg = []
         self.snr = []
+        self.nbins = []  # the number of bins to calculcate pdet over for each mode
         self.snr_modes = np.array([])  # the self.snr values at mode frequencies
         self.prob = []
 
@@ -127,8 +128,7 @@ class DetTest(object):
         self.snr_modes: full array of mode SNR values
         """
 
-        # iterate over the fitted modes
-        for idx, f in ds.mode_id.iterrows():
+        for idx, f in ds.mode_id.iterrows():  # iterate over the fitted modes
 
             #smoo = nd.filters.uniform_filter1d(self.snr, int(np.exp(f['w0'])/ds.bin_width))
             #smoo = self.Conv(self.snr, np.exp(f['w0'])/ds.bin_width)  # smooth the SNR by convolving with Guassian
@@ -150,9 +150,11 @@ class DetTest(object):
             if len(self.ds.freq[rng]) == 0:
                 index = np.abs(self.ds.freq-f['f0']).argmin()
                 self.snr_modes = np.append(self.snr_modes, self.snr[index])
+                self.nbins = np.append(self.nbins, 1)
 
             else:
                 self.snr_modes = np.append(self.snr_modes, max(self.snr[rng]))
+                self.nbins = np.append(self.nbins, len(self.ds.freq[rng]))  # the number of bins to calculate pdet across (2xlinewidth)
 
             if v:  print 'final val', self.snr_modes, '\n'
             #if v:  sys.exit()
@@ -163,7 +165,7 @@ class DetTest(object):
 
         Inputs
         snrs:        Array of SNR values to calculate detection probabilities for (Float)
-        nbins:       Number of bins the SNR is taken across (Int)
+        nbins:       Number of bins Pdet is calculated across (Int)
         fap:         False Alarm Probability (Float)
         snrthresh:   Threshold SNR; SNR if no mode is present (Float)
         self.thresh: Defined in __init__. threshold for making a detection
@@ -172,19 +174,17 @@ class DetTest(object):
         prob:  the detection probability for each SNR value (i.e mode)
         """
 
-        if nbins == []:      nbins = 1
+        if nbins == []:      nbins = np.ceil(self.nbins/2)  # if nbins/2=0.5, this returns 1
         if fap == []:        fap = 0.01
         if snrthresh == []:
             pdet = 1.0 - fap
             snrthresh = stats.chi2.ppf(pdet, 2.0*nbins) / (2.0*nbins) - 1.0
 
-        #print self.snr_modes, snrs
-        #sys.exit()
         self.prob = stats.chi2.sf((snrthresh+1.0) / (self.snr_modes+1.0)*2.0*nbins, 2*nbins)
-
-        # do this in ML1.py instead. Save out exact pdet values in data_for_ML/
-        #self.prob[self.prob>=self.thresh] = 1  # if Pdet>threshold, mode is detected
-        #self.prob[self.prob<self.thresh]  = 0  # if Pdet<threshold, mode is not detected
+        # print nbins
+        # print self.snr_modes
+        # print self.prob, '\n'
+        # sys.exit()
 
     def Conv(self, data, stddev):
         """
@@ -601,7 +601,7 @@ if __name__ == "__main__":
 
         x = 100  # number of iterations to loop through every star (number of different magnitudes per star)
         if sat == 'Kepler':
-            pdf_range = [10., 16., 100]  # range of Kp magnitudes for the PDF
+            pdf_range = [12., 20., 100]  # range of Kp magnitudes for the PDF
         elif sat == 'TESS':
             pdf_range = [6., 12., 100]  # range of I-band magnitudes for the PDF
 
@@ -615,25 +615,23 @@ if __name__ == "__main__":
                 detection probability. Do this x times per star. Save 1 row per
                 perturbed magnitude in save_xy() (each star has x rows). """
 
-            if ds.sat == 'Kepler':  # make the original Kepler PS
+            diff = rand_mags[j]-float(mag['Imag'])  # change magnitudes for this iteration
+            mag[['Imag', 'Vmag', 'Bmag']] += diff
+            info['kic_kepmag'] += diff
 
-                info['kic_kepmag'] = rand_mags[j]  # change the magnitude for this iteration
+
+            if ds.sat == 'Kepler':  # make the original Kepler PS
+                #info['kic_kepmag'] = rand_mags[j]  # change the magnitude for this iteration
                 ds.ts()
                 ds.Periodogram()
                 ds.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
                 ds.PS_add_noise()  # add noise to the power spectrum
 
             elif ds.sat == 'TESS':  # transform the Kepler PS into TESS PS
-
-                diff = rand_mags[j]-float(mag['Imag'])  # change magnitudes for this iteration
-                mag[['Imag', 'Vmag', 'Bmag']] += diff
-                info['kic_kepmag'] += diff
-
                 ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
                    teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(),
                    sys_limit=0)  # exptime in seconds. noise in ppm
                 ds.timeseries(plot_ts=False, plot_ps=False)
-
 
 
             star = DetTest(ds)   # apply a detection test on every mode of the star
@@ -651,7 +649,6 @@ if __name__ == "__main__":
             #output.fit_amplitudes()  # fit Gaussian to modes to get numax
             output.average_dnu()  # get dnu value from mode frequencies (only once per star)
             output.save_xy()
-
 
 
     stop = timeit.default_timer()
