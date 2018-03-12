@@ -127,10 +127,6 @@ class Machine_Learning(object):
             # print self.xy.shape, list(self.xy)
             #print self.xy[['KIC', 'KIC_number', 'Classification']]
 
-            # print rgb.shape, rc.shape, cl2.shape, rgb.shape[0] + rc.shape[0] + cl2.shape[0]
-            # sys.exit()
-
-
         if add_logg:
             pins = pd.read_csv(pins_floc, sep=';')
             self.xy = pd.merge(left=self.xy, right=pins[['KIC', 'log.g1', 'log.g2']],
@@ -143,10 +139,6 @@ class Machine_Learning(object):
 
             self.xy['KIC'] = 'KIC ' + self.xy['KIC'].astype(str).str[:-2].str.strip().str.rstrip()
             self.xy = pd.merge(left=self.xy, right=plx[['kic', 'tyc', 'parallax']], left_on='KIC', right_on='kic', how='inner')
-
-        # print self.xy.shape
-        # sys.exit()
-
 
     def pdet_bins(self, n=3, v=False, plot=False):
         """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
@@ -210,7 +202,7 @@ class Machine_Learning(object):
         if v:  print '% rows in \'3\' class:', len(prob[prob==3])/float(prob.shape[0]*prob.shape[1])
         if v:  print '% rows in \'4\' class:', len(prob[prob==4])/float(prob.shape[0]*prob.shape[1])
 
-    def random_forest_classifier(self, subset='2CL', save=True):
+    def random_forest_classifier(self, subset='all', save=True):
         """ Perform a Random Forest Classifier (made up of many decision trees)
         on the XY data. Y data must be given as discrete values
         e.g 0 or 1 for each mode (detected or not).
@@ -256,10 +248,10 @@ class Machine_Learning(object):
 
         print 'Feature importance:', rfc.feature_importances_
         print 'Hamming loss:', hl
-
-        print 'Precision1:', p1
-        print 'Precision2:', p2
-        print 'Precision3:', p3
+        print 'Precision', (p1+p2+p3)*100/3.
+        # print 'Precision1:', p1
+        # print 'Precision2:', p2
+        # print 'Precision3:', p3
 
         if save:
             if self.sat == 'Kepler': self.Tobs = 4*365  # days
@@ -278,7 +270,7 @@ class Machine_Learning(object):
                 output = output[['Sat','Tobs','Subset','Number_of_stars','Pres1',
                     'Pres2','Pres3','HL']]  # save the file in this order
                 output.to_csv('ML1_results.csv', index=False)
-                print output
+                #print output
 
             else:
                 d = {'Sat':self.sat, 'Tobs':self.Tobs, 'Subset':subset,
@@ -332,27 +324,10 @@ class Machine_Learning(object):
         print 'MRF Test:', rf_test
 
     def Plot1(self):
-        """ Make of a plot of the random_forest_regression() results. """
+        """ Make of a plot of the random_forest_classifier() results. """
 
-        plt.figure()
-        s = 50
-        a = 0.4
-        plt.scatter(y_test[:, 0], y_test[:, 1], edgecolor='k',
-                    c="navy", s=s, marker="s", alpha=a, label="Data")
-        plt.scatter(y_multirf[:, 0], y_multirf[:, 1], edgecolor='k',
-                    c="cornflowerblue", s=s, alpha=a,
-                    label="Multi RF score=%.2f" % regr_multirf.score(x_test, y_test))
-        plt.scatter(y_rf[:, 0], y_rf[:, 1], edgecolor='k',
-                    c="c", s=s, marker="^", alpha=a,
-                    label="RF score=%.2f" % regr_rf.score(x_test, y_test))
-        plt.xlim([-6, 6])
-        plt.ylim([-6, 6])
-        plt.xlabel("target 1")
-        plt.ylabel("target 2")
-        plt.title("Comparing random forests and the multi-output meta estimator")
-        plt.legend()
-        plt.show()
 
+        plt.hist()
 
 if __name__ == '__main__':
 

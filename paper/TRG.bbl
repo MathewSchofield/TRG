@@ -22,6 +22,14 @@
 Baglin A.,  et~al., 2006. p.~3749, \url
   {http://adsabs.harvard.edu/abs/2006cosp...36.3749B}
 
+\bibitem[\protect\citeauthoryear{Beck et~al.,}{Beck
+  et~al.}{2011}]{beck_kepler_2011}
+Beck P.~G.,  et~al., 2011, \mn@doi [Science] {10.1126/science.1201939}, 332,
+  205
+
+\bibitem[\protect\citeauthoryear{Bedding}{Bedding}{2011}]{bedding_solar-like_2011}
+Bedding T.~R.,  2011, arXiv:1107.1723 [astro-ph]
+
 \bibitem[\protect\citeauthoryear{Campante et~al.,}{Campante
   et~al.}{2016}]{campante_asteroseismic_2016}
 Campante T.~L.,  et~al., 2016, preprint, 1608, arXiv:1608.01138
@@ -49,6 +57,11 @@ Eisenstein D.~J.,  et~al., 2011, \mn@doi [The Astronomical Journal]
   et~al.}{2016}]{elorrieta_machine_2016}
 Elorrieta F.,  et~al., 2016, \mn@doi [Astronomy and Astrophysics]
   {10.1051/0004-6361/201628700}, 595, A82
+
+\bibitem[\protect\citeauthoryear{Elsworth, Hekker, Basu  \& R.~Davies}{Elsworth
+  et~al.}{2017}]{elsworth_new_2017}
+Elsworth Y.,  Hekker S.,  Basu S.,   R.~Davies G.,  2017, \mn@doi [Mon Not R
+  Astron Soc] {10.1093/mnras/stw3288}, 466, 3344
 
 \bibitem[\protect\citeauthoryear{{Gaia Collaboration} et~al.,}{{Gaia
   Collaboration} et~al.}{2016}]{gaia_collaboration_gaia_2016}

@@ -70,7 +70,7 @@
 \citation{mosser_characterization_2012}
 \citation{chaplin_predicting_2011}
 \citation{campante_asteroseismic_2016}
-\citation{gaia_collaboration_gaia_2016}
+\citation{davies_asteroseismology_2016}
 \@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces The SNR spectrum of KIC 7014894 after background subtraction. The SNR values of the radial modes in the star were extracted from this spectrum. The highest SNR value within the linewidth of each mode is taken to be the SNR value of that mode. The mode linewidths are shown as blue lines. The values of every mode in the original Kepler spectrum are plotted in blue. The overplotted orange points are the SNR values after degrading the signal to 1 year of TESS observation. Similarly, the green points are the SNR values of 27 days of TESS observations. The white noise level and reduced observation time severely reduce the SNR of TESS observations compared to \ensuremath  {Kepler}\tmspace  +\medmuskip {.2222em}.}}{6}{figure.8}}
 \newlabel{snr}{{8}{6}{The SNR spectrum of KIC 7014894 after background subtraction. The SNR values of the radial modes in the star were extracted from this spectrum. The highest SNR value within the linewidth of each mode is taken to be the SNR value of that mode. The mode linewidths are shown as blue lines. The values of every mode in the original Kepler spectrum are plotted in blue. The overplotted orange points are the SNR values after degrading the signal to 1 year of TESS observation. Similarly, the green points are the SNR values of 27 days of TESS observations. The white noise level and reduced observation time severely reduce the SNR of TESS observations compared to \kep }{figure.8}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Detection Test}{6}{section.4}}
@@ -82,6 +82,7 @@
 \newlabel{eq:prob}{{8}{6}{Detection Test}{equation.8}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Classification}{6}{section.5}}
 \newlabel{sect: classifier}{{5}{6}{Classification}{section.5}{}}
+\citation{gaia_collaboration_gaia_2016}
 \citation{wegner_technique_1960}
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces An example of the X-dataset for 1 year of TESS-like observations. Every star has it's magnitude perturbed 100 times. See Table \ref  {tab: y dataset} for the equivalent Y-dataset.}}{7}{table.1}}
 \newlabel{tab: x dataset}{{1}{7}{An example of the X-dataset for 1 year of TESS-like observations. Every star has it's magnitude perturbed 100 times. See Table \ref {tab: y dataset} for the equivalent Y-dataset}{table.1}{}}
@@ -91,38 +92,54 @@
 \newlabel{sect: class-results}{{5.2}{7}{Target selection using a Classifier}{subsection.5.2}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces An example of the Y-dataset for 1 year of TESS-like observations. Every star has it's magnitude perturbed 100 times. White noise is then added to the timeseries and mode detection probabilities are calculated for 3 radial modes centred around \ensuremath  {\nu _{\textrm  {max}}}. Lastly, these probabilities are put into discrete classes [0, 1 or 2]. The radial mode closest to \ensuremath  {\nu _{\textrm  {max}}}is labelled \ensuremath  {P_{\rm  det}\tmspace  +\medmuskip {.2222em}}(2). See Table \ref  {tab: x dataset} for the equivalent X-dataset.}}{7}{table.2}}
 \newlabel{tab: y dataset}{{2}{7}{An example of the Y-dataset for 1 year of TESS-like observations. Every star has it's magnitude perturbed 100 times. White noise is then added to the timeseries and mode detection probabilities are calculated for 3 radial modes centred around \numax . Lastly, these probabilities are put into discrete classes [0, 1 or 2]. The radial mode closest to \numax is labelled \pdet (2). See Table \ref {tab: x dataset} for the equivalent X-dataset}{table.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Results of the Classifier on the original \ensuremath  {Kepler}\tmspace  +\medmuskip {.2222em}dataset, and the 1-year and 27-day TESS datasets. The 'Classifier Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 labels [\ensuremath  {P_{\rm  det}\tmspace  +\medmuskip {.2222em}}(1), \ensuremath  {P_{\rm  det}\tmspace  +\medmuskip {.2222em}}(2), \ensuremath  {P_{\rm  det}\tmspace  +\medmuskip {.2222em}}(3)].}}{7}{table.3}}
-\newlabel{tab: results}{{3}{7}{Results of the Classifier on the original \kep dataset, and the 1-year and 27-day TESS datasets. The 'Classifier Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 labels [\pdet (1), \pdet (2), \pdet (3)]}{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Results of the Classifier on the original \ensuremath  {Kepler}\tmspace  +\medmuskip {.2222em}dataset, and the 1-year and 27-day TESS datasets. The 'Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 labels [\ensuremath  {P_{\rm  det}\tmspace  +\medmuskip {.2222em}}(1), \ensuremath  {P_{\rm  det}\tmspace  +\medmuskip {.2222em}}(2), \ensuremath  {P_{\rm  det}\tmspace  +\medmuskip {.2222em}}(3)].}}{7}{table.3}}
+\newlabel{tab: results}{{3}{7}{Results of the Classifier on the original \kep dataset, and the 1-year and 27-day TESS datasets. The 'Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 labels [\pdet (1), \pdet (2), \pdet (3)]}{table.3}{}}
+\citation{davies_asteroseismology_2016}
+\citation{elsworth_new_2017}
+\citation{chaplin_asteroseismology_2013}
+\citation{bedding_solar-like_2011}
+\citation{beck_kepler_2011}
 \citation{davies_asteroseismology_2016}
 \citation{davies_asteroseismology_2016}
 \citation{pinsonneault_apokasc_2014}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces The feature importance of each x-data label. The higher the feature importance, the more important the label was in predicting the detectability of modes inside the Red Giants.}}{8}{table.4}}
+\newlabel{tab: feature}{{4}{8}{The feature importance of each x-data label. The higher the feature importance, the more important the label was in predicting the detectability of modes inside the Red Giants}{table.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Feature Importance}{8}{subsection.5.3}}
+\newlabel{sect: feature importance}{{5.3}{8}{Feature Importance}{subsection.5.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Comparing results between different evolutionary states}{8}{subsection.5.4}}
+\newlabel{sect: evo states}{{5.4}{8}{Comparing results between different evolutionary states}{subsection.5.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Results of the Classifier when RGB, RC and 2CL stars are separated. Results are shown when the data are treated like \ensuremath  {Kepler}\tmspace  +\medmuskip {.2222em}stars, and when they are degraded to look like 1-year and 27-day TESS observation. The 'Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 labels [\ensuremath  {P_{\rm  det}\tmspace  +\medmuskip {.2222em}}(1), \ensuremath  {P_{\rm  det}\tmspace  +\medmuskip {.2222em}}(2), \ensuremath  {P_{\rm  det}\tmspace  +\medmuskip {.2222em}}(3)].}}{8}{table.5}}
+\newlabel{tab: evo results}{{5}{8}{Results of the Classifier when RGB, RC and 2CL stars are separated. Results are shown when the data are treated like \kep stars, and when they are degraded to look like 1-year and 27-day TESS observation. The 'Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 labels [\pdet (1), \pdet (2), \pdet (3)]}{table.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{8}{section.6}}
+\newlabel{sect: conc}{{6}{8}{Conclusion}{section.6}{}}
 \citation{ricker_transiting_2014}
 \bibstyle{mnras}
 \bibdata{TRG}
 \bibcite{baglin_corot:_2006}{{1}{2006}{{Baglin et~al.}}{{Baglin et~al.,}}}
-\bibcite{campante_asteroseismic_2016}{{2}{2016}{{Campante et~al.}}{{Campante et~al.,}}}
-\bibcite{chaplin_asteroseismology_2013}{{3}{2013}{{Chaplin \& Miglio}}{{Chaplin \& Miglio}}}
-\bibcite{chaplin_predicting_2011}{{4}{2011}{{Chaplin et~al.}}{{Chaplin et~al.,}}}
-\bibcite{davies_asteroseismology_2016}{{5}{2016}{{Davies \& Miglio}}{{Davies \& Miglio}}}
-\bibcite{eisenstein_sdss-iii:_2011}{{6}{2011}{{Eisenstein et~al.}}{{Eisenstein et~al.,}}}
-\bibcite{elorrieta_machine_2016}{{7}{2016}{{Elorrieta et~al.}}{{Elorrieta et~al.,}}}
-\bibcite{gaia_collaboration_gaia_2016}{{8}{2016}{{{Gaia Collaboration} et~al.}}{{{Gaia Collaboration} et~al.,}}}
-\bibcite{hon_deep_2017}{{9}{2017}{{Hon et~al.}}{{Hon, Stello \& Yu}}}
-\bibcite{hon_deep_2018}{{10}{2018}{{Hon et~al.}}{{Hon, Stello \& Yu}}}
-\bibcite{howell_k2_2014}{{11}{2014}{{Howell et~al.}}{{Howell et~al.,}}}
-\bibcite{kremer_big_2017}{{12}{2017}{{Kremer et~al.}}{{Kremer, Stensbo-Smidt, Gieseke, Steenstrup~Pedersen \& Igel}}}
-\bibcite{lund_standing_2017}{{13}{2017}{{Lund et~al.}}{{Lund et~al.,}}}
-\bibcite{mosser_characterization_2012}{{14}{2012}{{Mosser et~al.}}{{Mosser et~al.,}}}
-\bibcite{ness_cannon_2015}{{15}{2015}{{Ness et~al.}}{{Ness, Hogg, Rix, Ho \& Zasowski}}}
-\bibcite{nun_supervised_2014}{{16}{2014}{{Nun et~al.}}{{Nun, Pichara, Protopapas \& Kim}}}
-\bibcite{pinsonneault_apokasc_2014}{{17}{2014}{{Pinsonneault et~al.}}{{Pinsonneault et~al.,}}}
-\bibcite{placek_combining_2016}{{18}{2016}{{Placek et~al.}}{{Placek, Knuth \& Angerhausen}}}
-\bibcite{rauer_plato_2014}{{19}{2014}{{Rauer et~al.}}{{Rauer et~al.,}}}
-\bibcite{ricker_transiting_2014}{{20}{2014}{{Ricker et~al.}}{{Ricker et~al.,}}}
-\bibcite{steinhardt_nonparametric_2018}{{21}{2018}{{Steinhardt \& Jermyn}}{{Steinhardt \& Jermyn}}}
-\bibcite{valenzuela_unsupervised_2018}{{22}{2018}{{Valenzuela \& Pichara}}{{Valenzuela \& Pichara}}}
-\bibcite{wegner_technique_1960}{{23}{1960}{{Wegner}}{{Wegner}}}
-\bibcite{wu_mass_2017}{{24}{2017}{{Wu et~al.}}{{Wu et~al.,}}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{8}{section.6}}
-\newlabel{sect: conc}{{6}{8}{Conclusion}{section.6}{}}
-\newlabel{lastpage}{{6}{8}{Conclusion}{section.6}{}}
+\bibcite{beck_kepler_2011}{{2}{2011}{{Beck et~al.}}{{Beck et~al.,}}}
+\bibcite{bedding_solar-like_2011}{{3}{2011}{{Bedding}}{{Bedding}}}
+\bibcite{campante_asteroseismic_2016}{{4}{2016}{{Campante et~al.}}{{Campante et~al.,}}}
+\bibcite{chaplin_asteroseismology_2013}{{5}{2013}{{Chaplin \& Miglio}}{{Chaplin \& Miglio}}}
+\bibcite{chaplin_predicting_2011}{{6}{2011}{{Chaplin et~al.}}{{Chaplin et~al.,}}}
+\bibcite{davies_asteroseismology_2016}{{7}{2016}{{Davies \& Miglio}}{{Davies \& Miglio}}}
+\bibcite{eisenstein_sdss-iii:_2011}{{8}{2011}{{Eisenstein et~al.}}{{Eisenstein et~al.,}}}
+\bibcite{elorrieta_machine_2016}{{9}{2016}{{Elorrieta et~al.}}{{Elorrieta et~al.,}}}
+\bibcite{elsworth_new_2017}{{10}{2017}{{Elsworth et~al.}}{{Elsworth, Hekker, Basu \& R.~Davies}}}
+\bibcite{gaia_collaboration_gaia_2016}{{11}{2016}{{{Gaia Collaboration} et~al.}}{{{Gaia Collaboration} et~al.,}}}
+\bibcite{hon_deep_2017}{{12}{2017}{{Hon et~al.}}{{Hon, Stello \& Yu}}}
+\bibcite{hon_deep_2018}{{13}{2018}{{Hon et~al.}}{{Hon, Stello \& Yu}}}
+\bibcite{howell_k2_2014}{{14}{2014}{{Howell et~al.}}{{Howell et~al.,}}}
+\bibcite{kremer_big_2017}{{15}{2017}{{Kremer et~al.}}{{Kremer, Stensbo-Smidt, Gieseke, Steenstrup~Pedersen \& Igel}}}
+\bibcite{lund_standing_2017}{{16}{2017}{{Lund et~al.}}{{Lund et~al.,}}}
+\bibcite{mosser_characterization_2012}{{17}{2012}{{Mosser et~al.}}{{Mosser et~al.,}}}
+\bibcite{ness_cannon_2015}{{18}{2015}{{Ness et~al.}}{{Ness, Hogg, Rix, Ho \& Zasowski}}}
+\bibcite{nun_supervised_2014}{{19}{2014}{{Nun et~al.}}{{Nun, Pichara, Protopapas \& Kim}}}
+\bibcite{pinsonneault_apokasc_2014}{{20}{2014}{{Pinsonneault et~al.}}{{Pinsonneault et~al.,}}}
+\bibcite{placek_combining_2016}{{21}{2016}{{Placek et~al.}}{{Placek, Knuth \& Angerhausen}}}
+\bibcite{rauer_plato_2014}{{22}{2014}{{Rauer et~al.}}{{Rauer et~al.,}}}
+\bibcite{ricker_transiting_2014}{{23}{2014}{{Ricker et~al.}}{{Ricker et~al.,}}}
+\bibcite{steinhardt_nonparametric_2018}{{24}{2018}{{Steinhardt \& Jermyn}}{{Steinhardt \& Jermyn}}}
+\bibcite{valenzuela_unsupervised_2018}{{25}{2018}{{Valenzuela \& Pichara}}{{Valenzuela \& Pichara}}}
+\bibcite{wegner_technique_1960}{{26}{1960}{{Wegner}}{{Wegner}}}
+\bibcite{wu_mass_2017}{{27}{2017}{{Wu et~al.}}{{Wu et~al.,}}}
+\newlabel{lastpage}{{6}{9}{Conclusion}{section.6}{}}
