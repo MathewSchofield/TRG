@@ -568,7 +568,7 @@ if __name__ == "__main__":
         sat = 'Kepler'
         sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
@@ -603,7 +603,7 @@ if __name__ == "__main__":
         if sat == 'Kepler':
             pdf_range = [12., 20., 100]  # range of Kp magnitudes for the PDF
         elif sat == 'TESS':
-            pdf_range = [6., 12., 100]  # range of I-band magnitudes for the PDF
+            pdf_range = [7., 13., 100]  # range of I-band magnitudes for the PDF
 
         # rather than using a uniform distribution in magnitude, use a PDF of
         # the Kepler/TESS noise function to get the a distribution of magnitudes

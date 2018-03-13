@@ -48,8 +48,8 @@ $^{2}$Stellar Astrophysics Centre (SAC), Department of Physics and Astronomy, Aa
 \maketitle
 
 \begin{abstract}
-{\it Summary}: This paper presents a method to identify the detectable solar-like modes in Red Giant with TESS using a Machine Learning Classifier. It requires only the global parameters log($g$), $\pi$, [M/H], \teff, the stellar magnitude and length of observation. \newline
-{\it Method}: Lightcurves for \kep \ stars with fitted radial mode frequencies were used to generate equivalent TESS lightcurves. The length of observation was reduced, \kep \ white noise was removed, the bandpass was adjusted, and TESS white noise was added. A detection test was then run on 3 observed modes in these 'TESS-like' lightcurves. Classifiers were then used to predict mode detectability with TESS based upon the global asteroseismic and spectroscopic parameters. The Classifier successfully predicted mode detectability in the original \kep stars, and for 1 year of TESS-like data.\newline
+{\it Summary}: This paper presents a method to identify the detectable solar-like modes in Red Giants with TESS using a Machine Learning Classifier. It requires only the global parameters log($g$), $\pi$, [M/H], \teff, the stellar magnitude and length of observation. \newline
+{\it Method}: Lightcurves for \kep \ stars with fitted radial mode frequencies and amplitudes from \citet{davies_asteroseismology_2016} were used. These lightcurves were degraded to generate equivalent TESS lightcurves. The length of observation was reduced, \kep \ white noise was removed, the bandpass was adjusted, and TESS white noise was added. A detection test was then run on 3 observed modes in these 'TESS-like' lightcurves. Classifiers were then used to predict mode detectability with TESS based upon global photometric and spectroscopic parameters. The Classifier successfully predicted mode detectability in the original \kep stars, and for 1 year of TESS-like data.\newline
 {\it Application}: By changing only the length of dataset, instrumental noise level and bandpass of observation, this tool can make solar-like detection predictions for future missions such as K2, PLATO and CoRoT. It can make predictions and select targets much faster than traditional detection tests. It is especially useful in an age where extremely large datasets from MAST and Gaia are available (\citet{eisenstein_sdss-iii:_2011}, \citet{gaia_collaboration_gaia_2016}).
 \end{abstract}
 
@@ -266,7 +266,7 @@ P_{\rm det} = \left\{ \,
 
 Using equation \ref{eq:class}, every mode was assigned a discrete class {\texttt [0, 1 or 2]}, depending on how high the probability of detection was for that mode. The same three radial modes ({\it 3 labels}) were used for every star: the mode closest to the centre of the power-excess due to solar-like oscillations $\nu_{\rm max; n}$, the radial mode one overtone below that $\nu_{\rm n-1}$, and one overtone above that, $\nu_{\rm n+1}$ [\pdet(1), \pdet(2), \pdet(3)]. It was important to use the same information for every star so that the algorithm could be trained on the patterns between the variables.
 
-A classifier is an algorithm that can learn a relationship between variables. The classifier will map from some initial information about the star (the X data), to some unknown information (the Y data). In this work, the X data were magnitude ($K_{p}$ or $I_{\rm mag}$), \numax, \dnu, \teff and [Fe/H]. The Y data labels were the \pdet values of 3 radial modes, centred around \numax. An example of the final dataset for 1 year of TESS-like observations are shown in Tables \ref{tab: x dataset} and \ref{tab: y dataset}.
+A classifier is an algorithm that can learn a relationship between variables. The classifier will map from some initial information about the star (the X data), to some unknown information (the Y data). In this work, the X data were magnitude ($K_{p}$ or $I_{\rm mag}$), log($g$), $\pi$, \teff and [M/H]. The Y data labels were the \pdet values of 3 radial modes, centred around \numax. An example of the final dataset for 1 year of TESS-like observations are shown in Tables \ref{tab: x dataset} and \ref{tab: y dataset}.
 
 \begin{table}
 \begin{center}
@@ -329,7 +329,7 @@ Satellite & \tobs   & Precision & Hamming loss \\
 \hline
 \kep      & 4 years & 0.98      & 0.02         \\
 TESS      & 1 year  & 0.92      & 0.07         \\
-TESS      & 27 days & 0.74      & 0.26         \\
+TESS      & 27 days & 0.74      & 0.25         \\
 \end{tabular}
 \end{center}
 \caption{Results of the Classifier on the original \kep dataset, and the 1-year and 27-day TESS datasets. The 'Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 labels [\pdet(1), \pdet(2), \pdet(3)].}
@@ -373,9 +373,9 @@ $\rm [M/H]$  & 0.08               \\
 \subsection{Comparing results between different evolutionary states}
 \label{sect: evo states}
 
-So far in this paper, the the evolutionary state of the Red Giant population from \citet{davies_asteroseismology_2016} has been ignored. In reality, the 1000 \kep Red Giants are a mixture of Red Giant Branch (RGB), Red Clump (RC) and Secondary Clump (2CL) stars. The evolutionary states of the stars in the sample were taken from \citet{elsworth_new_2017}. 
+So far in this paper, the the evolutionary state of the Red Giant population from \citet{davies_asteroseismology_2016} has been ignored when predicting mode detection probability \pdet. In reality, the 1000 \kep Red Giants used in this work are a mixture of Red Giant Branch (RGB), Red Clump (RC) and Secondary Clump (2CL) stars. This Section investigates whether there is any difference in the predictions if the stars are first separated into RGB, RC and 2CL groups. The evolutionary states of the stars in the sample were taken from \citet{elsworth_new_2017}. 
 
-If a Red Giant Branch is massive enough, it will undergo the helium flash and become a Red Clump star. Red Clump stars are Helium-core burning stars, and all have very similar core masses to each other. These stars have very different $g-$mode period spacings to RGB stars, but are otherwise difficult to differentiate (\citet{chaplin_asteroseismology_2013}, \citet{bedding_solar-like_2011}, \citet{beck_kepler_2011}). If a star is more massive than $\geqslant1.8 \msol$, will instead become a Secondary Clump star. This means that it will undergo Helium-core burning without the Helium flash.
+If a Red Giant Branch is massive enough, it will undergo the Helium flash and become a Red Clump star. Red Clump stars are Helium-core burning stars, and all have very similar core masses to each other. These stars have very different $g-$mode period spacings to RGB stars, but are otherwise difficult to differentiate (\citet{chaplin_asteroseismology_2013}, \citet{bedding_solar-like_2011}, \citet{beck_kepler_2011}). If a star is more massive than $\geqslant1.8\msol$, will instead become a Secondary Clump star. This means that it will undergo Helium-core burning without the Helium flash.
 
 The Red Giant dataset was separated into 3 subsets; the RGB, RC and 2CL stars. Each subset was treated in the same way as in Section \ref{sect: class-results} Table \ref{tab: results}. Table \ref{tab: evo results} gives the full list of results when the RGB, RC and 2CL stars are separated. 
 \begin{table}
@@ -385,37 +385,40 @@ Evolution & Satellite & \tobs   & Precision & Hamming loss \\
 \hline
 RGB       & \kep      & 4 years & 0.98      & 0.03         \\
 RGB       & TESS      & 1 year  & 0.92      & 0.07         \\
-RGB       & TESS      & 27 days & 0.74      & 0.26         \\
+RGB       & TESS      & 27 days & 0.75      & 0.25         \\
 \hline
 RC        & \kep      & 4 years & 0.96      & 0.04         \\
 RC        & TESS      & 1 year  & 0.92      & 0.07         \\
-RC        & TESS      & 27 days & 0.74      & 0.26         \\
+RC        & TESS      & 27 days & 0.77      & 0.24         \\
 \hline
 2CL       & \kep      & 4 years & 0.97      & 0.03         \\
 2CL       & TESS      & 1 year  & 0.92      & 0.07         \\
-2CL       & TESS      & 27 days & 0.74      & 0.26         \\
+2CL       & TESS      & 27 days & 0.69      & 0.30         \\
 \end{tabular}
 \end{center}
 \caption{Results of the Classifier when RGB, RC and 2CL stars are separated. Results are shown when the data are treated like \kep stars, and when they are degraded to look like 1-year and 27-day TESS observation. The 'Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 labels [\pdet(1), \pdet(2), \pdet(3)].}
 \label{tab: evo results}
 \end{table}
 
-[{\bf DISCUSS RESULTS HERE}]
-
+Table \ref{tab: evo results} shows that there is a negligible difference in predictions between stars undergoing Helium-core burning (RC and 2CL stars) and those that are not (RGB stars). This leads to the conclusion that a Classifier can predict the mode detectability of Red Giants at different evolutionary states equally well. It is therefore not necessary to separate out these stars into different evolutionary states before predicting \pdet.
 
 
 \section{Conclusion}
 \label{sect: conc}
 
-For the first time, Machine Learning was applied to TESS target selection. 1000 peak-bagged \kep Red Giant stars from \citet{davies_asteroseismology_2016} were used to determine whether target selection could be done using a Classifier.
+1000 peak-bagged \kep Red Giant stars from \citet{davies_asteroseismology_2016} were used to determine whether asteroseismic target selection could be done using a Classifier. Rather than using Machine Learning to determine the evolutionary state of these stars, a Classifier was instead used to predict which individual solar-like oscillations inside the Red Giants could be detected with a future space mission. The mission in question here was TESS, although the same technique can be easily applied to K2, PLATO or CoRoT.
+
+
+%For the first time, Machine Learning was applied to TESS target selection. 1000 peak-bagged \kep Red Giant stars from \citet{davies_asteroseismology_2016} were used to determine whether target selection could be done using a Classifier. 
+
 
 The number of samples from \citet{davies_asteroseismology_2016} was first increased by perturbing stellar magnitudes 100 times for each star. These perturbed magnitudes were drawn from a PDF of the noise function (equations \ref{eq:kep noise} and \ref{eq:tess noise}). After removing stars where global parameters or fitted modes were unavailable, this left 60,000 \kep samples. 
 
 Once the number of samples was increased, the timeseries' were degraded to transform them into TESS-like observations. The dataset length was reduced, white noise was added to the signal, and the bandpass of observation was reddened. A moving median was calculated for the power spectra of these Red Giants to estimate the total background in the signal. This was divided out of the spectra, leaving a Signal-to-Noise ratio at every frequency bin (equation \ref{eq:snr}).
 
-A detection test was then run on the SNR values at every mode frequency. This gave a detection probability \pdet between 0.0 and 1.0 for every mode. In order to prepare the detection probabilities before Classification, each continuous \pdet value was assigned a discrete class ([0,1 or 2]; equation \ref{eq:class}).
+A detection test was then run on the SNR values at every mode frequency given in \citet{davies_asteroseismology_2016}. This gave a detection probability \pdet between 0.0 and 1.0 for every mode. In order to prepare the detection probabilities before Classification, each continuous \pdet value was assigned a discrete class ([0,1 or 2]; equation \ref{eq:class}).
 
-A Classifier was then given the global asteroseismic and spectroscopic properties of the Red Giant sample, along with mode detection probabilities for each star. The parameters \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]} from APOKASC \citep{pinsonneault_apokasc_2014} were used as the 5 X-data labels. The \pdet values of 3 radial modes centred around \numax were used as 3 Y-data labels. % see http://scikit-learn.org/stable/modules/multiclass.html
+A Classifier was then given the global photometric and spectroscopic properties of the Red Giant sample, along with mode detection probabilities for each star. The parameters \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]} from APOKASC \citep{pinsonneault_apokasc_2014} were used as the 5 X-data labels. The \pdet values of 3 radial modes centred around \numax were used as 3 Y-data labels. % see http://scikit-learn.org/stable/modules/multiclass.html
 The classifier used the global stellar parameters (the X-data) to make predictions about mode detectability (the Y-data). The stars with the largest number of detected modes could then be selected as the Red Giants for observation by TESS. 
 
 The Classifier successfully made predictions about the original 4 years of Kepler data; the algorithm had a weighted precision 0.98 across the 3 \pdet labels. This confirms the proof of concept that Classifiers can be used as a way to select targets before future missions. Classification vastly reduces the computation time required to produce a target selection function, especially when large datasets are involved ($\geq50,000$ stars).
