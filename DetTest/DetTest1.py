@@ -603,7 +603,7 @@ if __name__ == "__main__":
         if sat == 'Kepler':
             pdf_range = [12., 20., 100]  # range of Kp magnitudes for the PDF
         elif sat == 'TESS':
-            pdf_range = [7., 13., 100]  # range of I-band magnitudes for the PDF
+            pdf_range = [6., 12., 100]  # range of I-band magnitudes for the PDF
 
         # rather than using a uniform distribution in magnitude, use a PDF of
         # the Kepler/TESS noise function to get the a distribution of magnitudes

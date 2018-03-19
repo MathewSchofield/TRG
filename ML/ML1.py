@@ -140,7 +140,7 @@ class Machine_Learning(object):
             self.xy['KIC'] = 'KIC ' + self.xy['KIC'].astype(str).str[:-2].str.strip().str.rstrip()
             self.xy = pd.merge(left=self.xy, right=plx[['kic', 'tyc', 'parallax']], left_on='KIC', right_on='kic', how='inner')
 
-    def pdet_bins(self, n=3, v=True, plot=False):
+    def pdet_bins(self, n=3, v=False, plot=False):
         """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
         (i.e any value from 0.00 to 1.00), in order to apply Classification.
         n: the number of discrete bins to group pdet values into. """
@@ -202,7 +202,7 @@ class Machine_Learning(object):
         if v:  print '% rows in \'3\' class:', len(prob[prob==3])/float(prob.shape[0]*prob.shape[1])
         if v:  print '% rows in \'4\' class:', len(prob[prob==4])/float(prob.shape[0]*prob.shape[1])
 
-    def random_forest_classifier(self, subset='2CL', save=True):
+    def random_forest_classifier(self, subset='RGB', save=False):
         """ Perform a Random Forest Classifier (made up of many decision trees)
         on the XY data. Y data must be given as discrete values
         e.g 0 or 1 for each mode (detected or not).
@@ -225,10 +225,10 @@ class Machine_Learning(object):
         x_train, x_test, y_train, y_test = train_test_split(x, y,
                                                             test_size=0.3,
                                                             random_state=42)
-        print self.sat, '; Tobs:', self.Tobs, ';', self.n, 'Y-data classes', '\n'
+        print self.sat, '; Tobs:', self.Tobs, ';', 'subset:', subset, self.n, 'Y-data classes', '\n'
 
         rfc = RandomForestClassifier(random_state=42, max_depth=100,
-                                     min_samples_leaf=10)#, max_features=8)
+                                     min_samples_leaf=5)#, max_features=5)
         rfc = rfc.fit(x_train, y_train)
         y_pred = rfc.predict(x_test)  # predict on new data
 
@@ -326,12 +326,11 @@ class Machine_Learning(object):
     def Plot1(self):
         """ Make of a plot of the random_forest_classifier() results. """
 
-
-        plt.hist()
+        #plt.hist()
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=27)
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=365)
     #ml.get_parallaxes()
     ml.loadData()
     ml.pdet_bins()
