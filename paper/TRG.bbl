@@ -22,6 +22,11 @@
 Baglin A.,  et~al., 2006. p.~3749, \url
   {http://adsabs.harvard.edu/abs/2006cosp...36.3749B}
 
+\bibitem[\protect\citeauthoryear{Ballot, Barban  \& van't Veer-Menneret}{Ballot
+  et~al.}{2011}]{ballot_visibilities_2011}
+Ballot J.,  Barban C.,   van't Veer-Menneret C.,  2011, \mn@doi [Astronomy and
+  Astrophysics] {10.1051/0004-6361/201016230}, 531, A124
+
 \bibitem[\protect\citeauthoryear{Beck et~al.,}{Beck
   et~al.}{2011}]{beck_kepler_2011}
 Beck P.~G.,  et~al., 2011, \mn@doi [Science] {10.1126/science.1201939}, 332,
@@ -96,6 +101,11 @@ Kremer J.,  Stensbo-Smidt K.,  Gieseke F.,  Steenstrup~Pedersen K.,   Igel C.,
   et~al.}{2017}]{lund_standing_2017}
 Lund M.~N.,  et~al., 2017, \mn@doi [The Astrophysical Journal]
   {10.3847/1538-4357/835/2/172}, 835, 172
+
+\bibitem[\protect\citeauthoryear{Mathur et~al.,}{Mathur
+  et~al.}{2011}]{mathur_granulation_2011}
+Mathur S.,  et~al., 2011, \mn@doi [The Astrophysical Journal]
+  {10.1088/0004-637X/741/2/119}, 741, 119
 
 \bibitem[\protect\citeauthoryear{Mosser et~al.,}{Mosser
   et~al.}{2012}]{mosser_characterization_2012}
