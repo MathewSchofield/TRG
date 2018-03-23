@@ -13,11 +13,14 @@ import pwd
 import glob
 import sys
 import timeit
-from config import *  # the directories to find the data files
+import matplotlib.pyplot as plt
+from scipy import stats
 
 TRG = os.getcwd().split('likeTESS')[0]
 sys.path.insert(0, TRG + 'GetData' + os.sep)
 from K2data import Dataset
+sys.path.insert(0, TRG)
+from config import *  # the directories to find the data files
 
 
 # calculate Imags. all stars here are Red Giants so conditions for dwarfs have been removed
@@ -91,10 +94,86 @@ def getInput():
     return ts, epic, params, mags, modes
 
 
+def Plot1():
+    """ Make a plot of numax(Teff) for the original 1000 Kepler Red Giants.
+    Add a KDE to show density distribution. """
+
+    plt.rc('font', size=14)
+    fig, ax = plt.subplots()
+
+    # metallicity: 0.0332/0.679=0.05, 0.009/0.732=0.01, 0.0023/0.746=0.003
+    #tracks = glob.glob('/home/mxs191/Desktop/phd_y2/BenRendle_tracks/*.txt')
+    # tracks = glob.glob('/home/mxs191/Desktop/phd_y2/BenRendle_tracks/*X0.746*.txt')
+    # tracks = glob.glob('/home/mxs191/Desktop/phd_y2/BenRendle_tracks/*X0.679*.txt')
+    tracks = glob.glob('/home/mxs191/Desktop/phd_y2/BenRendle_tracks/*X0.732*.txt')
+    for idx, track_floc in enumerate(tracks):
+
+        track = pd.read_csv(track_floc, sep='\s+', skiprows=2)
+
+        track['teff'] = 10.**track['3:log(Te)'].as_matrix()  # Teff in Kelvin
+        track['lum'] = 10.**track['4:log(L/Lo)'].as_matrix()  # Luminosity (solar units)
+        track['rad'] = track['lum'].as_matrix()**0.5 * ((track['teff'].as_matrix()/5777.)**-2)  # radius (solar units)
+        track['numax'] = 3090.*(track['rad'].as_matrix()**-1.85)*((track['teff'].as_matrix()/5777.)**0.92)  # mu Hz
+
+        #print track[['3:log(Te)']]
+        # print track[['teff', 'lum', 'rad', 'numax']]
+        # sys.exit()
+        plt.plot(track['teff'][43:], track['numax'][43:])
+
+    # plt.xlim(7700,4300)
+    # plt.ylim(0.3,50)
+    # plt.yscale('log')
+    # plt.show()
+    # sys.exit()
+
+    values = np.vstack([params['Teff'], params['numax']])
+    kde_model = stats.gaussian_kde(values)  # the kernel
+    params['kde'] = kde_model(values)  # the result of the kernel at these teffs and lums
+    normfac = np.max(params['kde'])/0.99
+    params['kde'] /= np.max(params['kde'])
+
+
+    # trackloc = '/home/mxs191/Desktop/MSc/data_files/02.09 diegos solar-like tracks from sim 2/track text files/'
+    # teff_08m, numax_08m = np.loadtxt(trackloc + 'm0.8.txt', skiprows = 2, usecols = (2,7), unpack = True)
+    # teff_10m, numax_10m = np.loadtxt(trackloc + 'm1.0.txt', skiprows = 2, usecols = (2,7), unpack = True)
+    # teff_12m, numax_12m = np.loadtxt(trackloc + 'm1.2.txt', skiprows = 2, usecols = (2,7), unpack = True)
+    # teff_14m, numax_14m = np.loadtxt(trackloc + 'm1.4.txt', skiprows = 2, usecols = (2,7), unpack = True)
+    # teff_16m, numax_16m = np.loadtxt(trackloc + 'm1.6.txt', skiprows = 2, usecols = (2,7), unpack = True)
+    # teff_18m, numax_18m = np.loadtxt(trackloc + 'm1.8.txt', skiprows = 2, usecols = (2,7), unpack = True)
+    # teff_20m, numax_20m = np.loadtxt(trackloc + 'm2.0.txt', skiprows = 2, usecols = (2,7), unpack = True)
+    #
+    # figt1 = plt.plot(teff_08m[940:5000], numax_08m[940:5000], color='k', linewidth=2.0)
+    # figt2 = plt.plot(teff_10m[967:5000], numax_10m[967:5000], color='k', linewidth=2.0)
+    # figt3 = plt.plot(teff_12m[985:5000], numax_12m[985:5000], color='k', linewidth=2.0)
+    # figt3 = plt.plot(teff_14m[1040:5000], numax_14m[1040:5000], color='k', linewidth=2.0)
+    # figt3 = plt.plot(teff_16m[1100:5000], numax_16m[1100:5000], color='k', linewidth=2.0)
+    # figt3 = plt.plot(teff_18m[1090:5000], numax_18m[1090:5000], color='k', linewidth=2.0)
+    # figt3 = plt.plot(teff_20m[1093:5000], numax_20m[1093:5000], color='k', linewidth=2.0)
+
+    plt.scatter(params['Teff'], params['numax'], s=3, c=params['kde'])
+    plt.colorbar(label='KDE')
+
+    # bc = pd.read_csv('/home/mxs191/Desktop/MSc/data_files/Bright_catalogue_after_sav2csv2.py/all_bright_catalogue_data_test.csv')
+    # print bc.shape
+    # bc = bc[['teff', 'numax']].iloc[::10]
+    # print bc.shape
+    #plt.scatter(bc['teff'], bc['numax'], c='gray', s=1)
+
+    plt.xlim(5500,4000)
+    plt.ylim(400,2.7)
+    plt.yscale('log')
+    plt.xlabel(r'$T_{\textrm{eff}}$ / K')
+    plt.ylabel(r'$\nu_{\rm max}$ / $\rm \mu Hz$')
+
+    plt.show()
+
+    sys.exit()
+
 if __name__ == "__main__":
     start = timeit.default_timer()
 
     ts, epic, params, mags, modes = getInput()
+    Plot1()
 
     for i, fdir in enumerate(ts):
 

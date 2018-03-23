@@ -91,7 +91,7 @@ The Classifier recognised patterns between the variables in the training set, an
 
 
 
-\section{Increasing the size of the datasets}
+\section{The dataset}
 \label{sect: size}
 
 Machine Learning performs best when a large dataset is available to train the algorithm on. In order to increase the size of the dataset from \citet{davies_asteroseismology_2016} above 1000, the magnitude of each \kep star was perturbed. Each star had it's magnitude perturbed 100 times before the lightcurves were transformed to TESS-like power spectra. 
@@ -121,7 +121,7 @@ n = 10^{-5.0} \times 10^{ 0.4 \times (20-I_{\rm mag})} .
 These noise functions were used as the PDFs to draw stellar magnitudes from. 100 magnitudes were drawn for every \kep Red Giant. After removing gaps in the data, this left 60,000 samples. The lightcurves of this much larger \kep dataset were then degraded to look like TESS observations.
 
 
-\section{Transforming the lightcurves}
+\section{Modifying \kep data to look like TESS}
 \label{sect: dataset}
 
 Before a Classifier could be used on the large Red Giant sample, the timeseries data from \kep needed to be adjusted for a different satellite and mission. This could either be done in the time or frequency domains. Adjustments were made in both domains, and the results were compared. %The time domain method was chosen to transform the lightcurves, and was used in the rest of this work.
