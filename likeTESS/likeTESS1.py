@@ -105,7 +105,8 @@ def Plot1():
     #tracks = glob.glob('/home/mxs191/Desktop/phd_y2/BenRendle_tracks/*.txt')
     # tracks = glob.glob('/home/mxs191/Desktop/phd_y2/BenRendle_tracks/*X0.746*.txt')
     # tracks = glob.glob('/home/mxs191/Desktop/phd_y2/BenRendle_tracks/*X0.679*.txt')
-    tracks = glob.glob('/home/mxs191/Desktop/phd_y2/BenRendle_tracks/*X0.732*.txt')
+    #tracks = glob.glob('/home/mxs191/Desktop/phd_y2/BenRendle_tracks/*X0.732*.txt')
+    tracks = glob.glob('/home/mxs191/Desktop/phd_y2/BenRendle_tracks/X731/*.txt')
     for idx, track_floc in enumerate(tracks):
 
         track = pd.read_csv(track_floc, sep='\s+', skiprows=2)
@@ -115,40 +116,15 @@ def Plot1():
         track['rad'] = track['lum'].as_matrix()**0.5 * ((track['teff'].as_matrix()/5777.)**-2)  # radius (solar units)
         track['numax'] = 3090.*(track['rad'].as_matrix()**-1.85)*((track['teff'].as_matrix()/5777.)**0.92)  # mu Hz
 
-        #print track[['3:log(Te)']]
-        # print track[['teff', 'lum', 'rad', 'numax']]
-        # sys.exit()
-        plt.plot(track['teff'][43:], track['numax'][43:])
+        plt.axhline(y=277.7, c='k', linestyle='--')
+        plt.plot(track['teff'][3:], track['numax'][3:], c='k')
 
-    # plt.xlim(7700,4300)
-    # plt.ylim(0.3,50)
-    # plt.yscale('log')
-    # plt.show()
-    # sys.exit()
 
     values = np.vstack([params['Teff'], params['numax']])
     kde_model = stats.gaussian_kde(values)  # the kernel
     params['kde'] = kde_model(values)  # the result of the kernel at these teffs and lums
     normfac = np.max(params['kde'])/0.99
     params['kde'] /= np.max(params['kde'])
-
-
-    # trackloc = '/home/mxs191/Desktop/MSc/data_files/02.09 diegos solar-like tracks from sim 2/track text files/'
-    # teff_08m, numax_08m = np.loadtxt(trackloc + 'm0.8.txt', skiprows = 2, usecols = (2,7), unpack = True)
-    # teff_10m, numax_10m = np.loadtxt(trackloc + 'm1.0.txt', skiprows = 2, usecols = (2,7), unpack = True)
-    # teff_12m, numax_12m = np.loadtxt(trackloc + 'm1.2.txt', skiprows = 2, usecols = (2,7), unpack = True)
-    # teff_14m, numax_14m = np.loadtxt(trackloc + 'm1.4.txt', skiprows = 2, usecols = (2,7), unpack = True)
-    # teff_16m, numax_16m = np.loadtxt(trackloc + 'm1.6.txt', skiprows = 2, usecols = (2,7), unpack = True)
-    # teff_18m, numax_18m = np.loadtxt(trackloc + 'm1.8.txt', skiprows = 2, usecols = (2,7), unpack = True)
-    # teff_20m, numax_20m = np.loadtxt(trackloc + 'm2.0.txt', skiprows = 2, usecols = (2,7), unpack = True)
-    #
-    # figt1 = plt.plot(teff_08m[940:5000], numax_08m[940:5000], color='k', linewidth=2.0)
-    # figt2 = plt.plot(teff_10m[967:5000], numax_10m[967:5000], color='k', linewidth=2.0)
-    # figt3 = plt.plot(teff_12m[985:5000], numax_12m[985:5000], color='k', linewidth=2.0)
-    # figt3 = plt.plot(teff_14m[1040:5000], numax_14m[1040:5000], color='k', linewidth=2.0)
-    # figt3 = plt.plot(teff_16m[1100:5000], numax_16m[1100:5000], color='k', linewidth=2.0)
-    # figt3 = plt.plot(teff_18m[1090:5000], numax_18m[1090:5000], color='k', linewidth=2.0)
-    # figt3 = plt.plot(teff_20m[1093:5000], numax_20m[1093:5000], color='k', linewidth=2.0)
 
     plt.scatter(params['Teff'], params['numax'], s=3, c=params['kde'])
     plt.colorbar(label='KDE')
@@ -166,6 +142,7 @@ def Plot1():
     plt.ylabel(r'$\nu_{\rm max}$ / $\rm \mu Hz$')
 
     plt.show()
+    fig.savefig('/home/mxs191/Desktop/MathewSchofield/TRG/likeTESS/Plot1_HR.pdf')
 
     sys.exit()
 
