@@ -28,7 +28,7 @@
 %\usepackage{newtxtext,newtxmath}  % new version
 \usepackage{txfonts}  % old version
 
-\title[TRG]{TESS Asteroseismic Predictions for Red Giants using Machine Learning}
+\title[Asteroseismology with Machine Learning]{TESS Asteroseismic Predictions for Red Giants using Machine Learning}
 
 \author[M. Schofield et al.]{M. Schofield$^{1, 2}$\thanks{E-mail: mxs191@bham.ac.uk}, G. R. Davies$^{1, 2}$, W. J. Chaplin$^{1, 2}$, A. Miglio$^{1, 2}$, M. F. Randrianandrasana
 \\
@@ -50,9 +50,9 @@ $^{2}$Stellar Astrophysics Centre (SAC), Department of Physics and Astronomy, Aa
 \maketitle
 
 \begin{abstract}
-{\it Summary}: This paper presents a method to identify the detectable solar-like modes in Red Giants with TESS using a Machine Learning Classifier. It requires only the global parameters log($g$), $\pi$, [M/H], \teff and the stellar magnitude. This can be used as an asteroseismic target-selection function for future space missions.  \newline
+{\it Summary}: This paper presents a method to identify the detectable solar-like modes in Red Giants with TESS using a Machine Learning Classifier. It requires only the global parameters log($g$), $\pi$, [M/H], \teff and the apparent stellar magnitude. This can be used as an asteroseismic target-selection function for future space missions.  \newline
 {\it Method}: Lightcurves for \kep \ stars with fitted radial mode frequencies and amplitudes from \citet{davies_asteroseismology_2016} were used. These lightcurves were degraded to generate equivalent TESS lightcurves. The length of observation was reduced, \kep \ white noise was removed, the bandpass was adjusted, and TESS white noise was added. A detection test was run on 3 observed modes in these 'TESS-like' lightcurves. Lastly, a Classifier was used to predict mode detectability with TESS based upon global photometric and spectroscopic parameters. The Classifier successfully predicted mode detectability in the original \kep stars, and for 1 year of TESS-like data.\newline
-{\it Application}: By changing only the length of dataset, instrumental noise level and bandpass of observation, this tool can make solar-like detection predictions for future missions such as K2, PLATO and CoRoT. It can make predictions and select targets much faster than traditional detection tests. It is especially useful in an age where extremely large datasets from MAST and Gaia are available (\citet{eisenstein_sdss-iii:_2011}, \citet{gaia_collaboration_gaia_2016}).
+{\it Application}: By changing only the length of dataset, instrumental noise level and bandpass of observation, this tool can make solar-like detection predictions for future missions such as TESS and PLATO. It can make predictions and select targets much faster than traditional detection tests. It is especially useful in an age where extremely large datasets from MAST and Gaia are available (\citet{eisenstein_sdss-iii:_2011}, \citet{gaia_collaboration_gaia_2016}).
 \end{abstract}
 
 
@@ -61,7 +61,7 @@ $^{2}$Stellar Astrophysics Centre (SAC), Department of Physics and Astronomy, Aa
 
 Satellites such as $Kepler$ have allowed asteroseismology of solar-like and Red Giant stars to advance rapidly since the last century \citet{chaplin_asteroseismology_2013}. Power spectra can now be resolved to detect individual modes of oscillation in Main Sequence and Red Giant stars (\citet{lund_standing_2017}, \citet{davies_asteroseismology_2016}).
 
-Future space missions such as TESS \citep{ricker_transiting_2014}, K2 \citep{howell_k2_2014}, CoRoT \citep{baglin_corot:_2006} and PLATO \citep{rauer_plato_2014} will add to our understanding of stellar structure and evolution. These missions will provide a large amount of high-precision data. More than ever, the field of stellar astrophysics will require tools to perform big-data analysis \citep{kremer_big_2017}. 
+Future space missions such as TESS \citep{ricker_transiting_2014} and PLATO \citep{rauer_plato_2014} will add to our understanding of stellar structure and evolution. These missions will provide a large amount of high-precision data. More than ever, the field of stellar astrophysics will require tools to perform big-data analysis. %\citep{kremer_big_2017}. 
 
 One of the tools than can be used to handle the large amount of data from future missions is Machine Learning. In this work, Machine Learning was used to create a TESS target selection function using the set of $Kepler$ Red Giant Branch, Red Clump and Secondary Clump stars from \citet{davies_asteroseismology_2016}. The algorithm made in this work is publicly-available\footnote{https://github.com/MathewSchofield/TRG}. It can be downloaded and used as a target selection function for any future space mission.
 
@@ -71,7 +71,7 @@ In Unsupervised Learning, there are no known results/labels. The aim of Machine 
 
 Supervised Learning has also been used to classify the evolutionary stage of variable stars (\citet{nun_supervised_2014}, \citet{elorrieta_machine_2016}). In these papers, classifying evolutionary stage was treated as a Supervised problem because previously labelled data were used. This previously labelled data is known as training data: this is used to train the Machine Learning algorithm. In the problem of variable stars, lightcurves that had already been classified were used to train the algorithm (this is the training dataset). This algorithm was then used to classify the lightcurves of unidentified stars (this is known as the testing dataset). In this way, the authors were able to identify the evolutionary stage of every star in their sample.
 
-In this work, a classifier was \textit{not} used to identify the evolutionary stage of stars. For the first time, a Supervised Classifier was used here to identify which solar-like modes could be detected inside Red Giant stars with TESS. These modes were given to the Classifier as known labels, so this is a Supervised Learning problem\footnote{https://machinelearningmastery.com}.
+In this work, a classifier was \textit{not} used to identify the evolutionary stage of stars. For the first time, a Supervised Classifier was used here to identify which solar-like modes could be detected in Red Giant stars with TESS. These modes were given to the Classifier as known labels, so this is a Supervised Learning problem\footnote{https://machinelearningmastery.com}.
 
 A Classifier was used here to identify which solar-like modes could be detected inside Red Giant stars with TESS. As a result, this algorithm can be used as the target selection function for TESS. Furthermore, this code has been written specifically for easy adaption to other satellites. It can therefore also be used as the target selection function for K2, CoRoT and PLATO.
 
@@ -79,11 +79,12 @@ A Classifier was used here to identify which solar-like modes could be detected 
 
 Within Supervised Learning, two common algorithms that are used are Classification and Regression. In Regression, the relationship between variables is interpreted using a measure of uncertainty (such as using $\chi^{2}$ tests). Models are fitted using the independent data, and uncertainty is measured. The models are then improved by reducing this uncertainty. Note that regression is used when the label is continuous. For example, predicting the magnitude of a star is a problem suited to regression, as a star can have any magnitude \citep{steinhardt_nonparametric_2018}.
 
-Conversely, Classification algorithms work by assessing similarity\footnote{http://www.simafore.com}. In Classification, the training set is separated into groups based on the similarity of the data. The more information that was gained by splitting the data, the better. For example, if the problem were to separate Red Giant stars from Main-Sequence stars, a star could be classified as either a Red Giant (1), or not a Red Giant (0). In this example, having a Luminosity above $\sim10L_{\odot}$ would be a strong indicator that the star was a Red Giant so the data could be separated into groups here. The Classifier would continue to separate the dataset until the Red Giant and Main Sequence samples were distinct. Examples of Classifiers being used to identify the evolutionary stages of stars cab be found in \citet{ness_cannon_2015} and \citet{wu_mass_2017}.
+Conversely, Classification algorithms work by assessing similarity\footnote{http://www.simafore.com}. In Classification, the training set is separated into groups based on the similarity of the data. The more information that was gained by splitting the data, the better. %For example, if the problem were to separate Red Giant stars from Main-Sequence stars, a star could be classified as either a Red Giant (1), or not a Red Giant (0). In this example, having a Luminosity above $\sim10L_{\odot}$ would be a strong indicator that the star was a Red Giant so the data could be separated into groups here. The Classifier would continue to separate the dataset until the Red Giant and Main Sequence samples were distinct. 
+Examples of Classifiers being used to identify the evolutionary stages of stars can be found in \citet{ness_cannon_2015} and \citet{wu_mass_2017}.
 
-In this work, a Classifier was not used to identify the evolutionary stage of stars. Instead, it was used to identify which solar-like modes could be detected by TESS, and which could not. individual fitted modes from \citet{davies_asteroseismology_2016} were degraded to look like TESS observations. The detectable solar-like modes from this degraded set were then identified by a Classifier. By separating the stars into those with detected modes and those without, a Classifier was used to select the optimal targets for TESS to observe.
+In this work, a Classifier was not used to identify the evolutionary stage of stars. Instead, it was used to identify which solar-like modes could be detected by TESS, and which could not. Individual fitted modes from \citet{davies_asteroseismology_2016} were degraded to look like TESS observations. The detectable solar-like modes from this degraded set were then identified by a Classifier. By separating the stars into those with detected modes and those without, a Classifier was used to select the optimal targets for TESS to observe.
 
-Firstly, Section \ref{sect: size} describes how the size of the datasets were increased to improve the predictive ability of the Classifier. Section \ref{sect: dataset} then outlines how the timeseries of every star were treated before transforming them into power spectra. Section \ref{sect: det_test} goes on to explain the detection test that was run on the solar-like oscillations. This returned a probability of detection \pdet for every mode. Each mode was grouped into a discrete class depending upon it's detection probability; each mode was either very likely to be observed (2), quite likely (1), or unlikely (0).
+Firstly, Section \ref{sect: dataset} describes how the size of the datasets were increased to improve the predictive ability of the Classifier. Section \ref{sect: tess-like} then outlines how the timeseries of every star were treated before transforming them into power spectra. Section \ref{sect: det_test} goes on to explain the detection test that was run on the solar-like oscillations. This returned a probability of detection \pdet for every mode. Each mode was grouped into a discrete class depending upon its detection probability; each mode was either very likely to be observed (0.9-1.0, class '2'), quite likely (0.5-0.9, class '1'), or unlikely (0.0-0.5, class '0').
 
 Lastly, Section \ref{sect: classifier} illustrates how the stars were classified. The stars were put into a group with detected modes, and a group without. This was done by giving a Supervised Classifier photometric and spectroscopic information on every target from APOKASC \citep{pinsonneault_apokasc_2014}. 70\% of the stars were used to train the Classifier; 30\% of the sample was kept to test the algorithm. The Classifier was given global asteroseismic and spectroscopic information, as well as mode detection probabilities of the stars in the training set. It then made predictions about mode detectability on the testing set.
 
@@ -92,11 +93,18 @@ The Classifier recognised patterns between the variables in the training set, an
 
 
 \section{The dataset}
-\label{sect: size}
+\label{sect: dataset}
 
-Machine Learning performs best when a large dataset is available to train the algorithm on. In order to increase the size of the dataset from \citet{davies_asteroseismology_2016} above 1000, the magnitude of each \kep star was perturbed. Each star had it's magnitude perturbed 100 times before the lightcurves were transformed to TESS-like power spectra. 
+The 1000 \kep Red Giants from Davies et al. (in prep) are shown in Figure \ref{fig:dataset}.
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.6]{Plot1_HR.pdf}
+	\caption{The original 1000 \kep Red Giants. The colourbar shows the relative density of points with Kernel Density Estimation. The evolutionary tracks range from 0.9-1.5\msol.}	
+	\label{fig:dataset}
+\end{figure}
+Machine Learning performs best when a large dataset is available to train the algorithm on. In order to increase the size of the dataset above 1000, the magnitude of each \kep star was perturbed. Each star had its apparent magnitude perturbed 100 times before the lightcurves were transformed to TESS-like power spectra. 
 
-The noise functions of \kep and TESS were used as PDFs to draw magnitudes from. These were used because they provide realistic distributions of the number of stars at different magnitudes that the satellites observed/will observe. Many more fainter stars are observed than brighter stars because the volume of space that contains stars increases as the distance of observation increases.
+The noise functions of \kep and TESS were used as PDFs to draw apparent magnitudes from. These were used because they provide realistic distributions of the number of stars at different magnitudes that the satellites observed/will observe. Many more fainter stars are observed than brighter stars because the volume of space that contains stars increases as the distance of observation increases.
 
 The noise function of \kep depends on the \kep magnitude of the star, $K_{p}$. This noise function is from \citet{chaplin_predicting_2011}. It is given by
 \begin{equation}
@@ -108,7 +116,10 @@ where
 c = 1.28 \times 10^{0.4(12-K_{p})+7} .
 \end{equation}
 
-Similarly, the noise function of TESS was estimated using the `calc noise' IDL procedure (from William Chaplin, private communication), which depends on the $I_{c}-$band magnitude of the star and the number of pixels in the photometric aperture used when observing the star. This is given by
+The TESS noise function was estimated by calculating stellar shot noise, the noise from background stars, the readout noise and the systematic noise. These four noise sources were then summed in quadrature to give the total TESS noise.
+
+\iffalse
+which depends on the $I_{c}-$band magnitude of the star and the number of pixels in the photometric aperture used when observing the star. This is given by
 \begin{equation}
 N_{\rm aper} = 10 \times (n+10) , 
 \end{equation}
@@ -117,17 +128,20 @@ where $n$ is
 \label{eq:tess noise}
 n = 10^{-5.0} \times 10^{ 0.4 \times (20-I_{\rm mag})} .
 \end{equation}
+\fi
 
-These noise functions were used as the PDFs to draw stellar magnitudes from. 100 magnitudes were drawn for every \kep Red Giant. After removing gaps in the data, this left 60,000 samples. The lightcurves of this much larger \kep dataset were then degraded to look like TESS observations.
+The \kep and TESS noise functions were used as the PDFs to draw stellar magnitudes from. 100 magnitudes were drawn for every \kep Red Giant. After removing gaps in the data, this left 60,000 samples. The lightcurves of this much larger \kep dataset were then degraded to look like TESS observations.
 
 
 \section{Modifying \kep data to look like TESS}
-\label{sect: dataset}
+\label{sect: tess-like}
 
-Before a Classifier could be used on the large Red Giant sample, the timeseries data from \kep needed to be adjusted for a different satellite and mission. This could either be done in the time or frequency domains. Adjustments were made in both domains, and the results were compared. %The time domain method was chosen to transform the lightcurves, and was used in the rest of this work.
+Before a Classifier could be used on the large Red Giant sample, the timeseries data from \kep needed to be adjusted for a different satellite and mission. These adjustments were made in the time domain before the signal was converted to the frequency domain.
 
-Several different adjustments needed to be made to the \kep \ data. One difference between the missions is the length of observation. The \kep \ mission observed for 4 years, while TESS' nominal 2 year mission will observe stars for between 27 days to 1 year, according to the star's ecliptic latitude (Figure \ref{TESS field}). This distinction can be clearly seen when comparing the timeseries', see Figure \ref{ts plot}.
+Several different adjustments needed to be made to the \kep \ data. One difference between the missions is the length of observation. The \kep \ mission observed for 4 years, while TESS' nominal 2 year mission will observe stars for between 27 days to 1 year, according to the star's ecliptic latitude \citep{ricker_transiting_2014}. %(Figure \ref{TESS field}).
 
+\iffalse
+This distinction can be clearly seen when comparing the timeseries', see Figure \ref{ts plot}.
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.4]{cropped_TESSfield.pdf}
@@ -141,50 +155,48 @@ Several different adjustments needed to be made to the \kep \ data. One differen
 	\caption{The 4-year long Power Spectra of KIC 10587122 is plotted in blue. Overplotted is the 27-day time segment with most coverage (the period with fewest gaps in the data). Reducing the length of observation this drastically will badly hamper mode detectability.}	
 	\label{ts plot}
 \end{figure} 
+\fi
 
-As well as reducing the dataset length, the bandpass of observation needed to be adjusted. TESS will observe in a much redder bandpass than that of \kep, Figure \ref{bandpass}. This has the effect of reducing the amplitude of stellar signals (i.e the signals due to stellar granulation and oscillation), while leaving the white noise component unaltered \citep{ballot_visibilities_2011}. \citet{campante_asteroseismic_2016} found this bandpass correction to be 0.85 for TESS.
+As well as reducing the dataset length, the bandpass of observation needed to be adjusted. TESS will observe in a much redder bandpass than that of \kep. This has the effect of reducing the amplitude of stellar signals (i.e the signals due to stellar granulation and oscillation), while leaving the white noise component unaltered \citep{ballot_visibilities_2011}. \citet{campante_asteroseismic_2016} found this bandpass correction to be 0.85 for TESS.
 
+\iffalse
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.4]{bandpass.png}
 	\caption{The bandpass' of the $Kepler$ and TESS missions. TESS will observe at longer (i.e redder) wavelengths than $Kepler$. This will reduce the amplitude of oscillations and granulation, whilst the white noise level will by unaffected. Image taken from \citet{placek_combining_2016}.}	
 	\label{bandpass}
 \end{figure} 
+\fi
 
-Thirdly, the instrumental noise level in \kep \ is different to the noise level in TESS. The noise level for the \kep \ satellite depends on the \kep \ magnitude of the star, equation \ref{eq:kep noise}.
+Thirdly, the instrumental noise level for a given star in \kep \ is lower than the noise level in TESS. The noise level for the \kep \ satellite depends on the \kep \ magnitude of the star, equation \ref{eq:kep noise}. Instrumental noise from TESS was calculated for each star and added to the timeseries (c.f Section \ref{sect: dataset}).
 
-Instrumental noise from TESS needed to be added to the timeseries'. This noise level was estimated using equation \ref{eq:tess noise}, along with the `calc noise' IDL procedure (from William Chaplin, private communication).
+These three adjustments - the length of observation, the bandpass, and the noise level - were performed in the time domain. The power spectra were then computed for the stars. Examples of these are shown in FIgures \ref{Power Spectra} and \ref{overplotted PS}.
 
-These three adjustments - the length of observation, the bandpass, and the noise level - were performed in both the time and frequency domains for comparison. The methods used are described in Figures \ref{ts flowchart} and \ref{fr flowchart}. The resulting Power Spectra are compared in Figures \ref{Power Spectra} and \ref{overplotted PS}. After comparing the results, the decision was made to perform adjustments in the time domain before transforming to the frequency domain because the background noise level is lower when the time domain method is used to transform the lightcurves to TESS-like power spectra. 
-
-After adjustments were made in the time domain, power spectra were generated for every star. Power spectra were generated for the original 4-year \kep sample, 1 year of TESS observations and 27 days of TESS observations. A detection test was then run on the radial modes of every star in these 3 datasets. 
+Power spectra were generated for the original 4-year \kep sample, 1 year of TESS observations and 27 days of TESS observations. A detection test was then run on the radial modes of every star in these 3 datasets. 
 
 \begin{figure}
 	\centering
-	\includegraphics[scale=0.3]{diagnostic_plot1_modes}
-	\caption{The Power spectra of KIC 10587122 is plotted five times with moving medians in black. The original Power Spectra is plotted in grey. The power spectra after making the data look like TESS are plotted in blue. The data was transformed in the time domain (light blue) or frequency domain (dark blue). The left column shows 1 year of TESS observation (the maximum). The right column shows 27-days (the minimum). Based on this, the time domain was chosen to transform the data in as the background noise level appears lower.}	
+	\includegraphics[scale=0.3]{diagnostic_plot3_modes}
+	\caption{The Power spectra of KIC 10587122 is plotted three times with moving medians in black. The original Power Spectra is plotted in grey. The power spectra after making the data look like TESS are plotted in blue. The left column shows 1 year of TESS observation (the maximum). The right column shows 27-days (the minimum).}	
 	\label{Power Spectra}
 \end{figure} 
 \begin{figure}
 	\centering
-	\includegraphics[scale=0.3]{diagnostic_plot2_full}
-	\caption{The Power Spectra of KIC 10587122. The original power spectra is in grey. The data was transformed into TESS observation and overplotted. The transformation was done in the time and frequency domains for comparison. Based on this, the time domain was chosen to transform the data in as the background noise level appears lower.}	
+	\includegraphics[scale=0.3]{diagnostic_plot4_modes}
+	\caption{The Power Spectra of KIC 10587122. The original power spectra is in grey. The data was transformed into 1 year and 27 days of TESS observation. The moving median of these transformations are overplotted.}	
 	\label{overplotted PS}
 \end{figure} 
 
 
 \begin{enumerate}
-\item improved citations for third party data repositories and software,
-\item easier construction of matrix figures consisting of multiple 
-encapsulated postscript (EPS) or portable document format (PDF) files,
-\item figure set mark up for large collections of similar figures,
-\item color mark up to easily enable/disable revised text highlighting,
-\item improved url support, and
-\item numerous table options such as the ability to hide columns, column 
-decimal alignment, automatic column math mode and numbering, plus splitting of
-wide tables.
+\item Apply a 4-$\sigma$ clip to the dataset to remove spurious points.
+\item Cut the 4 years of data down to the reduced dataset length with the shortest total length of gaps in the data.
+\item Adjust the bandpass by multiplying the flux by 0.85.
+\item Add instrumental noise from TESS by multiplying the predicted noise level by a random number from the standard normal distribution before adding to the signal.
+\item Use the Lomb-Scargle periodogram to convert the signal from the time to frequency domain.
 \end{enumerate}
 
+\iffalse
 \onecolumn
 \begin{figure}
 	\centering
@@ -201,13 +213,13 @@ wide tables.
 \end{figure}
 \newpage
 \twocolumn
-
+\fi
 
 
 \section{Detection Test}
 \label{sect: det_test}
 
-Section \ref{sect: dataset} described the method to transform the $Kepler$ lightcurves into TESS-like power spectra. A detection test was then run on the stars to determine which modes were visible after observation by TESS, and which were not.
+Section \ref{sect: tess-like} described the method to transform the $Kepler$ lightcurves into TESS-like power spectra. A detection test was then run on the stars to determine which modes were visible after observation by TESS, and which were not.
 
 First, a moving median from \citet{davies_asteroseismology_2016} was used to estimate the proportion of the signal that was due to white noise and stellar granulation. The solar-like mode envelope width was used as the frequency range of the moving median. This envelope width was calculated as
 \begin{equation}
@@ -258,7 +270,7 @@ This detection test was applied to every mode of every star in the sample. Figur
 \section{Classification}
 \label{sect: classifier}
 
-Section \ref{sect: dataset} describes how the lightcurves of every star were treated before a detection test was run on the oscillations in Section \ref{sect: det_test}. After this, Classification was applied to the stars to separate them into a suitable target list, and a list of stars that are not suitable for observation with TESS.
+Section \ref{sect: tess-like} describes how the lightcurves of every star were treated before a detection test was run on the oscillations in Section \ref{sect: det_test}. After this, Classification was applied to the stars to separate them into a suitable target list, and a list of stars that are not suitable for observation with TESS.
 
 %It is worth noting that this could be done without using Machine Learning, although it takes much longer. In the age where datasets from missions such as MAST and Gaia \citep{gaia_collaboration_gaia_2016} exist, tools need to be developed to make use of the huge amount of information we now have on stars across the Milky Way. If Machine Learning can replicate the results from a detection test, it could be used as a much faster target selection tool before future observations. It would reduce the computation time needed to generate a list of targets down by orders of magnitude.
 
@@ -364,11 +376,11 @@ Here, a Classifier was used to predict the detection probabilities of individual
 
 As Table \ref{tab: x dataset} shows, the x-data labels that are given to the Classifier are \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}. Some of these labels are more important than others when predicting the detection probability of solar-like modes \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. The relative importance of these labels is known as the feature importance. This feature importance sums to 1.
 
-The feature importances of the x-data labels are given in Table \ref{tab: feature}. The values show that the label with the highest influence on mode detectability is stellar magnitude \imag. This is not surprising: a higher value of \imag will result in more $\chi^{2}$ 2 Degrees-of-Freedom white noise in the observation (Equations \ref{eq:kep noise} \& \ref{eq:tess noise}). This will make oscillations less likely to be detected above the white noise background.
+The feature importances of the x-data labels are given in Table \ref{tab: feature}. The values show that the label with the highest influence on mode detectability is apparent stellar magnitude \imag. This is not surprising: a higher value of \imag will result in more $\chi^{2}$ 2 Degrees-of-Freedom white noise in the observation. This will make oscillations less likely to be detected above the white noise background.
 
-After stellar magnitude, surface gravity log($g$) also has a heavy influence on \pdet value. This is because \logg is a proxy for the central frequency of the solar-like mode envelope \numax \:(\numax $\: \propto\logg$). As a star evolves from the Main-Sequence and up the Red Giant Branch, the radius of the star increases. This decreases the \logg and \numax values of the star. \citet{kjeldsen_amplitudes_1995} showed that oscillation amplitude is proportional to bolometric luminosity divided by mass ($A_{\rm osc} \propto L/M$). As a star evolves 'up' the Hertzsprung-Russell diagram, it's bolometric luminosity increases while it's mass roughly stays the same. This leads to larger oscillation amplitudes which are more likely to be detected. \citet{mathur_granulation_2011} also gives a good explanation of how the granulation properties (and hence the oscillation profile) change as a star evolves. 
+After the apparent stellar magnitude, surface gravity log($g$) also has a heavy influence on \pdet value. This is because \logg is a proxy for the central frequency of the solar-like mode envelope \numax \:(\numax $\: \propto\logg$). As a star evolves from the Main-Sequence and up the Red Giant Branch, the radius of the star increases. This decreases the \logg and \numax values of the star. \citet{kjeldsen_amplitudes_1995} showed that oscillation amplitude is proportional to bolometric luminosity divided by mass ($A_{\rm osc} \propto L/M$). As a star evolves 'up' the Hertzsprung-Russell diagram, its bolometric luminosity increases while it's mass roughly stays the same. This leads to larger oscillation amplitudes which are more likely to be detected. \citet{mathur_granulation_2011} also gives a good explanation of how the granulation properties (and hence the oscillation profile) change as a star evolves. 
 
-Comparatively, effective temperature \teff is less useful than \logg when predicting detection probability \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. It is less closely tied to the oscillation properties of the star than \logg, although it is a property used to estimate \numax with the scaling relations \citep{chaplin_predicting_2011}. Lastly, parallax $\pi$ and metallicity $\rm [M/H]$ are the least strongly tied to the oscillation properties of these RG stars.
+Comparatively, effective temperature \teff is less useful than \logg when predicting detection probability \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. It is less closely tied to the oscillation properties of the star than \logg, although it is a property used to estimate \numax with the scaling relations \citep{chaplin_predicting_2011}. Lastly, parallax $\pi$ and metallicity $\rm [M/H]$ are the least strongly tied to the oscillation properties of these RG stars. Parallax is connected to apparent magnitude and \teff and $\rm [M/H]$ are connected to log($g$). The feature importances of \teff, $\pi$ and $\rm [M/H]$ highlight the additional information that these values bring, as well as through \imag and \logg.
 \begin{table}
 \begin{center}
 \begin{tabular}{ |c|c| }
@@ -391,7 +403,7 @@ $\rm [M/H]$  & 0.08               \\
 
 So far in this paper, the the evolutionary state of the Red Giant population from \citet{davies_asteroseismology_2016} has been ignored when predicting mode detection probability \pdet. In reality, the 1000 \kep Red Giants used in this work are a mixture of Red Giant Branch (RGB), Red Clump (RC) and Secondary Clump (2CL) stars. This Section investigates whether there is any difference in the predictions if the stars are first separated into RGB, RC and 2CL groups. The evolutionary states of the stars in the sample were taken from \citet{elsworth_new_2017}. 
 
-If a Red Giant Branch is massive enough, it will undergo the Helium flash and become a Red Clump star. Red Clump stars are Helium-core burning stars, and all have very similar core masses to each other. These stars have very different $g-$mode period spacings to RGB stars, but are otherwise difficult to differentiate (\citet{chaplin_asteroseismology_2013}, \citet{bedding_solar-like_2011}, \citet{beck_kepler_2011}). If a star is more massive than $\geqslant1.8\msol$, it will instead become a Secondary Clump star. This means that it will undergo Helium-core burning without the Helium flash.
+If a Red Giant Branch is massive enough, it will undergo the Helium flash and become a Red Clump star. Red Clump stars are Helium-core burning stars, and all have very similar core masses to each other. These stars have very different $g-$mode period spacings to RGB stars, but are otherwise difficult to differentiate (\citet{chaplin_asteroseismology_2013}, \citet{bedding_solar-like_2011}, \citet{beck_kepler_2011}). If a star is more massive than $\gtrapprox1.8\msol$, it will instead become a Secondary Clump star. This means that it will undergo Helium-core burning without the Helium flash.
 
 The Red Giant dataset was separated into 3 subsets; the RGB, RC and 2CL stars. Each subset was treated in the same way as in Section \ref{sect: class-results} Table \ref{tab: results}. Table \ref{tab: evo results} gives the full list of results when the RGB, RC and 2CL stars are separated. 
 \begin{table}
@@ -422,13 +434,12 @@ Table \ref{tab: evo results} shows that there is a negligible difference in pred
 \section{Conclusion}
 \label{sect: conc}
 
-1000 peak-bagged \kep Red Giant stars from \citet{davies_asteroseismology_2016} were used to determine whether asteroseismic target selection could be done using a Classifier. Rather than using Machine Learning to determine the evolutionary state of these stars, a Classifier was instead used to predict which individual solar-like oscillations inside the Red Giants could be detected with a future space mission. The mission in question here was TESS, although the same technique can be easily applied to K2, PLATO or CoRoT.
-
+1000 peak-bagged \kep Red Giant stars from \citet{davies_asteroseismology_2016} were used to determine whether asteroseismic target selection could be done using a Classifier. This tool can also be used to understand target selection bias. Rather than using Machine Learning to determine the evolutionary state of these stars, a Classifier was instead used to predict which individual solar-like oscillations inside the Red Giants could be detected with a future space mission. The mission in question here was TESS, although the same technique can be easily applied to other missions such as PLATO. This tool can also be used to understand target selection bias in previous missions, such as K2 and CoRoT.
 
 %For the first time, Machine Learning was applied to TESS target selection. 1000 peak-bagged \kep Red Giant stars from \citet{davies_asteroseismology_2016} were used to determine whether target selection could be done using a Classifier. 
 
 
-The number of samples from \citet{davies_asteroseismology_2016} was first increased by perturbing stellar magnitudes 100 times for each star. These perturbed magnitudes were drawn from a PDF of the noise function (equations \ref{eq:kep noise} and \ref{eq:tess noise}). After removing stars where global parameters or fitted modes were unavailable, this left 60,000 \kep samples. 
+The number of samples from \citet{davies_asteroseismology_2016} was first increased by perturbing stellar magnitudes 100 times for each star. These perturbed magnitudes were drawn from a PDF of the noise function (Section \ref{sect: dataset}). After removing stars where global parameters or fitted modes were unavailable, this left 60,000 \kep samples. 
 
 Once the number of samples was increased, the timeseries' were degraded to transform them into TESS-like observations. The dataset length was reduced, white noise was added to the signal, and the bandpass of observation was reddened. A moving median was calculated for the power spectra of these Red Giants to estimate the total background in the signal. This was divided out of the spectra, leaving a Signal-to-Noise ratio at every frequency bin (equation \ref{eq:snr}).
 

@@ -150,7 +150,7 @@ if __name__ == "__main__":
     start = timeit.default_timer()
 
     ts, epic, params, mags, modes = getInput()
-    Plot1()
+    #Plot1()
 
     for i, fdir in enumerate(ts):
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
         star.Diagnostic(Kp=info['kic_kepmag'].as_matrix(), \
             imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
             teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix())
-        sys.exit()
+        #sys.exit()
 
         # units of exptime are seconds. noise in units of ppm
         star.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
@@ -175,7 +175,7 @@ if __name__ == "__main__":
 
         # convert from time to freq before making the data TESS-like
         star.power_spectrum(plot_ts=False, plot_ps=False)
-        sys.exit()
+        #sys.exit()
 
         # make the original Kepler PS
         #star.ts()

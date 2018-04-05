@@ -373,29 +373,33 @@ class DetTest(object):
         for idx, i in enumerate(floc):
 
             d = pd.read_csv(i)
-            if idx == 0:
-                fullpdet = d[['f0', 'Pdet_Kepler', 'Pdet_TESS365', 'Pdet_TESS27']]
-            else:
-                fullpdet = pd.concat([ fullpdet,\
-                    d[['f0', 'Pdet_Kepler', 'Pdet_TESS365', 'Pdet_TESS27']] ])
-
-            plt.scatter(d['f0'], d['Pdet_Kepler'], color='b',\
-                label="Kepler - 4yrs" if idx == 0 else '')
-            plt.scatter(d['f0'], d['Pdet_TESS365'], color='orange',\
-                label='TESS - 1 yr' if idx == 0 else '')
-            plt.scatter(d['f0'], d['Pdet_TESS27'], color='g',\
-                label='TESS - 27 days' if idx == 0 else '')
-
-        plt.axhline(fullpdet['Pdet_Kepler'].median(), color='b')
-        plt.axhline(fullpdet['Pdet_TESS365'].median(), color='orange')
-        plt.axhline(fullpdet['Pdet_TESS27'].median(), color='g')
-
-        plt.legend(loc='lower right')
-        plt.ylim([0,1])
-        plt.show()
-        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +\
-            'DetTest_Diagnostic_plot3.pdf')
-        sys.exit()
+            fullpdet = []
+            sys.exit()
+        #     if idx == 0:
+        #         fullpdet = d[['f0', 'Pdet_Kepler', 'Pdet_TESS365', 'Pdet_TESS27']]
+        #     else:
+        #         fullpdet = pd.concat([ fullpdet,\
+        #             d[['f0', 'Pdet_Kepler', 'Pdet_TESS365', 'Pdet_TESS27']] ])
+        #     print fullpdet
+        #
+        #     plt.scatter(d['f0'], d['Pdet_Kepler'], color='b',\
+        #         label="Kepler - 4yrs" if idx == 0 else '')
+        #     plt.scatter(d['f0'], d['Pdet_TESS365'], color='orange',\
+        #         label='TESS - 1 yr' if idx == 0 else '')
+        #     plt.scatter(d['f0'], d['Pdet_TESS27'], color='g',\
+        #         label='TESS - 27 days' if idx == 0 else '')
+        #
+        # if True:
+        #     plt.axhline(fullpdet['Pdet_Kepler'].median(), color='b')
+        #     plt.axhline(fullpdet['Pdet_TESS365'].median(), color='orange')
+        #     plt.axhline(fullpdet['Pdet_TESS27'].median(), color='g')
+        #
+        # plt.legend(loc='lower right')
+        # plt.ylim([0,1])
+        # plt.show()
+        # fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +\
+        #     'DetTest_Diagnostic_plot3.pdf')
+        # sys.exit()
 
     def plot4(self, plog=False):
         """ Plot the SNR spectrum of the modes to check that the correct value
@@ -641,7 +645,7 @@ if __name__ == "__main__":
             #star.Info2Save()
             #star.Diagnostic_plot1()
             #star.Diagnostic_plot2()
-            #star.Diagnostic_plot3()
+            star.Diagnostic_plot3()
             #star.plot4()
 
 
