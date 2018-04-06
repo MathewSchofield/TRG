@@ -48,6 +48,13 @@ Chaplin W.~J.,  et~al., 2011, \mn@doi [The Astrophysical Journal]
   Miglio}{2016}]{davies_asteroseismology_2016}
 Davies G.~R.,  Miglio A.,  2016, arXiv:1601.02802 [astro-ph]
 
+\bibitem[\protect\citeauthoryear{Debosscher, Sarro, Aerts, Cuypers,
+  Vandenbussche, Garrido  \& Solano}{Debosscher
+  et~al.}{2007}]{debosscher_automated_2007}
+Debosscher J.,  Sarro L.~M.,  Aerts C.,  Cuypers J.,  Vandenbussche B.,
+  Garrido R.,   Solano E.,  2007, \mn@doi [Astronomy and Astrophysics]
+  {10.1051/0004-6361:20077638}, 475, 1159
+
 \bibitem[\protect\citeauthoryear{Eisenstein et~al.,}{Eisenstein
   et~al.}{2011}]{eisenstein_sdss-iii:_2011}
 Eisenstein D.~J.,  et~al., 2011, \mn@doi [The Astronomical Journal]
@@ -67,10 +74,6 @@ Elsworth Y.,  Hekker S.,  Basu S.,   R.~Davies G.,  2017, \mn@doi [Mon Not R
   Collaboration} et~al.}{2016}]{gaia_collaboration_gaia_2016}
 {Gaia Collaboration} et~al., 2016, \mn@doi [Astronomy and Astrophysics]
   {10.1051/0004-6361/201629512}, 595, A2
-
-\bibitem[\protect\citeauthoryear{H{\o}g et~al.,}{H{\o}g
-  et~al.}{2000}]{hog_tycho2_2000}
-H{\o}g E.,  et~al., 2000, Astronomy and Astrophysics, 355, L27
 
 \bibitem[\protect\citeauthoryear{Hon, Stello  \& Yu}{Hon
   et~al.}{2017}]{hon_deep_2017}
@@ -126,10 +129,22 @@ Rauer H.,  et~al., 2014, \mn@doi [Experimental Astronomy]
 Ricker G.~R.,  et~al., 2014, \mn@doi [Journal of Astronomical Telescopes,
   Instruments, and Systems] {10.1117/1.JATIS.1.1.014003}, 1, 014003
 
+\bibitem[\protect\citeauthoryear{Sarro, Debosscher, López  \& Aerts}{Sarro
+  et~al.}{2009}]{sarro_automated_2009}
+Sarro L.~M.,  Debosscher J.,  López M.,   Aerts C.,  2009, \mn@doi [Astronomy
+  and Astrophysics] {10.1051/0004-6361:200809918}, 494, 739
+
 \bibitem[\protect\citeauthoryear{Steinhardt \& Jermyn}{Steinhardt \&
   Jermyn}{2018}]{steinhardt_nonparametric_2018}
 Steinhardt C.~L.,  Jermyn A.~S.,  2018, \mn@doi [Publications of the
   Astronomical Society of the Pacific] {10.1088/1538-3873/aaa22a}, 130, 023001
+
+\bibitem[\protect\citeauthoryear{Thomas, Stevenson, Gittins, Miglio, Davies,
+  Girardi, Campante  \& Schofield}{Thomas et~al.}{2017}]{thomas_galactic_2017}
+Thomas A.,  Stevenson E.,  Gittins F. W.~R.,  Miglio A.,  Davies G.,  Girardi
+  L.,  Campante T.~L.,   Schofield M.,  2017. eprint: arXiv:1610.08862, p.
+  05006, \mn@doi{10.1051/epjconf/201716005006}, \url
+  {http://adsabs.harvard.edu/abs/2017EPJWC.16005006T}
 
 \bibitem[\protect\citeauthoryear{Valenzuela \& Pichara}{Valenzuela \&
   Pichara}{2018}]{valenzuela_unsupervised_2018}

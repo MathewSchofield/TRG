@@ -3,46 +3,49 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: TRG.aux
 The style file: mnras.bst
 Database file #1: TRG.bib
+Warning--I didn't find a database entry for "hog_tycho2_2000"
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
-You've used 27 entries,
+Warning--empty booktitle in thomas_galactic_2017
+You've used 29 entries,
             2881 wiz_defined-function locations,
-            917 strings with 35379 characters,
-and the built_in function-call counts, 11778 in all, are:
-= -- 1091
-> -- 722
-< -- 40
-+ -- 357
-- -- 68
-* -- 1470
-:= -- 1763
+            935 strings with 36102 characters,
+and the built_in function-call counts, 13278 in all, are:
+= -- 1191
+> -- 875
+< -- 47
++ -- 411
+- -- 106
+* -- 1642
+:= -- 2019
 add.period$ -- 0
-call.type$ -- 27
-change.case$ -- 54
-chr.to.int$ -- 27
-cite$ -- 27
-duplicate$ -- 588
-empty$ -- 596
-format.name$ -- 170
-if$ -- 2043
+call.type$ -- 29
+change.case$ -- 58
+chr.to.int$ -- 29
+cite$ -- 30
+duplicate$ -- 651
+empty$ -- 653
+format.name$ -- 210
+if$ -- 2314
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 27
-newline$ -- 94
-num.names$ -- 156
-pop$ -- 132
+missing$ -- 29
+newline$ -- 100
+num.names$ -- 176
+pop$ -- 147
 preamble$ -- 1
-purify$ -- 108
+purify$ -- 116
 quote$ -- 0
-skip$ -- 335
+skip$ -- 379
 stack$ -- 0
-substring$ -- 847
-swap$ -- 222
-text.length$ -- 108
+substring$ -- 913
+swap$ -- 271
+text.length$ -- 117
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 243
-warning$ -- 0
-while$ -- 182
+type$ -- 261
+warning$ -- 1
+while$ -- 200
 width$ -- 0
-write$ -- 279
+write$ -- 301
+(There were 2 warnings)

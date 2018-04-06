@@ -52,12 +52,20 @@ $^{2}$Stellar Astrophysics Centre (SAC), Department of Physics and Astronomy, Aa
 \begin{abstract}
 {\it Summary}: This paper presents a method to identify the detectable solar-like modes in Red Giants with TESS using a Machine Learning Classifier. It requires only the global parameters log($g$), $\pi$, [M/H], \teff and the apparent stellar magnitude. This can be used as an asteroseismic target-selection function for future space missions.  \newline
 {\it Method}: Lightcurves for \kep \ stars with fitted radial mode frequencies and amplitudes from Davies et al. (in prep) were used. These lightcurves were degraded to generate equivalent TESS lightcurves. The length of observation was reduced, \kep \ white noise was removed, the bandpass was adjusted, and TESS white noise was added. A detection test was run on 3 observed modes in these 'TESS-like' lightcurves. Lastly, a Classifier was used to predict mode detectability with TESS based upon global photometric and spectroscopic parameters. The Classifier successfully predicted mode detectability in the original \kep stars, and for 1 year of TESS-like data.\newline
-{\it Application}: By changing only the length of dataset, instrumental noise level and bandpass of observation, this tool can make solar-like detection predictions for future missions such as TESS and PLATO. It can make predictions and select targets much faster than traditional detection tests. It is especially useful in an age where extremely large datasets from MAST and Gaia are available (\citet{eisenstein_sdss-iii:_2011}, \citet{gaia_collaboration_gaia_2016}).
+{\it Application}: By changing only the length of dataset, noise level and bandpass of observation, this tool can make solar-like detection predictions for future missions such as TESS and PLATO. It can make predictions and select targets much faster than traditional detection tests. It is especially useful in an age where extremely large datasets from MAST and Gaia are available (\citet{eisenstein_sdss-iii:_2011}, \citet{gaia_collaboration_gaia_2016}).
 \end{abstract}
 
 
 
 \section{Introduction}
+
+papers to discuss:
+\begin{itemize}
+\item Supervised classifier (classifying variable stars): \citet{debosscher_automated_2007}, \citet{sarro_automated_2009}
+\item reverse engineer target selection: \citet{thomas_galactic_2017}
+\end{itemize}
+
+
 
 Satellites such as $Kepler$ have allowed asteroseismology of solar-like and Red Giant stars to advance rapidly since the last century \citet{chaplin_asteroseismology_2013}. Power spectra can now be resolved to detect individual modes of oscillation in Main Sequence and Red Giant stars (\citet{lund_standing_2017}, \citet{davies_asteroseismology_2016}).
 
@@ -168,14 +176,14 @@ As well as reducing the dataset length, the bandpass of observation needed to be
 \end{figure} 
 \fi
 
-Thirdly, the instrumental noise level for a given star in \kep \ is lower than the noise level in TESS. The noise level for the \kep \ satellite depends on the \kep \ magnitude of the star, equation \ref{eq:kep noise}. Instrumental noise from TESS was calculated for each star and added to the timeseries (c.f Section \ref{sect: dataset}).
+Thirdly, the noise level for a given star in \kep \ is lower than the noise level in TESS. The noise level for the \kep \ satellite depends on the \kep \ magnitude of the star, equation \ref{eq:kep noise}. Noise from TESS was calculated for each star and added to the timeseries (c.f Section \ref{sect: dataset}).
 
 These three adjustments - the length of observation, the bandpass, and the noise level - were performed in the time domain. From the original \kep timeseries, these adjustments were made:
 \begin{enumerate}
 \item Apply a 4-$\sigma$ clip to the dataset to remove spurious points.
 \item Cut the 4 years of data down to the reduced dataset length with the shortest total length of gaps in the data.
 \item Adjust the bandpass by multiplying the flux by 0.85.
-\item Add instrumental noise from TESS by multiplying the predicted noise level by a random number from the standard normal distribution before adding to the signal.
+\item Add noise from TESS by multiplying the predicted noise level by a random number from the standard normal distribution before adding to the signal.
 \item Use the Lomb-Scargle periodogram to convert the signal from the time to frequency domain.
 \end{enumerate}
 
@@ -379,11 +387,19 @@ As Table \ref{tab: x dataset} shows, the x-data labels that are given to the Cla
 
 Some of these labels are more important than others when predicting the detection probability of solar-like modes \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. The relative importance of these labels is known as the feature importance. This feature importance sums to 1.
 
-The feature importances of the x-data labels are given in Table \ref{tab: feature}. The values show that the label with the highest influence on mode detectability is apparent stellar magnitude \imag. This is not surprising: a higher value of \imag will result in more $\chi^{2}$ 2 Degrees-of-Freedom white noise in the observation. This will make oscillations less likely to be detected above the white noise background.
+The feature importances of the x-data labels are given in Figure \ref{fig:feature}. The values show that the label with the highest influence on mode detectability is apparent stellar magnitude \imag. This is not surprising: a higher value of \imag will result in more $\chi^{2}$ 2 Degrees-of-Freedom white noise in the observation. This will make oscillations less likely to be detected above the white noise background.
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.5]{Plot1_featureimportance.pdf}
+	\caption{The feature importance of the 5 x-data labels.}	
+	\label{fig:feature}
+\end{figure}
 
 After the apparent stellar magnitude, surface gravity log($g$) also has a heavy influence on \pdet value. This is because \logg is a proxy for the central frequency of the solar-like mode envelope \numax \:(\numax $\: \propto\logg$). As a star evolves from the Main-Sequence and up the Red Giant Branch, the radius of the star increases. This decreases the \logg and \numax values of the star. \citet{kjeldsen_amplitudes_1995} showed that oscillation amplitude is proportional to bolometric luminosity divided by mass ($A_{\rm osc} \propto L/M$). As a star evolves 'up' the Hertzsprung-Russell diagram, its bolometric luminosity increases while it's mass stays roughly the same. This leads to larger oscillation amplitudes which are more likely to be detected. \citet{mathur_granulation_2011} also gives a good explanation of how the granulation properties (and hence the oscillation profile) change as a star evolves. 
 
 Comparatively, effective temperature \teff is less useful than \logg when predicting detection probability \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. It is less closely tied to the oscillation properties of the star than \logg, although it is a property used to estimate \numax with the scaling relations \citep{chaplin_predicting_2011}. Lastly, parallax $\pi$ and metallicity $\rm [M/H]$ are the least strongly tied to the oscillation properties of these RG stars. Parallax is connected to apparent magnitude and \teff and $\rm [M/H]$ are connected to log($g$). The feature importances of \teff, $\pi$ and $\rm [M/H]$ highlight the additional information that these values bring, as well as through \imag and \logg.
+
+\iffalse
 \begin{table}
 \begin{center}
 \begin{tabular}{ |c|c| }
@@ -399,7 +415,7 @@ $\rm [M/H]$  & 0.08               \\
 \caption{The feature importance of each x-data label. The higher the feature importance, the more important the label was in predicting the detectability of modes inside the Red Giants.}
 \label{tab: feature}
 \end{table}
-
+\fi
 
 \subsection{Comparing results between different evolutionary states}
 \label{sect: evo states}

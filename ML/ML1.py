@@ -202,7 +202,7 @@ class Machine_Learning(object):
         if v:  print '% rows in \'3\' class:', len(prob[prob==3])/float(prob.shape[0]*prob.shape[1])
         if v:  print '% rows in \'4\' class:', len(prob[prob==4])/float(prob.shape[0]*prob.shape[1])
 
-    def random_forest_classifier(self, subset='RGB', save=False):
+    def random_forest_classifier(self, subset='all', save=False):
         """ Perform a Random Forest Classifier (made up of many decision trees)
         on the XY data. Y data must be given as discrete values
         e.g 0 or 1 for each mode (detected or not).
@@ -253,6 +253,7 @@ class Machine_Learning(object):
         # print 'Precision2:', p2
         # print 'Precision3:', p3
 
+        self.rfc = rfc  # to use in Plot1()
         if save:
             if self.sat == 'Kepler': self.Tobs = 4*365  # days
 
@@ -324,18 +325,38 @@ class Machine_Learning(object):
         print 'MRF Test:', rf_test
 
     def Plot1(self):
-        """ Make of a plot of the random_forest_classifier() results. """
+        """ Make of a plot of the Feature Importance.
+        http://scikit-learn.org/stable/auto_examples/ensemble/plot_forest_importances.html """
 
-        #plt.hist()
+        importances = self.rfc.feature_importances_
+        std = np.std([tree.feature_importances_ for tree in self.rfc.estimators_],
+                     axis=0)
+        indices = np.argsort(importances)[::-1]
+
+        # Print the feature ranking in order
+        print("Feature ranking:")
+        for f in range(len(importances)):
+            print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
+
+        fig = plt.figure()
+        plt.rc('font', size=14)
+        plt.bar(range(len(importances)), importances[indices],
+               color="lightblue", yerr=std[indices], align="center")
+        plt.xticks(range(len(importances)), [r'$I_{\rm mag}$',r'$\rm log(g)$',r'$T_{\rm eff}$',r'$\pi$','[M/H]'])
+        plt.ylabel("Feature importance")
+        plt.xlim([-1, len(importances)])
+        plt.show()
+        fig.savefig('Plot1_featureimportance.pdf')
+
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=365)
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='Kepler', Tobs=365)
     #ml.get_parallaxes()
     ml.loadData()
     ml.pdet_bins()
     ml.random_forest_classifier()
-
+    ml.Plot1()
 
 
 
