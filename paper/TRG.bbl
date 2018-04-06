@@ -17,11 +17,6 @@
   {mn@eprint@\@tempb}{\@tempb:\@tempc}{\expandafter \expandafter \csname
   mn@eprint@\@tempb\endcsname \expandafter{\@tempc}}}
 
-\bibitem[\protect\citeauthoryear{Baglin et~al.,}{Baglin
-  et~al.}{2006}]{baglin_corot:_2006}
-Baglin A.,  et~al., 2006. p.~3749, \url
-  {http://adsabs.harvard.edu/abs/2006cosp...36.3749B}
-
 \bibitem[\protect\citeauthoryear{Ballot, Barban  \& van't Veer-Menneret}{Ballot
   et~al.}{2011}]{ballot_visibilities_2011}
 Ballot J.,  Barban C.,   van't Veer-Menneret C.,  2011, \mn@doi [Astronomy and
@@ -73,6 +68,10 @@ Elsworth Y.,  Hekker S.,  Basu S.,   R.~Davies G.,  2017, \mn@doi [Mon Not R
 {Gaia Collaboration} et~al., 2016, \mn@doi [Astronomy and Astrophysics]
   {10.1051/0004-6361/201629512}, 595, A2
 
+\bibitem[\protect\citeauthoryear{H{\o}g et~al.,}{H{\o}g
+  et~al.}{2000}]{hog_tycho2_2000}
+H{\o}g E.,  et~al., 2000, Astronomy and Astrophysics, 355, L27
+
 \bibitem[\protect\citeauthoryear{Hon, Stello  \& Yu}{Hon
   et~al.}{2017}]{hon_deep_2017}
 Hon M.,  Stello D.,   Yu J.,  2017, \mn@doi [Monthly Notices of the Royal
@@ -83,19 +82,9 @@ Hon M.,  Stello D.,   Yu J.,  2017, \mn@doi [Monthly Notices of the Royal
 Hon M.,  Stello D.,   Yu J.,  2018, \mn@doi [Monthly Notices of the Royal
   Astronomical Society] {10.1093/mnras/sty483}
 
-\bibitem[\protect\citeauthoryear{Howell et~al.,}{Howell
-  et~al.}{2014}]{howell_k2_2014}
-Howell S.~B.,  et~al., 2014, \mn@doi [Publications of the Astronomical Society
-  of the Pacific] {10.1086/676406}, 126, 398
-
 \bibitem[\protect\citeauthoryear{Kjeldsen \& Bedding}{Kjeldsen \&
   Bedding}{1995}]{kjeldsen_amplitudes_1995}
 Kjeldsen H.,  Bedding T.~R.,  1995, Astronomy and Astrophysics, 293, 87
-
-\bibitem[\protect\citeauthoryear{Kremer, Stensbo-Smidt, Gieseke,
-  Steenstrup~Pedersen  \& Igel}{Kremer et~al.}{2017}]{kremer_big_2017}
-Kremer J.,  Stensbo-Smidt K.,  Gieseke F.,  Steenstrup~Pedersen K.,   Igel C.,
-  2017, preprint, 1704, arXiv:1704.04650
 
 \bibitem[\protect\citeauthoryear{Lund et~al.,}{Lund
   et~al.}{2017}]{lund_standing_2017}
@@ -126,12 +115,6 @@ Nun I.,  Pichara K.,  Protopapas P.,   Kim D.-W.,  2014, \mn@doi [The
   et~al.}{2014}]{pinsonneault_apokasc_2014}
 Pinsonneault M.~H.,  et~al., 2014, \mn@doi [The Astrophysical Journal
   Supplement Series] {10.1088/0067-0049/215/2/19}, 215, 19
-
-\bibitem[\protect\citeauthoryear{Placek, Knuth  \& Angerhausen}{Placek
-  et~al.}{2016}]{placek_combining_2016}
-Placek B.,  Knuth K.~H.,   Angerhausen D.,  2016, \mn@doi [Publications of the
-  Astronomical Society of the Pacific] {10.1088/1538-3873/128/965/074503}, 128,
-  074503
 
 \bibitem[\protect\citeauthoryear{Rauer et~al.,}{Rauer
   et~al.}{2014}]{rauer_plato_2014}

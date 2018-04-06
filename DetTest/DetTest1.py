@@ -17,6 +17,7 @@ from scipy.optimize import curve_fit
 from scipy import stats
 import timeit
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from astropy.convolution import Gaussian1DKernel, convolve
 
 TRG = os.getcwd().split('DetTest')[0]
@@ -165,7 +166,7 @@ class DetTest(object):
 
         Inputs
         snrs:        Array of SNR values to calculate detection probabilities for (Float)
-        nbins:       Number of bins Pdet is calculated across (Int)
+        nbins:       Number of bins Pdet is calculated across (Int) (previouly 1)
         fap:         False Alarm Probability (Float)
         snrthresh:   Threshold SNR; SNR if no mode is present (Float)
         self.thresh: Defined in __init__. threshold for making a detection
@@ -174,17 +175,13 @@ class DetTest(object):
         prob:  the detection probability for each SNR value (i.e mode)
         """
 
-        if nbins == []:      nbins = np.ceil(self.nbins/2)  # if nbins/2=0.5, this returns 1
+        if nbins == []:      nbins = np.ceil(self.nbins/2) #1.  # if nbins/2=0.5, this returns 1
         if fap == []:        fap = 0.01
         if snrthresh == []:
             pdet = 1.0 - fap
             snrthresh = stats.chi2.ppf(pdet, 2.0*nbins) / (2.0*nbins) - 1.0
 
         self.prob = stats.chi2.sf((snrthresh+1.0) / (self.snr_modes+1.0)*2.0*nbins, 2*nbins)
-        # print nbins
-        # print self.snr_modes
-        # print self.prob, '\n'
-        # sys.exit()
 
     def Conv(self, data, stddev):
         """
@@ -367,39 +364,57 @@ class DetTest(object):
         Also plot the median Pdet value from all modes and stars for each
         satellite and timeseries dataset. """
 
-        floc = glob.glob(os.getcwd() + os.sep + 'DetTest1_results' + os.sep + '*.csv')
-        fig, ax = generalPlot(xaxis=r'$\nu / \mu$Hz', yaxis=r'$P_{\rm det}$')
+        floc = glob.glob('/home/mxs191/Desktop/MathewSchofield/TRG/DetTest/DetTest1_results/Info2Save/*.csv')
+        fig = plt.figure()
+        plt.rc('font', size=18)
+        #fig, ax = generalPlot(xaxis=r'$\nu / \mu$Hz', yaxis=r'$P_{\rm det}$')
+        gs = gridspec.GridSpec(1, 2, width_ratios=(4,1))
+        ax = fig.add_subplot(gs[0])
 
         for idx, i in enumerate(floc):
 
             d = pd.read_csv(i)
-            fullpdet = []
-            sys.exit()
-        #     if idx == 0:
-        #         fullpdet = d[['f0', 'Pdet_Kepler', 'Pdet_TESS365', 'Pdet_TESS27']]
-        #     else:
-        #         fullpdet = pd.concat([ fullpdet,\
-        #             d[['f0', 'Pdet_Kepler', 'Pdet_TESS365', 'Pdet_TESS27']] ])
-        #     print fullpdet
-        #
-        #     plt.scatter(d['f0'], d['Pdet_Kepler'], color='b',\
-        #         label="Kepler - 4yrs" if idx == 0 else '')
-        #     plt.scatter(d['f0'], d['Pdet_TESS365'], color='orange',\
-        #         label='TESS - 1 yr' if idx == 0 else '')
-        #     plt.scatter(d['f0'], d['Pdet_TESS27'], color='g',\
-        #         label='TESS - 27 days' if idx == 0 else '')
-        #
-        # if True:
-        #     plt.axhline(fullpdet['Pdet_Kepler'].median(), color='b')
-        #     plt.axhline(fullpdet['Pdet_TESS365'].median(), color='orange')
-        #     plt.axhline(fullpdet['Pdet_TESS27'].median(), color='g')
-        #
-        # plt.legend(loc='lower right')
-        # plt.ylim([0,1])
-        # plt.show()
-        # fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +\
-        #     'DetTest_Diagnostic_plot3.pdf')
-        # sys.exit()
+
+            if idx == 0:
+                fullpdet = d[['f0', 'Pdet_Kepler', 'Pdet_TESS365', 'Pdet_TESS27']]
+            else:
+                fullpdet = pd.concat([ fullpdet,\
+                    d[['f0', 'Pdet_Kepler', 'Pdet_TESS365', 'Pdet_TESS27']] ])
+
+            plt.scatter(d['f0'], d['Pdet_Kepler'], color='b',\
+                label=r"$\rm Kepler - 4\ yrs$" if idx == 0 else '')
+            plt.scatter(d['f0'], d['Pdet_TESS365'], color='orange',\
+                label=r'$\rm TESS - 1\ yr$' if idx == 0 else '')
+            plt.scatter(d['f0'], d['Pdet_TESS27'], color='g',\
+                label=r'$\rm TESS - 27\ days$' if idx == 0 else '')
+
+        plt.axhline(fullpdet['Pdet_Kepler'].median(), color='b')
+        plt.axhline(fullpdet['Pdet_TESS365'].median(), color='orange')
+        plt.axhline(fullpdet['Pdet_TESS27'].median(), color='g')
+        ax.legend(loc='lower right')
+        plt.ylim([0,1])
+        ax.set_ylabel(r'$P_{\rm det}$')
+        ax.set_xlabel(r'$\nu / \mu \rm Hz$')
+
+        bx = fig.add_subplot(gs[1])
+        import seaborn as sns
+        bw = 0.4
+        sns.kdeplot(fullpdet['Pdet_Kepler'].values, shade=True, vertical=True, \
+                    ax=bx, color='b', bw=bw)
+        sns.kdeplot(fullpdet['Pdet_TESS365'].values, shade=True, vertical=True, \
+                    ax=bx, color='orange', bw=bw)
+        sns.kdeplot(fullpdet['Pdet_TESS27'].values, shade=True, vertical=True, \
+                    ax=bx, color='g', bw=bw)
+        bx.set_ylim([0.0,1.0])
+        bx.set_xticks([])
+        bx.set_yticks([])
+        bx.set_xlabel(r'$\rm Density$')
+        plt.tight_layout()
+
+        plt.show()
+        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +\
+            'DetTest_Diagnostic_plot3.pdf')
+        sys.exit()
 
     def plot4(self, plog=False):
         """ Plot the SNR spectrum of the modes to check that the correct value
@@ -603,7 +618,7 @@ if __name__ == "__main__":
 
 
 
-        x = 100  # number of iterations to loop through every star (number of different magnitudes per star)
+        x = 1  # number of iterations to loop through every star (number of different magnitudes per star)
         if sat == 'Kepler':
             pdf_range = [12., 20., 100]  # range of Kp magnitudes for the PDF
         elif sat == 'TESS':
@@ -619,9 +634,9 @@ if __name__ == "__main__":
                 detection probability. Do this x times per star. Save 1 row per
                 perturbed magnitude in save_xy() (each star has x rows). """
 
-            diff = rand_mags[j]-float(mag['Imag'])  # change magnitudes for this iteration
-            mag[['Imag', 'Vmag', 'Bmag']] += diff
-            info['kic_kepmag'] += diff
+            # diff = rand_mags[j]-float(mag['Imag'])  # change magnitudes for this iteration
+            # mag[['Imag', 'Vmag', 'Bmag']] += diff
+            # info['kic_kepmag'] += diff
 
 
             if ds.sat == 'Kepler':  # make the original Kepler PS
@@ -647,12 +662,12 @@ if __name__ == "__main__":
             #star.Diagnostic_plot2()
             star.Diagnostic_plot3()
             #star.plot4()
+            #sys.exit()
 
-
-            output = data_for_ML(star)  # save X, Y data for Machine Learning
+            #output = data_for_ML(star)  # save X, Y data for Machine Learning
             #output.fit_amplitudes()  # fit Gaussian to modes to get numax
-            output.average_dnu()  # get dnu value from mode frequencies (only once per star)
-            output.save_xy()
+            #output.average_dnu()  # get dnu value from mode frequencies (only once per star)
+            #output.save_xy()
 
 
     stop = timeit.default_timer()
