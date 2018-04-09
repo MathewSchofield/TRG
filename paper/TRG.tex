@@ -50,28 +50,44 @@ $^{2}$Stellar Astrophysics Centre (SAC), Department of Physics and Astronomy, Aa
 \maketitle
 
 \begin{abstract}
+{\bf This is the take-home message of the paper (am I missing anything from the abstract?):}
+
+For the first time. a Classifier was used as a way to select solar-like asteroseismic targets before a future mission. The Classifier managed to select the detectable solar-like oscillations inside \kep Red Giants with a 0.98\% precision. It did this by determining which modes were visible inside the stars using the global parameters \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}.
+
+The same Classifier was also used on the \kep stars after they had been degraded into TESS-like observations. The Classifier scored 0.86\% and 0.74\% when made to look like 1-year and 27-days of TESS-like data, respectively. This Classifier could be used to select asteroseismic targets for TESS in the Continuous Viewing Zone \citep{ricker_transiting_2014}, and as a way of investigating any target selection bias in previous missions such as K2 and CoRoT.
+
+
+\iffalse
 {\it Summary}: This paper presents a method to identify the detectable solar-like modes in Red Giants with TESS using a Machine Learning Classifier. It requires only the global parameters log($g$), $\pi$, [M/H], \teff and the apparent stellar magnitude. This can be used as an asteroseismic target-selection function for future space missions.  \newline
 {\it Method}: Lightcurves for \kep \ stars with fitted radial mode frequencies and amplitudes from Davies et al. (in prep) were used. These lightcurves were degraded to generate equivalent TESS lightcurves. The length of observation was reduced, \kep \ white noise was removed, the bandpass was adjusted, and TESS white noise was added. A detection test was run on 3 observed modes in these 'TESS-like' lightcurves. Lastly, a Classifier was used to predict mode detectability with TESS based upon global photometric and spectroscopic parameters. The Classifier successfully predicted mode detectability in the original \kep stars, and for 1 year of TESS-like data.\newline
 {\it Application}: By changing only the length of dataset, noise level and bandpass of observation, this tool can make solar-like detection predictions for future missions such as TESS and PLATO. It can make predictions and select targets much faster than traditional detection tests. It is especially useful in an age where extremely large datasets from MAST and Gaia are available (\citet{eisenstein_sdss-iii:_2011}, \citet{gaia_collaboration_gaia_2016}).
+\fi
 \end{abstract}
 
 
 
 \section{Introduction}
 
-papers to discuss:
+{\bf Should I introduce asteroseismology?\\
+Should I introduce Machine Learning (apart from referencing the papers below)? I explain decision trees/random forests in the Classification Section.\\
+Discuss: }
 \begin{itemize}
-\item Supervised classifier (classifying variable stars): \citet{debosscher_automated_2007}, \citet{sarro_automated_2009}
-\item reverse engineer target selection: \citet{thomas_galactic_2017}
+\item This is a data-driven approach to determine if asteroseismic target selection can be done using a Classifier.
+\item Mention the application to TESS \citep{ricker_transiting_2014} and PLATO \citep{rauer_plato_2014}.
+\item Supervised classifiers have been used to determine the evolutionary state of variable stars: \citet{debosscher_automated_2007}, \citet{sarro_automated_2009}, \citet{nun_supervised_2014}, \citet{elorrieta_machine_2016}. Similarly, Unsupervised Classifiers  \citep{valenzuela_unsupervised_2018} and Regression \citep{ness_cannon_2015} have also been used to determine evolutionary stages.
+\item Similarly, a neural network has been used to identify the evolutionary stage of Red Giant stars (\citet{hon_deep_2017}, \citet{hon_deep_2018}).
+\item Machine learning has also been used to calculate stellar parameters \citep{bellinger_fundamental_2016}, including oscillation frequencies \citep{davies_oscillation_2016}.
+\item One reason to use Machine Learning for target selection is that it can reverse-engineer target selection bias, for example in K2 \citep{lund_K2P2_2015} and CoRoT \citep{baglin_corot:_2006}. This can provide insights into the formation history of the galaxy: \citet{thomas_galactic_2017}
+\item Summarise the Chapters.
 \end{itemize}
 
 
-
+\iffalse
 Satellites such as $Kepler$ have allowed asteroseismology of solar-like and Red Giant stars to advance rapidly since the last century \citet{chaplin_asteroseismology_2013}. Power spectra can now be resolved to detect individual modes of oscillation in Main Sequence and Red Giant stars (\citet{lund_standing_2017}, \citet{davies_asteroseismology_2016}).
 
 Future space missions such as TESS \citep{ricker_transiting_2014} and PLATO \citep{rauer_plato_2014} will add to our understanding of stellar structure and evolution. These missions will provide a large amount of high-precision data. More than ever, the field of stellar astrophysics will require tools to perform big-data analysis. %\citep{kremer_big_2017}. 
 
-One of the tools than can be used to handle the large amount of data from future missions is Machine Learning. In this work, Machine Learning was used to create a TESS target selection function using the set of $Kepler$ Red Giant Branch, Red Clump and Secondary Clump stars from Davies et al. (in prep). The algorithm made in this work is publicly-available\footnote{https://github.com/MathewSchofield/TRG}. It can be downloaded and used as a target selection function for any future space mission.
+One of the tools than can be used to handle the large amount of data from future missions is Machine Learning. In this work, Machine Learning was used to create a TESS target selection function using the set of $Kepler$ Red Giant Branch, Red Clump and Secondary Clump stars from Davies et al. (in prep). This algorithm is publicly-available\footnote{https://github.com/MathewSchofield/TRG}. It can be downloaded and used as a target selection function for any future space mission.
 
 In most situations, Machine Learning is used to solve problems in one of two ways: either by using Supervised or Unsupervised Learning. Unsupervised Learning involves problems where there are no known labels or results. Conversely, Supervised Learning involves problems where there is a known result.
 
@@ -97,7 +113,7 @@ Firstly, Section \ref{sect: dataset} describes how the size of the datasets were
 Lastly, Section \ref{sect: classifier} illustrates how the stars were classified. The stars were put into a group with detected modes, and a group without. This was done by giving a Supervised Classifier photometric and spectroscopic information on every target from APOKASC \citep{pinsonneault_apokasc_2014}. 70\% of the stars were used to train the Classifier; 30\% of the sample was kept to test the algorithm. The Classifier was given global asteroseismic and spectroscopic information, as well as mode detection probabilities of the stars in the training set. It then made predictions about mode detectability on the testing set.
 
 The Classifier recognised patterns between the variables in the training set, and successfully made predictions about mode detectability with a 0.98\% precision for the original \kep data. It achieved a precision of 0.86 for 1 year of TESS-like observation, and 0.74 for 27 days of TESS-like observation.
-
+\fi
 
 
 \section{The dataset}
@@ -279,12 +295,15 @@ This detection test was applied to every mode of every star in the sample. Figur
 \section{Classification}
 \label{sect: classifier}
 
-Section \ref{sect: tess-like} describes how the lightcurves of every star were treated before a detection test was run on the oscillations in Section \ref{sect: det_test}. After this, Classification was applied to the stars to separate them into a suitable target list, and a list of stars that are not suitable for observation with TESS.
+Section \ref{sect: tess-like} describes how the lightcurves of every star were treated before a detection test was run on the oscillations in Section \ref{sect: det_test}. After this, a Random Forest Classifier was used to predict the detection probability of the modes in the Red Giants. 
+
+Classification algorithms work by assessing similarity\footnote{http://www.simafore.com}. In Classification, the training set is separated into groups based on the similarity of the data. The more information that was gained by splitting the data, the better. The data continues to be split until a prediction can be made (in this case about [\pdet(1), \pdet(2), \pdet(3)]). In Decision Tree Classification, this is done once. Here, a Random Forest Classifier was used. This is made up of many independent Decision Trees which have been weighted to predict [\pdet(1), \pdet(2), \pdet(3)]. Section \ref{sect: prep} will explain how the data was prepared before the Random Forest Classifier was used.
 
 %It is worth noting that this could be done without using Machine Learning, although it takes much longer. In the age where datasets from missions such as MAST and Gaia \citep{gaia_collaboration_gaia_2016} exist, tools need to be developed to make use of the huge amount of information we now have on stars across the Milky Way. If Machine Learning can replicate the results from a detection test, it could be used as a much faster target selection tool before future observations. It would reduce the computation time needed to generate a list of targets down by orders of magnitude.
 
 
 \subsection{Preparing the data}
+\label{sect: prep}
 Firstly, the detection probabilities of every mode were taken from Section \ref{sect: det_test}. Each probability was put into a discrete bin (or {\it class}) depending on how likely the mode is to be detected. These discrete classes are given in equation \ref{eq:class}.
 \begin{equation}
 \label{eq:class}
@@ -299,9 +318,9 @@ P_{\rm det} = \left\{ \,
 \right.
 \end{equation}
 
-Using equation \ref{eq:class}, every mode was assigned a discrete class {\texttt [0, 1 or 2]}, depending on how high the probability of detection was for that mode. The same three radial modes ({\it 3 labels}) were used for every star: the mode closest to the centre of the power-excess due to solar-like oscillations $\nu_{\rm max; n}$, the radial mode one overtone below that $\nu_{\rm n-1}$, and one overtone above that, $\nu_{\rm n+1}$ [\pdet(1), \pdet(2), \pdet(3)]. It was important to use the same information for every star so that the algorithm could be trained on the patterns between the variables.
+Using equation \ref{eq:class}, every mode was assigned a discrete class {\texttt [0, 1 or 2]}, depending on how high the probability of detection was for that mode. The same three radial modes ({\it 3 features}) were used for every star: the mode closest to the centre of the power-excess due to solar-like oscillations $\nu_{\rm max; n}$, the radial mode one overtone below that $\nu_{\rm n-1}$, and one overtone above that, $\nu_{\rm n+1}$ [\pdet(1), \pdet(2), \pdet(3)]. It was important to use the same information for every star so that the algorithm could be trained on the patterns between the variables.
 
-A classifier is an algorithm that can learn a relationship between variables. The classifier will map from some initial information about the star (the X data), to some unknown information (the Y data). In this work, the X data were magnitude ($K_{p}$ or $I_{\rm mag}$), log($g$), $\pi$, \teff and [M/H]. The Y data labels were the \pdet values of 3 radial modes, centred around \numax. An example of the final dataset for 1 year of TESS-like observations are shown in Tables \ref{tab: x dataset} and \ref{tab: y dataset}.
+A classifier is an algorithm that can learn a relationship between variables. The classifier will map from some initial information about the star (the X data), to some unknown information (the Y data). In this work, the X data features were magnitude ($K_{p}$ or $I_{\rm mag}$), log($g$), $\pi$, \teff and [M/H]. The Y data features were the \pdet values of 3 radial modes, centred around \numax. An example of the final dataset for 1 year of TESS-like observations are shown in Tables \ref{tab: x dataset} and \ref{tab: y dataset}.
 
 \begin{table}
 \begin{center}
@@ -341,7 +360,7 @@ KIC & Iteration & \pdet(1) & \pdet(2) & \pdet(3) \\
 \hline
 \end{tabular}
 \end{center}
-\caption{An example of the Y-dataset for 1 year of TESS-like observations. Every star has it's magnitude perturbed 100 times. White noise is then added to the timeseries and mode detection probabilities are calculated for 3 radial modes centred around \numax. Lastly, these probabilities are put into discrete classes [0, 1 or 2]. The radial mode closest to \numax is labelled \pdet(2). See Table \ref{tab: x dataset} for the equivalent X-dataset.}
+\caption{An example of the Y-dataset for 1 year of TESS-like observations. Every star has it's magnitude perturbed 100 times. White noise is then added to the timeseries and mode detection probabilities are calculated for 3 radial modes centred around \numax. Lastly, these probabilities are put into discrete classes [0, 1 or 2]. The radial mode closest to \numax is called \pdet(2). See Table \ref{tab: x dataset} for the equivalent X-dataset.}
 \label{tab: y dataset}
 \end{table}
 
@@ -352,11 +371,18 @@ KIC & Iteration & \pdet(1) & \pdet(2) & \pdet(3) \\
 
 The 60,000 samples were separated into a training dataset, and a testing set. 70\% of the samples were used to train the classifier (46,410 stars); 30\% of the stars were used to test the algorithm (19,890 stars). To train the Classifier, the X and Y data in the training set was given to the algorithm (X$_{\rm train}$ and Y$_{\rm train}$). Once the Classifier had been trained, the X data from the testing set was given to it (X$_{\rm test}$). The Classifier then predicted a set of Y data for the testing set (Y$_{\rm pred}$). This was compared to the actual Y data for the testing set (Y$_{\rm test}$). The more similar Y$_{\rm pred}$ is to Y$_{\rm test}$, the better the Classifier replicated the data.
 
-Two metrics were used to measure the performance of the algorithm. The first was the precision of the Classifier, weighted across the classes [0, 1, 2] and the detection probability labels \pdet(1), \pdet(2) and \pdet(3). The second was the Hamming loss\footnote{http://scikit-learn.org} \citep{wegner_technique_1960} of the algorithm. This was used to give a measure of similarity between the predicted \pdet values Y$_{\rm pred}$, and the testing \pdet values Y$_{\rm test}$;
+Two metrics were used to measure the performance of the algorithm. The first was the precision of the Classifier, weighted across the classes [0, 1, 2] and the detection probability features \pdet(1), \pdet(2) and \pdet(3). This precision $P$ is given as
 \begin{equation}
-H_{\rm loss}(Y_{\rm test}, Y_{\rm pred}) = \frac{1}{n_{\rm labels}} \sum_{j=0}^{n_{\rm labels}-1} 1(Y_{\rm pred} \neq Y_{\rm test}) \: . 
+P = t_{\rm p} / (t_{\rm p} + f_{\rm p}), 
 \end{equation}
-A Hamming loss score of 0.0 means that Y$_{\rm pred}$ is identical to Y$_{\rm test}$. A score of 1.0 means that there are no similar values between Y$_{\rm pred}$ and Y$_{\rm test}$. The precision and Hamming loss of the Classifier on the \kep and TESS datasets are shown in Table \ref{tab: results}.
+where $t_{\rm p}$ are true-positives and $f_{\rm p}$ are false-positives. The Classifier's precision is its ability to not label a negative sample as positive\footnote{http://scikit-learn.org \label{scikit}}.
+
+The second was the Hamming loss$^{\ref{scikit}}$
+\citep{wegner_technique_1960} of the algorithm. This was used to give a measure of similarity between the predicted \pdet values Y$_{\rm pred}$, and the testing \pdet values Y$_{\rm test}$;
+\begin{equation}
+H_{\rm loss}(Y_{\rm test}, Y_{\rm pred}) = \frac{1}{n_{\rm classes}} \sum_{j=0}^{n_{\rm classes}-1} 1(Y_{\rm pred} \neq Y_{\rm test}) \: . 
+\end{equation}
+A Hamming loss score of 0.0 means that Y$_{\rm pred}$ is identical to Y$_{\rm test}$. A score of 1.0 means that there are no similar values between Y$_{\rm pred}$ and Y$_{\rm test}$. Precision and Hamming loss are similar (but not identical) measures of the success of a Classifier. By using both metrics, the usefulness of the Classifier can be better assessed. The precision and Hamming loss of the Classifier on the \kep and TESS datasets are shown in Table \ref{tab: results}.
 \begin{table}
 \begin{center}
 \begin{tabular}{ |c|c|c|c| }
@@ -367,7 +393,7 @@ TESS      & 1 year  & 0.86      & 0.07         \\
 TESS      & 27 days & 0.74      & 0.25         \\
 \end{tabular}
 \end{center}
-\caption{Results of the Classifier on the original \kep dataset, and the 1-year and 27-day TESS datasets. The 'Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 labels [\pdet(1), \pdet(2), \pdet(3)].}
+\caption{Results of the Classifier on the original \kep dataset, and the 1-year and 27-day TESS datasets. The 'Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 features [\pdet(1), \pdet(2), \pdet(3)].}
 \label{tab: results}
 \end{table}
 
@@ -381,17 +407,17 @@ For the 27-day TESS dataset, the Classifier was only able to correctly predict t
 \subsection{Feature Importance}
 \label{sect: feature importance}
 
-Here, a Classifier was used to predict the detection probabilities of individual modes in \kep Red Giant stars. As well as being much faster than a conventional mode detection test, an added bonus of the Classifier method is that it returns the 'feature importance' of each label in the x-data.
+Here, a Classifier was used to predict the detection probabilities of individual modes in \kep Red Giant stars. As well as being much faster than a conventional mode detection test, an added bonus of the Classifier method is that it returns the 'feature importance' of each column in the x-data.
 
-As Table \ref{tab: x dataset} shows, the x-data labels that are given to the Classifier are \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}. \logg, \teff and [M/H] values are from \citet{pinsonneault_apokasc_2014}, $\pi$ is from \citet{gaia_collaboration_gaia_2016} and \imag is from \citet{hog_tycho2_2000}.
+As Table \ref{tab: x dataset} shows, the x-data features that are given to the Classifier are \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}. \logg, \teff and [M/H] values are from \citet{pinsonneault_apokasc_2014}, $\pi$ is from \citet{gaia_collaboration_gaia_2016} and \imag is from \citet{hog_tycho-2_2000}.
 
-Some of these labels are more important than others when predicting the detection probability of solar-like modes \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. The relative importance of these labels is known as the feature importance. This feature importance sums to 1.
+Some of these features are more important than others when predicting the detection probability of solar-like modes \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. The relative importance of these columns is known as the feature importance. This feature importance sums to 1.
 
-The feature importances of the x-data labels are given in Figure \ref{fig:feature}. The values show that the label with the highest influence on mode detectability is apparent stellar magnitude \imag. This is not surprising: a higher value of \imag will result in more $\chi^{2}$ 2 Degrees-of-Freedom white noise in the observation. This will make oscillations less likely to be detected above the white noise background.
+The feature importances of the x-data columns are given in Figure \ref{fig:feature}. The values show that the feature with the highest influence on mode detectability is apparent stellar magnitude \imag. This is not surprising: a higher value of \imag will result in more $\chi^{2}$ 2 Degrees-of-Freedom white noise in the observation. This will make oscillations less likely to be detected above the white noise background.
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.5]{Plot1_featureimportance.pdf}
-	\caption{The feature importance of the 5 x-data labels.}	
+	\caption{The feature importance of the 5 x-data columns.}	
 	\label{fig:feature}
 \end{figure}
 
@@ -403,7 +429,7 @@ Comparatively, effective temperature \teff is less useful than \logg when predic
 \begin{table}
 \begin{center}
 \begin{tabular}{ |c|c| }
-Label        & Feature Importance \\
+Feature      & Feature Importance \\
 \hline
 log($g$)     & 0.33               \\
 $\pi$        & 0.08               \\
@@ -412,7 +438,7 @@ $\rm [M/H]$  & 0.08               \\
 \imag        & 0.39               \\
 \end{tabular}
 \end{center}
-\caption{The feature importance of each x-data label. The higher the feature importance, the more important the label was in predicting the detectability of modes inside the Red Giants.}
+\caption{The feature importance of each x-data column. The higher the feature importance, the more important the column was in predicting the detectability of modes inside the Red Giants.}
 \label{tab: feature}
 \end{table}
 \fi
@@ -443,7 +469,7 @@ RC        & TESS      & 27 days & 0.77      & 0.24         \\
 2CL       & TESS      & 27 days & 0.69      & 0.30         \\
 \end{tabular}
 \end{center}
-\caption{Results of the Classifier when RGB, RC and 2CL stars are separated. Results are shown when the data are treated like \kep stars, and when they are degraded to look like 1-year and 27-day TESS observation. The 'Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 labels [\pdet(1), \pdet(2), \pdet(3)].}
+\caption{Results of the Classifier when RGB, RC and 2CL stars are separated. Results are shown when the data are treated like \kep stars, and when they are degraded to look like 1-year and 27-day TESS observation. The 'Precision' column gives the average weighted precision of the Classifier across the 3 classes [0, 1, 2] and 3 features [\pdet(1), \pdet(2), \pdet(3)].}
 \label{tab: evo results}
 \end{table}
 
@@ -453,27 +479,24 @@ Table \ref{tab: evo results} shows that there is a negligible difference in pred
 \section{Conclusion}
 \label{sect: conc}
 
-1000 peak-bagged \kep Red Giant stars from Davies et al. (in prep) were used to determine whether asteroseismic target selection could be done using a Classifier. This tool can also be used to understand target selection bias. Rather than using Machine Learning to determine the evolutionary state of these stars, a Classifier was instead used to predict which individual solar-like oscillations inside the Red Giants could be detected with a future space mission. The mission in question here was TESS, although the same technique can be easily applied to other missions such as PLATO. This tool can also be used to understand target selection bias in previous missions, such as K2 and CoRoT.
+1000 peak-bagged \kep Red Giant stars from Davies et al. (in prep) were used to determine whether asteroseismic target selection could be done using a Classifier. Rather than using Machine Learning to determine the evolutionary state of these stars, a Classifier was instead used to predict which individual solar-like oscillations inside the Red Giants could be detected with a future space mission. The mission in question here was TESS, although the same technique can be easily applied to other missions such as PLATO. This tool can also be used to understand target selection bias in previous missions, such as K2 and CoRoT.
 
 %For the first time, Machine Learning was applied to TESS target selection. 1000 peak-bagged \kep Red Giant stars from \citet{davies_asteroseismology_2016} were used to determine whether target selection could be done using a Classifier. 
 
-
 The number of samples was first increased by perturbing stellar magnitudes 100 times for each star. These perturbed magnitudes were drawn from a PDF of the noise function (Section \ref{sect: dataset}). After removing stars where global parameters or fitted modes were unavailable, this left 60,000 \kep samples. 
 
-Once the number of samples was increased, the timeseries' were degraded to transform them into TESS-like observations. The dataset length was reduced, white noise was added to the signal, and the bandpass of observation was reddened. A moving median was calculated for the power spectra of these Red Giants to estimate the total background in the signal. This was divided out of the spectra, leaving a Signal-to-Noise ratio at every frequency bin (equation \ref{eq:snr}).
+Once the number of samples was increased, the timeseries' were degraded to transform them into TESS-like observations (Section \ref{sect: tess-like}). The dataset length was reduced, white noise was added to the signal, and the bandpass of observation was reddened. A moving median was calculated for the power spectra of these Red Giants to estimate the total background in the signal. This was divided out of the spectra, leaving a Signal-to-Noise ratio at every frequency bin (equation \ref{eq:snr}).
 
-A detection test was then run on the SNR values at every mode frequency. This gave a detection probability \pdet between 0.0 and 1.0 for every mode. In order to prepare the detection probabilities before Classification, each continuous \pdet value was assigned a discrete class ([0,1 or 2]; equation \ref{eq:class}).
+A detection test was then run on the SNR values at every mode frequency (Section \ref{sect: det_test}). This gave a detection probability \pdet between 0.0 and 1.0 for every mode. In order to prepare the detection probabilities before Classification, each continuous \pdet value was assigned a discrete class ([0,1 or 2]; equation \ref{eq:class}).
 
-A Classifier was then given the global photometric and spectroscopic properties of the Red Giant sample, along with mode detection probabilities for each star. The parameters \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]} from APOKASC \citep{pinsonneault_apokasc_2014} were used as the 5 X-data labels. The \pdet values of 3 radial modes centred around \numax were used as 3 Y-data labels. % see http://scikit-learn.org/stable/modules/multiclass.html
+A Classifier was then given the global photometric and spectroscopic properties of the Red Giant sample, along with mode detection probabilities for each star. The parameters \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]} from APOKASC \citep{pinsonneault_apokasc_2014}, TGAS \citep{gaia_collaboration_gaia_2016} and Tycho2 \citep{hog_tycho-2_2000} were the 5 X-data features. The \pdet values of 3 radial modes centred around \numax were used as 3 Y-data features. % see http://scikit-learn.org/stable/modules/multiclass.html
 The classifier used the global stellar parameters (the X-data) to make predictions about mode detectability (the Y-data). The stars with the largest number of detected modes could then be selected as the Red Giants for observation by TESS. 
 
-The Classifier successfully made predictions about the original 4 years of Kepler data; the algorithm had a weighted precision 0.98 across the 3 \pdet labels. This confirms the proof of concept that Classifiers can be used as a way to select solar-like asteroseismic targets before future missions. Classification vastly reduces the computation time required to produce a target selection function, especially when large datasets are involved ($\geq50,000$ stars).
+The Classifier successfully made predictions about the original 4 years of Kepler data; the algorithm had a weighted precision 0.98 across the 3 \pdet features. This confirms the proof of concept that Classifiers can be used as a way to select solar-like asteroseismic targets before future missions. As well as this, this shows that it can be used to investigate any possible target selection bias, for example in K2 or CoRoT. Classification vastly reduces the computation time required to produce a target selection function, especially when large datasets are involved ($\geq50,000$ stars).  
 
-Degrading the Red Giant data to make predictions for 1 year of TESS observations was also successful. The predicted mode detections scored a weighted precision of 0.86 across the 3 \pdet labels. This illustrates that Classification is a valid target selection method for TESS targets in the Continuous Viewing Zone (CVZ, \citep{ricker_transiting_2014}).
+Degrading the Red Giant data to make predictions for 1 year of TESS observations was also successful. The predicted mode detections scored a weighted precision of 0.86 across the 3 \pdet features. This illustrates that Classification is a valid target selection method for TESS targets in the Continuous Viewing Zone (CVZ, \citep{ricker_transiting_2014}).
 
-Using the Classifier on 27 days of TESS data returned detection predictions with a precision of 0.74. This is too low for the Classifier to be used to select solar-like oscillators for 27 days of TESS observation. The precision is lower when stars are observed for 27 days by TESS because the white noise level is too high and the length of observation is too short to make robust predictions of individual solar-like oscillations. It may be that individual solar-like oscillations cannot be detected in 27 days of TESS data. If this is the case, then the Classifier should not be expected to make robust detection predictions for these stars.
-
-
+Using the Classifier on 27 days of TESS data returned detection predictions with a precision of 0.74. This is too low for the Classifier to be used to select solar-like oscillators for 27 days of TESS observation. The precision is lower when stars are observed by TESS for 27 days because the white noise level is too high and the length of observation is too short to make robust predictions of individual solar-like oscillations. It may be that individual solar-like oscillations cannot be detected in 27 days of TESS data. If this is the case, then the Classifier should not be expected to make robust detection predictions for these stars.
 
 %It is important to note that there are two sources of noise to consider with this \kep dataset. white noise from equations \ref{eq:kep noise} and \ref{eq:tess noise} and stellar granulation noise. Each star in the dataset has one timeseries with one set of fitted modes available. One realisation of the star. This gives only one value of the stellar shot noise. This is not an issue with 4 years fo Kepler data (where modes are easily detectable). It is also not an issue for 27 days of TESS, when white noise has a much bigger impact on mode detectability. In order to test if this is a significant factor for 1 year of TESS data...
 

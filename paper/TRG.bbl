@@ -17,6 +17,11 @@
   {mn@eprint@\@tempb}{\@tempb:\@tempc}{\expandafter \expandafter \csname
   mn@eprint@\@tempb\endcsname \expandafter{\@tempc}}}
 
+\bibitem[\protect\citeauthoryear{Baglin et~al.,}{Baglin
+  et~al.}{2006}]{baglin_corot:_2006}
+Baglin A.,  et~al., 2006. p.~3749, \url
+  {http://adsabs.harvard.edu/abs/2006cosp...36.3749B}
+
 \bibitem[\protect\citeauthoryear{Ballot, Barban  \& van't Veer-Menneret}{Ballot
   et~al.}{2011}]{ballot_visibilities_2011}
 Ballot J.,  Barban C.,   van't Veer-Menneret C.,  2011, \mn@doi [Astronomy and
@@ -29,6 +34,12 @@ Beck P.~G.,  et~al., 2011, \mn@doi [Science] {10.1126/science.1201939}, 332,
 
 \bibitem[\protect\citeauthoryear{Bedding}{Bedding}{2011}]{bedding_solar-like_2011}
 Bedding T.~R.,  2011, arXiv:1107.1723 [astro-ph]
+
+\bibitem[\protect\citeauthoryear{Bellinger, Angelou, Hekker, Basu, Ball  \&
+  Guggenberger}{Bellinger et~al.}{2016}]{bellinger_fundamental_2016}
+Bellinger E.~P.,  Angelou G.~C.,  Hekker S.,  Basu S.,  Ball W.~H.,
+  Guggenberger E.,  2016, \mn@doi [The Astrophysical Journal]
+  {10.3847/0004-637X/830/1/31}, 830, 31
 
 \bibitem[\protect\citeauthoryear{Campante et~al.,}{Campante
   et~al.}{2016}]{campante_asteroseismic_2016}
@@ -44,9 +55,10 @@ Chaplin W.~J.,  Miglio A.,  2013, \mn@doi [Annual Review of Astronomy and
 Chaplin W.~J.,  et~al., 2011, \mn@doi [The Astrophysical Journal]
   {10.1088/0004-637X/732/1/54}, 732, 54
 
-\bibitem[\protect\citeauthoryear{Davies \& Miglio}{Davies \&
-  Miglio}{2016}]{davies_asteroseismology_2016}
-Davies G.~R.,  Miglio A.,  2016, arXiv:1601.02802 [astro-ph]
+\bibitem[\protect\citeauthoryear{Davies et~al.,}{Davies
+  et~al.}{2016}]{davies_oscillation_2016}
+Davies G.~R.,  et~al., 2016, \mn@doi [Monthly Notices of the Royal Astronomical
+  Society] {10.1093/mnras/stv2593}, 456, 2183
 
 \bibitem[\protect\citeauthoryear{Debosscher, Sarro, Aerts, Cuypers,
   Vandenbussche, Garrido  \& Solano}{Debosscher
@@ -54,11 +66,6 @@ Davies G.~R.,  Miglio A.,  2016, arXiv:1601.02802 [astro-ph]
 Debosscher J.,  Sarro L.~M.,  Aerts C.,  Cuypers J.,  Vandenbussche B.,
   Garrido R.,   Solano E.,  2007, \mn@doi [Astronomy and Astrophysics]
   {10.1051/0004-6361:20077638}, 475, 1159
-
-\bibitem[\protect\citeauthoryear{Eisenstein et~al.,}{Eisenstein
-  et~al.}{2011}]{eisenstein_sdss-iii:_2011}
-Eisenstein D.~J.,  et~al., 2011, \mn@doi [The Astronomical Journal]
-  {10.1088/0004-6256/142/3/72}, 142, 72
 
 \bibitem[\protect\citeauthoryear{Elorrieta et~al.,}{Elorrieta
   et~al.}{2016}]{elorrieta_machine_2016}
@@ -75,6 +82,10 @@ Elsworth Y.,  Hekker S.,  Basu S.,   R.~Davies G.,  2017, \mn@doi [Mon Not R
 {Gaia Collaboration} et~al., 2016, \mn@doi [Astronomy and Astrophysics]
   {10.1051/0004-6361/201629512}, 595, A2
 
+\bibitem[\protect\citeauthoryear{H{\o}g et~al.,}{H{\o}g
+  et~al.}{2000}]{hog_tycho-2_2000}
+H{\o}g E.,  et~al., 2000, Astronomy and Astrophysics, 355, L27
+
 \bibitem[\protect\citeauthoryear{Hon, Stello  \& Yu}{Hon
   et~al.}{2017}]{hon_deep_2017}
 Hon M.,  Stello D.,   Yu J.,  2017, \mn@doi [Monthly Notices of the Royal
@@ -89,10 +100,10 @@ Hon M.,  Stello D.,   Yu J.,  2018, \mn@doi [Monthly Notices of the Royal
   Bedding}{1995}]{kjeldsen_amplitudes_1995}
 Kjeldsen H.,  Bedding T.~R.,  1995, Astronomy and Astrophysics, 293, 87
 
-\bibitem[\protect\citeauthoryear{Lund et~al.,}{Lund
-  et~al.}{2017}]{lund_standing_2017}
-Lund M.~N.,  et~al., 2017, \mn@doi [The Astrophysical Journal]
-  {10.3847/1538-4357/835/2/172}, 835, 172
+\bibitem[\protect\citeauthoryear{Lund, Handberg, Davies, Chaplin  \&
+  Jones}{Lund et~al.}{2015}]{lund_K2P2_2015}
+Lund M.~N.,  Handberg R.,  Davies G.~R.,  Chaplin W.~J.,   Jones C.~D.,  2015,
+  \mn@doi [The Astrophysical Journal] {10.1088/0004-637X/806/1/30}, 806, 30
 
 \bibitem[\protect\citeauthoryear{Mathur et~al.,}{Mathur
   et~al.}{2011}]{mathur_granulation_2011}
@@ -134,11 +145,6 @@ Ricker G.~R.,  et~al., 2014, \mn@doi [Journal of Astronomical Telescopes,
 Sarro L.~M.,  Debosscher J.,  López M.,   Aerts C.,  2009, \mn@doi [Astronomy
   and Astrophysics] {10.1051/0004-6361:200809918}, 494, 739
 
-\bibitem[\protect\citeauthoryear{Steinhardt \& Jermyn}{Steinhardt \&
-  Jermyn}{2018}]{steinhardt_nonparametric_2018}
-Steinhardt C.~L.,  Jermyn A.~S.,  2018, \mn@doi [Publications of the
-  Astronomical Society of the Pacific] {10.1088/1538-3873/aaa22a}, 130, 023001
-
 \bibitem[\protect\citeauthoryear{Thomas, Stevenson, Gittins, Miglio, Davies,
   Girardi, Campante  \& Schofield}{Thomas et~al.}{2017}]{thomas_galactic_2017}
 Thomas A.,  Stevenson E.,  Gittins F. W.~R.,  Miglio A.,  Davies G.,  Girardi
@@ -153,9 +159,6 @@ Valenzuela L.,  Pichara K.,  2018, \mn@doi [Monthly Notices of the Royal
 
 \bibitem[\protect\citeauthoryear{Wegner}{Wegner}{1960}]{wegner_technique_1960}
 Wegner P.,  1960, \mn@doi [Commun. ACM] {10.1145/367236.367286}, 3, 322
-
-\bibitem[\protect\citeauthoryear{Wu et~al.,}{Wu et~al.}{2017}]{wu_mass_2017}
-Wu Y.,  et~al., 2017, preprint, 1712, arXiv:1712.09779
 
 \makeatother
 \end{thebibliography}
