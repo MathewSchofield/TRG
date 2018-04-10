@@ -162,6 +162,7 @@ if __name__ == "__main__":
         star.Diagnostic(Kp=info['kic_kepmag'].as_matrix(), \
             imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
             teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix())
+        continue
         #sys.exit()
 
         # units of exptime are seconds. noise in units of ppm

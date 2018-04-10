@@ -646,7 +646,7 @@ class Dataset(object):
             i.set_yscale('log')
             i.set_xscale('log')
             titles = [r'$Kepler \ (4 \rm \ yrs)$',\
-                r'TESS (1 yr, time domain)', r'TESS (27 days, time domain)']
+                r'TESS (1 yr)', r'TESS (27 days)']
             i.set_title(titles[idx])
 
             if (i == ax2) or (i == ax3):
@@ -664,6 +664,7 @@ class Dataset(object):
                 i.set_ylim([40,143796])
                 i.set_xlim([9, 117])
 
+        print self.epic
 
         # original Kepler spectrum. smooth with 1 muHz moving mean
         self.ts()
@@ -671,8 +672,6 @@ class Dataset(object):
         ax1.plot(self.freq, self.power, color='k', alpha=0.5)
         self.Smoo(smoo_scale)
         ax1.plot(self.freq, self.power, color='k')
-        #smoo = ndim.filters.uniform_filter1d(self.power, size=int(1./self.bin_width))
-        #ax1.plot(self.freq, smoo, color='r')
 
         # TESS-like, conversion in the time series, 1 year
         self.Tobs = 365  # days
@@ -683,7 +682,7 @@ class Dataset(object):
 
         # TESS-like, conversion in the time series, 27 days
         self.Tobs = 27  # days
-        self.power_spectrum()
+        self.timeseries()
         ax3.plot(self.freq, self.power, color='c')
         self.Smoo(smoo_scale)
         ax3.plot(self.freq, self.power, color='k')
@@ -712,6 +711,8 @@ class Dataset(object):
             plt.ylim([40,143796])
             plt.xlim([9, 117])
 
+        print self.epic
+
         # original Kepler spectrum. smooth with 1 muHz moving mean
         self.ts()
         self.Periodogram()
@@ -724,13 +725,13 @@ class Dataset(object):
         self.Tobs = 365  # days
         self.timeseries()
         self.Smoo(smoo_scale)
-        plt.plot(self.freq, self.power, color='r', alpha=0.4, label=r'TESS (1 yr, time domain)')
+        plt.plot(self.freq, self.power, color='r', alpha=0.4, label=r'TESS (1 yr)')
 
         # TESS-like, conversion in the time series, 27 days
         self.Tobs = 27  # days
-        self.power_spectrum()
+        self.timeseries()
         self.Smoo(smoo_scale)
-        plt.plot(self.freq, self.power, color='b', alpha=0.4, label=r'TESS (27 days, time domain)')
+        plt.plot(self.freq, self.power, color='b', alpha=0.4, label=r'TESS (27 days)')
 
         plt.tight_layout()
         plt.legend(loc='bottom left')
@@ -746,7 +747,7 @@ class Dataset(object):
         #self.Diagnostic_plot1(scale='modes')
         #self.Diagnostic_plot2(scale='full')
         #self.Diagnostic_plot2(scale='modes')
-        #self.Diagnostic_plot3(scale='modes')
-        self.Diagnostic_plot4(scale='modes')
+        self.Diagnostic_plot3(scale='modes')
+        #self.Diagnostic_plot4(scale='modes')
 
 #
