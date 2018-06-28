@@ -4,7 +4,7 @@
 \BOOKMARK [1][-]{section.4}{Detection Test}{}% 4
 \BOOKMARK [1][-]{section.5}{Classification}{}% 5
 \BOOKMARK [2][-]{subsection.5.1}{Preparing the data}{section.5}% 6
-\BOOKMARK [2][-]{subsection.5.2}{Target selection using a Classifier}{section.5}% 7
+\BOOKMARK [2][-]{subsection.5.2}{Target selection using a classifier}{section.5}% 7
 \BOOKMARK [2][-]{subsection.5.3}{Feature Importance}{section.5}% 8
 \BOOKMARK [2][-]{subsection.5.4}{Comparing results between different evolutionary states}{section.5}% 9
 \BOOKMARK [1][-]{section.6}{Conclusion}{}% 10
