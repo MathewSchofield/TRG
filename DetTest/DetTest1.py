@@ -232,6 +232,9 @@ class DetTest(object):
             save.sort_values(['f0'], axis=0, ascending=True, inplace=True)
             save = save.ix[:, ['f0', snr_header, prob_header]]
 
+        #print self.ds.sat, ds.Tobs
+        #print save
+
         save.to_csv(self.probfile, index=False)
 
     def plot_ps(self, smoo=0, plog=True):
@@ -424,7 +427,7 @@ class DetTest(object):
 
         plt.rc('font', size=14)
         fig, ax = plt.subplots()
-        plt.plot(self.ds.freq, self.snr, 'k-', alpha=0.5)
+        plt.plot(self.ds.freq, self.snr, 'k-', alpha=0.5, zorder=1)
 
         # plot the SNR range to search across when finding snr_modes
         for idx, line in enumerate(self.ds.mode_id['f0']):
@@ -433,14 +436,14 @@ class DetTest(object):
             plt.axvline(x=line+w, color='b', linestyle='-', alpha=0.4)
 
         # overplot the predicted SNR values at the modes
-        plt.scatter(probs['f0'], probs['SNR_Kepler'], label='Kepler - 4yrs')
-        plt.scatter(probs['f0'], probs['SNR_TESS365'], label='TESS - 1 yr')
-        plt.scatter(probs['f0'], probs['SNR_TESS27'], label='TESS - 27 days')
+        plt.scatter(probs['f0'], probs['SNR_Kepler'], label='Kepler - 4yrs', alpha=1, zorder=2)
+        plt.scatter(probs['f0'], probs['SNR_TESS365'], label='TESS - 1 yr', alpha=1, zorder=3)
+        plt.scatter(probs['f0'], probs['SNR_TESS27'], label='TESS - 27 days', alpha=1, zorder=4)
 
         if plog:
             plt.xscale('log')
             plt.yscale('log')
-        plt.xlabel(r'Frequency ($\rm \mu Hz$)')
+        plt.xlabel(r'$\nu$ / $\rm \mu Hz$')
         plt.ylabel(r'SNR')
 
         mn = min(star.ds.mode_id['f0']) -\
@@ -585,9 +588,9 @@ if __name__ == "__main__":
         Within each iteration (i.e each star), perturb the stellar magnitude 'x' times """
 
         sat = 'Kepler'
-        sat = 'TESS'
+        #sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
