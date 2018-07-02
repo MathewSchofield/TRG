@@ -104,6 +104,10 @@ class DetTest(object):
         # print np.median(self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)])  # the median power in the envelope around d
         med = [np.median(self.ds.power[np.abs(self.ds.freq - d) < self.set_width(d, factor=1)]) for d in self.ds.freq[::skips]]
 
+        print np.shape(self.ds.freq)
+        print np.shape(med)
+        sys.exit()
+
         # interpolate between skipped freqs in self.ds.freqs using the moving median
         f = interpolate.interp1d(self.ds.freq[::skips], med, bounds_error=False)
         self.bkg = f(self.ds.freq)

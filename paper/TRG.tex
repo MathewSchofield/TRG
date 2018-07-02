@@ -52,7 +52,7 @@ $^{2}$Stellar Astrophysics Centre (SAC), Department of Physics and Astronomy, Aa
 \begin{abstract}
 For the first time. a classifier was used as a way to select solar-like asteroseismic targets before a future mission. The classifier managed to identify the detectable solar-like oscillations inside \kep Red Giants with a 0.98\% precision. To do this, it used only the global parameters \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}.
 
-The same classifier was also used on the \kep stars after they had been degraded into TESS-like observations. The classifier scored 0.86\% and 0.74\% when made to look like 1-year and 27-days of TESS-like data, respectively. This classifier could be used to select asteroseismic targets for TESS in the Continuous Viewing Zone \citep{ricker_transiting_2014}, and as a way of investigating any target selection bias in previous missions such as K2 and CoRoT.
+The same classifier was also used on the \kep stars after they had been degraded into TESS-like observations. The classifier scored 0.87\% and 0.74\% when made to look like 1-year and 27-days of TESS-like data, respectively. This classifier could be used to select asteroseismic targets for TESS in the Continuous Viewing Zone \citep{ricker_transiting_2014}, and as a way of investigating any target selection bias in previous missions such as K2 and CoRoT.
 \end{abstract}
 
 
@@ -100,7 +100,7 @@ Firstly, Section \ref{sect: dataset} describes how the size of the datasets were
 
 Lastly, Section \ref{sect: classifier} illustrates how the stars were classified. The stars were put into a group with detected modes, and a group without. This was done by giving a supervised classifier photometric and spectroscopic information on every target from APOKASC \citep{pinsonneault_apokasc_2014}. 70\% of the stars were used to train the classifier; 30\% of the sample was kept to test the algorithm. The classifier was given global asteroseismic and spectroscopic information, as well as mode detection probabilities of the stars in the training set. It then made predictions about mode detectability on the testing set.
 
-The classifier recognised patterns between the variables in the training set, and successfully made predictions about mode detectability with a 0.98\% precision for the original \kep data. It achieved a precision of 0.86 for 1 year of TESS-like observation, and 0.74 for 27 days of TESS-like observation.
+The classifier recognised patterns between the variables in the training set, and successfully made predictions about mode detectability with a 0.98\% precision for the original \kep data. It achieved a precision of 0.87 for 1 year of TESS-like observation, and 0.74 for 27 days of TESS-like observation.
 \fi
 
 
@@ -114,7 +114,7 @@ The data to perform Machine Learning on are the 1000 \kep Red Giants from Davies
 	\caption{The 1000 \kep Red Giants from Davies et al. (in prep). The colourbar shows the relative density of points with Kernel Density Estimation. The evolutionary tracks range from 0.9-1.5\msol.}	
 	\label{fig:dataset}
 \end{figure}
-The radial and quadrapole modes of these stars have been fitted by Davies et al. (in prep). The frequency, height, width and background of each mode in the 1000 stars had been peak-bagged. The spectroscopic parameters of these stars (\teff, \logg, [M/H]) were available from \citet{pinsonneault_apokasc_2014}. The apparent magnitudes are from \citet{hog_tycho-2_2000}. The parallaxes are from \citet{gaia_collaboration_gaia_2016}.
+The radial and quadrapole modes of these stars have been fitted by Davies et al. (in prep). The frequency, height, width and background of each mode in the 1000 stars had been peak-bagged. The spectroscopic parameters of these stars (\teff, \logg, [M/H]) were available from APOKASC \citet{pinsonneault_apokasc_2014}. The apparent magnitudes are from the $Tycho-2$ catalogue \citet{hog_tycho-2_2000}. Lastly, the parallaxes are from $Gaia DR2$ \citet{lindegren_gaia_2018}.
 
 Machine Learning performs best when a large dataset is available to train the algorithm on. In order to increase the size of the dataset above 1000, the magnitude of each \kep star was perturbed. Each star had its apparent magnitude perturbed 100 times. 
 
@@ -122,7 +122,7 @@ The instrumental (shot) noise models of \kep and TESS were used as PDFs to draw 
 
 The shot noise model of $Kepler$ depends on the $Kepler$ magnitude of the star, $K_{p}$. This noise model is from \citet{gilliland_initial_2010}. The \texttt{RMS} noise, $\sigma$, is given by
 \begin{equation}
-\sigma = \frac{10^{6}}{c} \times \sqrt{c+9.5 \times 10^{5}\Bigg(\frac{14}{K_{p}}\Bigg)^{5}} ,
+\sigma = \frac{10^{6}}{c} \times \sqrt{c+9.5 \times 10^{5}\Bigg(\frac{14}{K_{p}}\Bigg)^{5}}  {\rm ppm},
 \label{eq:kep noise}
 \end{equation}
 where $c$ is the number of detected electrons per cadence. It is given by
@@ -130,7 +130,7 @@ where $c$ is the number of detected electrons per cadence. It is given by
 c = 1.28 \times 10^{0.4(12-K_{p})+7} .
 \end{equation}
 
-The equivalent TESS shot noise model was taken from \citet{sullivan_transiting_2015}. The \texttt{RMS} noise was calculated using the stellar shot noise, the noise from background stars, the readout noise and the systematic noise. These four noise sources were then summed in quadrature to give the total TESS noise.
+The equivalent TESS shot noise model was taken from \citet{sullivan_transiting_2015}, \citet{campante_asteroseismic_2016}. The \texttt{RMS} noise was calculated using photon counting noise, the noise from background stars, the readout noise and the systematic noise. These four noise sources were then summed in quadrature to give the total TESS noise.
 
 \iffalse
 which depends on the $I_{c}-$band magnitude of the star and the number of pixels in the photometric aperture used when observing the star. This is given by
@@ -152,7 +152,7 @@ The \kep and TESS noise models were used as the PDFs to draw stellar magnitudes 
 
 Before a classifier could be used on the Red Giant sample, the timeseries data from \kep needed to be modified for TESS. These adjustments were made in the time domain before the signal was converted to the frequency domain.
 
-Several different adjustments needed to be made to the \kep \ data. One difference between the missions is the length of observation. The \kep \ mission observed stars for up to 4 years, while TESS' nominal 2 year mission will observe stars for between 27 days to 1 year, according to the ecliptic latitude of the stars \citep{ricker_transiting_2014}.
+Several different adjustments needed to be made to the \kep \ data. One difference between the missions is the length of observation. The \kep \ mission observed stars for up to 4 years. TESS' nominal 2 year mission will observe stars for between 27 days to 1 year, according to the ecliptic latitude of the stars \citep{ricker_transiting_2014}.
 
 \iffalse
 \begin{figure}
@@ -174,14 +174,15 @@ As well as reducing the dataset length, the bandpass of observation needed to be
 \end{figure} 
 \fi
 
-%Thirdly, the noise level for a given star in \kep \ is lower than the noise level in TESS. The noise level for the \kep \ satellite depends on the \kep \ magnitude of the star, equation \ref{eq:kep noise}. Noise from TESS was calculated for each star and added to the timeseries (c.f Section \ref{sect: dataset}).
+Thirdly, the noise level for a given star in \kep \ is lower than the noise level in TESS. %The noise level for the \kep \ satellite depends on the \kep \ magnitude of the star, equation \ref{eq:kep noise}. 
+Noise from TESS was calculated for each star and added to the timeseries (see Section \ref{sect: dataset}).
 
-These three adjustments - the length of observation, the bandpass, and the noise level - were performed in the time domain. From the original \kep timeseries, these adjustments were made:
+These three adjustments - the length of observation, the bandpass, and the noise level (see Section \ref{sect: dataset}) - were performed in the time domain. From the original \kep timeseries, these adjustments were made:
 \begin{enumerate}
 \item Apply a 4-$\sigma$ clip to the dataset to remove spurious points.
 \item Cut the 4 years of data down to the reduced dataset length (27 days to 1 year). Use the 27 days to 1 year of data with the fewest gaps.%, see Figure \ref{fig:ts plot}.
 \item Adjust the bandpass by multiplying the flux by 0.85.
-\item Add TESS instrumental noise to the timeseries. Calculate the \texttt{RMS} noise level from \citet{sullivan_transiting_2015}. Multiply this noise by a random number from the normal distribution. Add this to the timeseries.
+\item Add TESS instrumental noise to the timeseries. To do this, calculate the TESS \texttt{RMS} noise level (Section \ref{sect: dataset}). For each flux value in the timeseries, draw a random number from the normal distribution. Multiply the \texttt{RMS} noise by each flux value. Add this to the original flux values in the timeseries.
 \item Use the Lomb-Scargle periodogram to convert the signal from the time to frequency domain.
 \end{enumerate}
 
@@ -232,7 +233,7 @@ First, a moving median was used to estimate the underlying background spectrum. 
 \begin{equation}
 \Gamma_{\rm env} = 0.66 \: \numax^{0.88},
 \end{equation}
-from \citet{mosser_characterization_2012}. The moving median was used to interpolate between frequencies in the power spectrum. It provided an estimate of the background $B$ in the power spectrum (ppm$^{2} \mu\rm Hz^{-1}$). This background was divided out of the power $P$ (ppm$^{2} \mu\rm Hz^{-1}$) in the power spectrum to the get Signal-to-Noise ratio of the spectrum,
+from \citet{mosser_characterization_2012}. The moving median provided an estimate of the background $B$ in the power spectrum (ppm$^{2} \mu\rm Hz^{-1}$). This background was divided out of the power $P$ (ppm$^{2} \mu\rm Hz^{-1}$) in the power spectrum to the get Signal-to-Noise ratio of the spectrum,
 \begin{equation}
 \label{eq:snr}
 {\rm SNR} = P/B.
@@ -245,7 +246,7 @@ Once the SNR spectrum for the star was recovered, the SNR values at the mode fre
 	\label{snr}
 \end{figure}
 
-Once all mode SNR values for the star were calculated, a detection test from \citet{chaplin_predicting_2011} was run on each mode. In \citet{chaplin_predicting_2011}, the detection test was used across the entire oscillation envelope. Here, the detectability of individual modes was assessed. This is described below.
+Once all mode SNR values for the star were calculated, a detection test from \citet{chaplin_predicting_2011} was run on each mode. In \citet{chaplin_predicting_2011}, the detection test was used across the entire oscillation envelope. Here, the detectability of individual modes was assessed. This method is described below.
 
 The probability $P$ that the SNR value of a solar-like mode of oscillation lies above some threshold ${\rm SNR_{thresh}}$ is
 \begin{equation}
@@ -304,9 +305,9 @@ P_{\rm det} = \left\{ \,
 
 Using equation \ref{eq:class}, every mode was assigned a discrete class {\texttt [0, 1 or 2]}, depending on how high the probability of detection was for that mode. The same three radial modes ({\it 3 features}) were used for every star: the mode closest to the centre of the power-excess due to solar-like oscillations $\nu_{\rm max; n}$, the radial mode one overtone below that $\nu_{\rm n-1}$, and one overtone above that, $\nu_{\rm n+1}$ [\pdet(1), \pdet(2), \pdet(3)]. It was important to use the same modes for every star so that the algorithm could be trained on the patterns between the variables.
 
-A classifier is an algorithm that can learn a relationship between variables. The classifier will map from some initial information about the star (the X data), to some unknown information (the Y data). In this work, the X data features were magnitude ($K_{p}$ or $I_{\rm mag}$), log($g$), $\pi$, \teff and [M/H]. \logg, \teff and [M/H] values are from \citet{pinsonneault_apokasc_2014}, $\pi$ is from \citet{gaia_collaboration_gaia_2016} and \imag is from \citet{hog_tycho-2_2000}.
+A classifier is an algorithm that can learn a relationship between variables. The classifier will map from some initial information about the star (the X data), to some unknown information (the Y data). In this work, the X data features were magnitude ($K_{p}$ or $I_{\rm mag}$), log($g$), $\pi$, \teff and [M/H]. \logg, \teff and [M/H] values are from \citet{pinsonneault_apokasc_2014}, $\pi$ is from \citet{lindegren_gaia_2018} and \imag is from \citet{hog_tycho-2_2000}.
 
-The Y data features were the \pdet values of 3 radial modes, centred around \numax. An example of the final dataset for 1 year of TESS-like observations are shown in Tables \ref{tab: x dataset} and \ref{tab: y dataset}.
+The Y data features were the \pdet values of 3 radial modes centred around \numax. An example of the final dataset for 1 year of TESS-like observations are shown in Tables \ref{tab: x dataset} and \ref{tab: y dataset}.
 
 
 \begin{table}
@@ -376,8 +377,8 @@ A Hamming loss score of 0.0 means that Y$_{\rm pred}$ is identical to Y$_{\rm te
 Satellite & \tobs   & Precision & Hamming loss \\
 \hline
 \kep      & 4 years & 0.98      & 0.02         \\
-TESS      & 1 year  & 0.86      & 0.07         \\
-TESS      & 27 days & 0.74      & 0.25         \\
+TESS      & 1 year  & 0.87      & 0.12         \\
+TESS      & 27 days & 0.74      & 0.26         \\
 \end{tabular}
 \end{center}
 \caption{Results of the classifier on the original \kep dataset, and the 1-year and 27-day TESS datasets. The 'Precision' column gives the average weighted precision of the classifier across the 3 classes [0, 1, 2] and 3 features [\pdet(1), \pdet(2), \pdet(3)].}
@@ -481,7 +482,7 @@ The classifier used the global stellar parameters (the X-data) to make predictio
 
 The classifier successfully made predictions about the original 4 years of Kepler data; the algorithm had a weighted precision 0.98 across the 3 \pdet features. This confirms the proof of concept that classifiers can be used as a way to select solar-like asteroseismic targets before future missions. As well as this, this shows that it can be used to investigate any possible target selection bias, for example in K2 or CoRoT. Classification vastly reduces the computation time required to produce a target selection function, especially when large datasets are involved ($\geq50,000$ stars).  
 
-Degrading the Red Giant data to make predictions for 1 year of TESS observations was also successful. The predicted mode detections scored a weighted precision of 0.86 across the 3 \pdet features. This illustrates that Classification is a valid target selection method for TESS targets in the Continuous Viewing Zone (CVZ, \citep{ricker_transiting_2014}).
+Degrading the Red Giant data to make predictions for 1 year of TESS observations was also successful. The predicted mode detections scored a weighted precision of 0.87 across the 3 \pdet features. This illustrates that Classification is a valid target selection method for TESS targets in the Continuous Viewing Zone (CVZ, \citep{ricker_transiting_2014}).
 
 Using the classifier on 27 days of TESS data returned detection predictions with a precision of 0.74. This is too low for the classifier to be used to select solar-like oscillators for 27 days of TESS observation. The precision is lower when stars are observed by TESS for 27 days because the white noise level is too high and the length of observation is too short to make robust predictions of individual solar-like oscillations. It may be that individual solar-like oscillations cannot be detected in 27 days of TESS data. If this is the case, then the classifier should not be expected to make robust detection predictions for these stars.
 

@@ -29,85 +29,99 @@ from sklearn.metrics import classification_report, confusion_matrix,\
 
 class Machine_Learning(object):
 
-    def __init__(self, data_loc, sat, Tobs):
+    def __init__(self, data_loc, sat, Tobs, plx_source):
         """  The file location of the X, Y data to load, the satellite to test
-        ('Kepler' or 'TESS') and the observing time """
+        ('Kepler' or 'TESS') and the observing timeself.
+        Set plx_source to be 'dr2' or 'tgas'. """
         self.data_loc = data_loc
         self.sat = sat
         self.Tobs = Tobs
+        self.plx_source = plx_source
 
     def get_parallaxes(self):
-        """ Use Tycho2 IDs from Simbad to make a query to TGAS,
-        to download and match parallaxes with TYC and KIC IDs.
-        Match this file in loadData()"""
+        """ Get parallaxes for the 1000 stars from 'tgas' or 'dr2'. """
 
-        # NOTE: Step 1: Go from Simbad file with Kic and TYC ID file ready for TGAS with only TYC
-        a = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC2.tsv', sep='\s+')
-        b = pd.DataFrame(a['typed'].str.split('   ',1).tolist())  # get the Tycho ID values only
-        b = 'TYC ' + b[0]  # add 'TYC ' onto the start of the ID name
-        c = b[b.str.contains('-')]  # only keep stars that have TYC IDs to search in TGAS
-        print b.shape, c.shape
-        print c
-        c.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC.csv', index=False)
-        sys.exit()
+        if self.plx_source == 'dr2':
+            plx = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_simbad_DR2.csv', sep=';', skipinitialspace=True)
+            plx.dropna(inplace=True)
+            plx['KIC'] = plx['identifier        ']
+            plx['parallax'] = plx['plx  ']
+            plx['KIC'] = plx['KIC'].str.strip()
+            plx['parallax'] = plx['parallax'].str.strip()
+            plx[['KIC', 'parallax']].to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_simbad_DR2_2.csv', index=False)
 
+        if self.plx_source == 'tgas':
+            """ Use Tycho2 IDs from Simbad to make a query to TGAS,
+            to download and match parallaxes with TYC and KIC IDs.
+            Match this file in loadData()"""
 
-        # NOTE: Step 2: Get every TGAS TYC ID and parallax in 1 file to match with the TYC IDs of the Kepler Red Giants
-        for i in range(16):  # loop through the files
-            if i<10:
-                i = '0' + str(i)
-            i = str(i)
-            print i
-
-            tgas = pd.read_csv('/home/mxs191/Desktop/phd_y2/Gaia/TGAS/tgas_parts/TgasSource_000-000-0' + i + '.csv')
-            print tgas.shape
-
-            if i == '00':
-                plx = tgas[['tycho2_id', 'parallax']]
-            else:
-                plx = pd.concat([plx, tgas[['tycho2_id', 'parallax']]])
-
-        print plx.shape
-        plx.dropna(inplace=True)
-        print plx.shape
-        plx['tycho2_id'] = 'TYC ' + plx['tycho2_id']
-        plx.to_csv('/home/mxs191/Desktop/phd_y2/Gaia/TGAS/TYC_plx.csv', index=False)
-        sys.exit()
+            # NOTE: Step 1: Go from Simbad file with Kic and TYC ID file ready for TGAS with only TYC
+            a = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC2.tsv', sep='\s+')
+            b = pd.DataFrame(a['typed'].str.split('   ',1).tolist())  # get the Tycho ID values only
+            b = 'TYC ' + b[0]  # add 'TYC ' onto the start of the ID name
+            c = b[b.str.contains('-')]  # only keep stars that have TYC IDs to search in TGAS
+            print b.shape, c.shape
+            print c
+            c.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC.csv', index=False)
+            sys.exit()
 
 
-        # NOTE: Step 3: Merge the TYC values of the 1000stars to the TYC and plx values from the entire DR1
-        tyc  = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC.csv', names=['TYC'])
-        tgas = pd.read_csv('/home/mxs191/Desktop/phd_y2/Gaia/TGAS/TYC_plx.csv')
-        print tyc
-        print tgas
-        print tyc.shape, tgas.shape, list(tyc), list(tgas)
-        both = pd.merge(left=tyc, right=tgas[['tycho2_id', 'parallax']], left_on='TYC', right_on='tycho2_id', how='inner')
-        print both
-        both[['tycho2_id', 'parallax']].to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/TYC_plx.csv', index=False)
-        sys.exit()
+            # NOTE: Step 2: Get every TGAS TYC ID and parallax in 1 file to match with the TYC IDs of the Kepler Red Giants
+            for i in range(16):  # loop through the files
+                if i<10:
+                    i = '0' + str(i)
+                i = str(i)
+                print i
+
+                tgas = pd.read_csv('/home/mxs191/Desktop/phd_y2/Gaia/TGAS/tgas_parts/TgasSource_000-000-0' + i + '.csv')
+                print tgas.shape
+
+                if i == '00':
+                    plx = tgas[['tycho2_id', 'parallax']]
+                else:
+                    plx = pd.concat([plx, tgas[['tycho2_id', 'parallax']]])
+
+            print plx.shape
+            plx.dropna(inplace=True)
+            print plx.shape
+            plx['tycho2_id'] = 'TYC ' + plx['tycho2_id']
+            plx.to_csv('/home/mxs191/Desktop/phd_y2/Gaia/TGAS/TYC_plx.csv', index=False)
+            sys.exit()
 
 
-        # NOTE: Step 4: clean up dataframe with KIC and TYC IDs. Merge with parallaxes
-        plx = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/TYC_plx.csv')
+            # NOTE: Step 3: Merge the TYC values of the 1000stars to the TYC and plx values from the entire DR1
+            tyc  = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_TYC.csv', names=['TYC'])
+            tgas = pd.read_csv('/home/mxs191/Desktop/phd_y2/Gaia/TGAS/TYC_plx.csv')
+            print tyc
+            print tgas
+            print tyc.shape, tgas.shape, list(tyc), list(tgas)
+            both = pd.merge(left=tyc, right=tgas[['tycho2_id', 'parallax']], left_on='TYC', right_on='tycho2_id', how='inner')
+            print both
+            both[['tycho2_id', 'parallax']].to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/TYC_plx.csv', index=False)
+            sys.exit()
 
-        ids = pd.read_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC.csv', sep=';|')
-        ids.rename(columns={'typed ident ':'kic', '                    identifier':'tyc'}, inplace=True)
-        ids['tyc'] = ids['tyc'].astype(str).str[:-12].str.strip()
-        ids['kic'] = ids['kic'].astype(str).str.strip().str.rstrip()
-        ids.to_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC2.csv', index=False)
 
-        both = pd.merge(left=ids, right=plx, left_on='tyc', right_on='tycho2_id', how='inner')
-        both.to_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC_plx.csv', index=False)
-        sys.exit()
+            # NOTE: Step 4: clean up dataframe with KIC and TYC IDs. Merge with parallaxes
+            plx = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/IDs/TYC_plx.csv')
+
+            ids = pd.read_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC.csv', sep=';|')
+            ids.rename(columns={'typed ident ':'kic', '                    identifier':'tyc'}, inplace=True)
+            ids['tyc'] = ids['tyc'].astype(str).str[:-12].str.strip()
+            ids['kic'] = ids['kic'].astype(str).str.strip().str.rstrip()
+            ids.to_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC2.csv', index=False)
+
+            both = pd.merge(left=ids, right=plx, left_on='tyc', right_on='tycho2_id', how='inner')
+            both.to_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC_plx.csv', index=False)
+            sys.exit()
 
     def loadData(self, add_logg=True, add_parallax=True, clas=True):
         """ 1.  Load the X and Y data for the Kepler or TESS sample (Note: Kepler
                 file does not have a 'Tobs' time in the filename.)
             2.  Remove rows where all values are zero.
             3.  add_logg (Bool; kewarg):      Add log(g) values from Pinsonneualt (2014).
-            4.  add_parallax (Bool; kewarg):  Add parallax values from TGAS
+            4.  add_parallax (Bool; kewarg):  Add parallax values from TGAS or DR2
                                               (see get_parallaxes() function).
-            5. clas (Bool; kewarg):            Load stellar classifications file
+            5.  clas (Bool; kewarg):          Load stellar classifications file
                                               from Elsworth (2016).  """
 
         if os.path.isfile(self.data_loc + '_' + self.sat + str(self.Tobs) + '_XY.csv'):
@@ -135,10 +149,17 @@ class Machine_Learning(object):
             self.xy[['log.g1', 'log.g2']] = self.xy[['log.g1', 'log.g2']].apply(pd.to_numeric, errors='coerce')
 
         if add_parallax:
-            plx = pd.read_csv(plx_floc)
 
             self.xy['KIC'] = 'KIC ' + self.xy['KIC'].astype(str).str[:-2].str.strip().str.rstrip()
-            self.xy = pd.merge(left=self.xy, right=plx[['kic', 'tyc', 'parallax']], left_on='KIC', right_on='kic', how='inner')
+
+            if self.plx_source == 'dr2':
+                plx = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_simbad_DR2_2.csv')
+                plx = plx[plx['parallax']!='~']
+                self.xy = pd.merge(left=self.xy, right=plx[['KIC', 'parallax']], left_on='KIC', right_on='KIC', how='inner')
+
+            if self.plx_source == 'tgas':
+                plx = pd.read_csv(plx_floc)
+                self.xy = pd.merge(left=self.xy, right=plx[['kic', 'tyc', 'parallax']], left_on='KIC', right_on='kic', how='inner')
 
     def pdet_bins(self, n=3, v=False, plot=False):
         """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
@@ -351,7 +372,7 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='Kepler', Tobs=365)
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=365, plx_source='dr2')
     #ml.get_parallaxes()
     ml.loadData()
     ml.pdet_bins()
