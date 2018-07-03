@@ -147,6 +147,11 @@ n = 10^{-5.0} \times 10^{ 0.4 \times (20-I_{\rm mag})} .
 The \kep and TESS noise models were used as the PDFs to draw stellar magnitudes from. 100 magnitudes were drawn for every \kep Red Giant. After removing gaps in the data, this left 60,000 samples. The lightcurves of this much larger \kep dataset were then degraded to look like TESS observations. {\bf a}
 
 
+
+\section{imputing Imag values}
+discuss how machine learning random forest regression is used to get imag values for missing stars from kp, metallicity and teff.
+
+
 \section{Modifying Kepler data to look like TESS}
 \label{sect: tess-like}
 
@@ -246,7 +251,7 @@ Once the SNR spectrum for the star was recovered, the SNR values at the mode fre
 	\label{snr}
 \end{figure}
 
-Once all mode SNR values for the star were calculated, a detection test from \citet{chaplin_predicting_2011} was run on each mode. In \citet{chaplin_predicting_2011}, the detection test was used across the entire oscillation envelope. Here, the detectability of individual modes was assessed. This method is described below.
+Once all mode SNR values for the star were calculated, a detection test from \citet{chaplin_predicting_2011} was run on each mode. In \citet{chaplin_predicting_2011}, a detection test was used across the entire oscillation envelope. Here, the detectability of individual modes was assessed. This method is described below.
 
 The probability $P$ that the SNR value of a solar-like mode of oscillation lies above some threshold ${\rm SNR_{thresh}}$ is
 \begin{equation}
@@ -280,7 +285,7 @@ This detection test was applied to every mode of every star in the sample. Figur
 
 Section \ref{sect: tess-like} describes how the lightcurves of every star were treated before a detection test was run on the oscillations in Section \ref{sect: det_test}. After this, a random forest classifier was used to predict the detection probability of the modes in the Red Giants. 
 
-Classification algorithms work by assessing similarity\footnote{http://www.simafore.com}. In Classification, the training set is separated into groups based on the similarity of the data. The more information that was gained by splitting the data, the better. The data continues to be split until a prediction can be made (in this case about the detection probabilities of 3 radial modes. In decision tree classification, this is done once. 
+Classification algorithms work by assessing similarity\footnote{http://www.simafore.com}. In Classification, the training set is separated into groups based on the similarity of the data. The more information that was gained by splitting the data, the better. The data continues to be split until a prediction can be made (in this case about the detection probabilities of 3 radial modes). In decision tree classification, this is done once. 
 
 Here, a random forest classifier was used. This is made up of many independent Decision Trees which have been weighted to predict the detection probabilities of the 3 radial modes. Section \ref{sect: prep} will explain how the data was prepared before the random forest classifier was used.
 
@@ -357,7 +362,7 @@ KIC & Iteration & \pdet(1) & \pdet(2) & \pdet(3) \\
 \subsection{Target selection using a classifier}
 \label{sect: class-results}
 
-The 60,000 samples were separated into a training dataset, and a testing set. 70\% of the samples were used to train the classifier (46,410 stars); 30\% of the stars were used to test the algorithm (19,890 stars). To train the classifier, the X and Y data in the training set was given to the algorithm (X$_{\rm train}$ and Y$_{\rm train}$). Once the classifier had been trained, the X data from the testing set was given to it (X$_{\rm test}$). The classifier then predicted a set of Y data for the testing set (Y$_{\rm pred}$). This was compared to the actual Y data for the testing set (Y$_{\rm test}$). The more similar Y$_{\rm pred}$ is to Y$_{\rm test}$, the better the classifier replicated the data.
+The 60,000 datasets were separated into a training dataset, and a testing set. 70\% of the datasets were used to train the classifier (46,410 stars); 30\% of the stars were used to test the algorithm (19,890 stars). To train the classifier, the X and Y data in the training set was given to the algorithm (X$_{\rm train}$ and Y$_{\rm train}$). Once the classifier had been trained, the X data from the testing set was given to it (X$_{\rm test}$). The classifier then predicted a set of Y data for the testing set (Y$_{\rm pred}$). This was compared to the actual Y data for the testing set (Y$_{\rm test}$). The more similar Y$_{\rm pred}$ is to Y$_{\rm test}$, the better the classifier replicated the data.
 
 Two metrics were used to measure the performance of the algorithm. The first was the precision of the classifier, weighted across the classes [0, 1, 2] and the detection probability features \pdet(1), \pdet(2) and \pdet(3). This precision $P$ is given as
 \begin{equation}
@@ -403,7 +408,7 @@ The feature importances of the x-data columns are given in Figure \ref{fig:featu
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.5]{Plot1_featureimportance.pdf}
-	\caption{The feature importance of the 5 x-data columns.}	
+	\caption{The feature importance of the 5 X-data columns.}	
 	\label{fig:feature}
 \end{figure}
 

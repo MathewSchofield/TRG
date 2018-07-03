@@ -104,10 +104,6 @@ class DetTest(object):
         # print np.median(self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)])  # the median power in the envelope around d
         med = [np.median(self.ds.power[np.abs(self.ds.freq - d) < self.set_width(d, factor=1)]) for d in self.ds.freq[::skips]]
 
-        print np.shape(self.ds.freq)
-        print np.shape(med)
-        sys.exit()
-
         # interpolate between skipped freqs in self.ds.freqs using the moving median
         f = interpolate.interp1d(self.ds.freq[::skips], med, bounds_error=False)
         self.bkg = f(self.ds.freq)
@@ -591,6 +587,11 @@ if __name__ == "__main__":
         """ Loop through the timeseries files. 1 file (1 star) per iteration.
         Within each iteration (i.e each star), perturb the stellar magnitude 'x' times """
 
+        # if fdir != '/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/kplr10847321_llc_concat.dat':
+        #    continue
+        # print fdir
+
+
         sat = 'Kepler'
         #sat = 'TESS'
 
@@ -598,20 +599,29 @@ if __name__ == "__main__":
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
+        # print mag
+        # print info['kic_kepmag']
+        #print epic[i], ds.epic
+        #sys.exit()
+
 
         """ Conditions to skip this star """
         if len(info) == 0:
             """ No APOKASC information given in 'params' file """
-            #print 'No APOKASC info for KIC', ds.epic, info
+            print 'No APOKASC info for KIC', ds.epic, info
             continue
+
+        #print [ID for ID in modes if ds.epic in ID]
 
         if [ID for ID in modes if ds.epic in ID] == []:
             """ No fitted mode file given for this star (in 'modes'), so it cannot be analysed. """
-            #print 'No fitted mode file for KIC', ds.epic
+            print 'No fitted mode file for KIC', ds.epic
             continue
+        #sys.exit()
 
         if len(mag) == 0:
             """ no magnitude values available for the star """
+            print 'No magnitudes for KIC', ds.epic
             continue
 
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
@@ -620,6 +630,7 @@ if __name__ == "__main__":
 
         if len(ds.mode_id) == 0:
             """ length of mode id file is 0 for KIC """
+            print 'no fitted modes available for KIC', ds.epix
             continue
         """ Conditions to skip this star """
 
@@ -667,7 +678,7 @@ if __name__ == "__main__":
             #star.Info2Save()
             #star.Diagnostic_plot1()
             #star.Diagnostic_plot2()
-            star.Diagnostic_plot3()
+            #star.Diagnostic_plot3()
             #star.plot4()
             #sys.exit()
 

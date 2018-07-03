@@ -114,7 +114,7 @@ class Machine_Learning(object):
             both.to_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC_plx.csv', index=False)
             sys.exit()
 
-    def loadData(self, add_logg=True, add_parallax=True, clas=True):
+    def loadData(self, v=False, add_logg=True, add_parallax=True, clas=True):
         """ 1.  Load the X and Y data for the Kepler or TESS sample (Note: Kepler
                 file does not have a 'Tobs' time in the filename.)
             2.  Remove rows where all values are zero.
@@ -129,7 +129,10 @@ class Machine_Learning(object):
         else:
             self.xy = pd.read_csv(self.data_loc + '_' + self.sat + '_XY.csv')
 
+        if v:  print self.xy.shape
+
         self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
+        if v:  print self.xy.shape
 
         if clas:
             evo = pd.read_csv(clas_floc, sep='\s+')
@@ -140,6 +143,7 @@ class Machine_Learning(object):
                 left_on='KIC', right_on='KIC_number', how='inner')
             # print self.xy.shape, list(self.xy)
             #print self.xy[['KIC', 'KIC_number', 'Classification']]
+        if v:  print self.xy.shape
 
         if add_logg:
             pins = pd.read_csv(pins_floc, sep=';')
@@ -147,6 +151,7 @@ class Machine_Learning(object):
                             left_on='KIC', right_on='KIC', how='inner')
             self.xy = self.xy[self.xy['log.g1'] != '         ']  # remove rows without log(g) values
             self.xy[['log.g1', 'log.g2']] = self.xy[['log.g1', 'log.g2']].apply(pd.to_numeric, errors='coerce')
+        if v:  print self.xy.shape
 
         if add_parallax:
 
@@ -160,6 +165,7 @@ class Machine_Learning(object):
             if self.plx_source == 'tgas':
                 plx = pd.read_csv(plx_floc)
                 self.xy = pd.merge(left=self.xy, right=plx[['kic', 'tyc', 'parallax']], left_on='KIC', right_on='kic', how='inner')
+        if v:  print self.xy.shape
 
     def pdet_bins(self, n=3, v=False, plot=False):
         """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
@@ -267,9 +273,9 @@ class Machine_Learning(object):
             print 'Accuracy:', accuracy_score(y_test, y_pred).mean(), accuracy_score(y_test, y_pred).std()
             print 'Classification report:', (classification_report(y_test, y_pred))
 
-        print 'Feature importance:', rfc.feature_importances_
         print 'Hamming loss:', hl
         print 'Precision', (p1+p2+p3)*100/3.
+        # print 'Feature importance:', rfc.feature_importances_
         # print 'Precision1:', p1
         # print 'Precision2:', p2
         # print 'Precision3:', p3
@@ -303,24 +309,47 @@ class Machine_Learning(object):
                     'Pres2','Pres3','HL']]  # save the file in this order
                 output.to_csv('ML1_results.csv', index=False)  # make the file
 
-    def random_forest_regression(self):
-        """ Perform Random Forest Regression on the X, Y data.
+    def random_forest_regression(self, test=False):
+        """ Perform Random Forest Regression on the X data (Teff, [M/H], Kp),
+            Y data (Imag) to calculate Imag for missing stars.
             RF: Random Forest
-            MRF: Multi Random Forest """
+            MRF: Multi Random Forest
 
-        params = ['numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
-                  'Vmag', 'B-V', 'V-I', 'Imag']
-        x = self.xy[params].as_matrix()
-        y = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
+            Kewargs
+            test (bool) True:  Test the algorithm to make sure it is robust.
+                        False: Use the algorithm to calculate Imags for missing stars.
+            """
 
-        test_size = 0.2  # use 30% of the data to test the algorithm (i.e 70% to train)
-        random_state = 42  # keep this constant to keep the results constant
-        max_depth = 4
+        allstars = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars.csv')
+        training = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_simbad4.csv')
 
-        x_train, x_test, y_train, y_test = train_test_split(x,
-                                                            y,
-                                                            test_size=test_size,
-                                                            random_state=random_state)
+        allstars['KIC'] = 'KIC ' + allstars['KIC'].astype(str)
+        training['KIC'] = training['KIC'].str.strip().str.rstrip()
+        data = pd.merge(left=allstars[['KIC', 'kic_kepmag', 'Teff', '[M/H]2']], right=training[['KIC', 'Imag']], left_on='KIC', right_on='KIC', how='left')
+
+
+        if test == True:
+            """ Only use stars that have Kp and Imag values for the training
+            and testing sets. """
+            subset = (data['Imag']==data['Imag'])
+        elif test == False:
+            """ The training set are all stars with Kp and Imag values.
+            The testing set are the stars without Imag values. """
+            subset = (data==data)
+
+        x = data[['Teff', '[M/H]2', 'kic_kepmag']][subset].as_matrix()
+        y = data[['Imag']][subset].as_matrix()
+
+
+        if test == True:
+            x_train, x_test, y_train, y_test = train_test_split(x, y,
+                test_size=0.1, random_state=42)
+        elif test == False:
+            x_train = x[(data['Imag']==data['Imag']).as_matrix()]
+            y_train = y[(data['Imag']==data['Imag']).as_matrix()]
+            x_test  = x[(data['Imag']!=data['Imag']).as_matrix()]
+            y_test  = y[(data['Imag']!=data['Imag']).as_matrix()]
+
 
         print 'x training/testing set: ', np.shape(x_train), '/', np.shape(x_test)
         print 'y training/testing set: ', np.shape(y_train), '/', np.shape(y_test)
@@ -329,21 +358,22 @@ class Machine_Learning(object):
         # 1. make an instance of the RF algorithm called 'regr_rf'
         # 2. train it on the training dataset
         # 3. make predcitions about new y data
-        regr_rf = RandomForestRegressor(max_depth=max_depth, random_state=random_state)
+        regr_rf = RandomForestRegressor(random_state=42, max_depth=3,
+            n_estimators=4, min_weight_fraction_leaf=0.01)
         regr_rf.fit(x_train, y_train)  # create the RF algorithm
         y_rf = regr_rf.predict(x_test)  # predict on new data with RF
-        rf_test = regr_rf.score(x_test, y_test)  # how well has RF done:
-        print 'RF Test: ', rf_test
+        #rf_test = regr_rf.score(x_test, y_test)  # how well has RF done:
+        #print 'RF Test: ', rf_test
+
 
         # 1. make an instance of the MRF algorithm called 'regr_multirf'
         # 2. train it on the training dataset
         # 3. make predcitions about new y data
-        regr_multirf = MultiOutputRegressor(RandomForestRegressor(max_depth=max_depth,
-                                                                 random_state=random_state))
-        regr_multirf.fit(x_train, y_train)  # create the MRF algorithm
-        y_multirf = regr_multirf.predict(x_test)  # predict on new data with MRF
-        multirf_test = regr_multirf.score(x_test, y_test)  # how well has MRF done?
-        print 'MRF Test:', rf_test
+        # regr_multirf = MultiOutputRegressor(RandomForestRegressor(random_state=42))
+        # regr_multirf.fit(x_train, y_train)  # create the MRF algorithm
+        # y_multirf = regr_multirf.predict(x_test)  # predict on new data with MRF
+        # multirf_test = regr_multirf.score(x_test, y_test)  # how well has MRF done?
+        # print 'MRF Test:', rf_test
 
     def Plot1(self):
         """ Make of a plot of the Feature Importance.
@@ -369,16 +399,30 @@ class Machine_Learning(object):
         plt.show()
         fig.savefig('Plot1_featureimportance.pdf')
 
+    def Plot2(self):
+        """ Find a relationship between Kp and Imag, so that measured Imags
+        are not needed. This will increase the number of datasets available. """
+
+        plt.rc('font', size=14)
+        fig, ax = plt.subplots()
+        plt.hist(self.xy['kic_kepmag']-self.xy['Imag'], bins=50, color="lightblue")
+        plt.xlabel(r'$K_{p} - I_{\rm mag}$')
+        plt.ylabel('Number of Stars')
+        plt.show()
+        fig.savefig('Plot2_KpImag.pdf')
+
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=365, plx_source='dr2')
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='Kepler', Tobs=365,
+                          plx_source='dr2')
     #ml.get_parallaxes()
     ml.loadData()
     ml.pdet_bins()
-    ml.random_forest_classifier()
-    ml.Plot1()
-
+    #ml.random_forest_classifier()
+    ml.random_forest_regression()
+    #ml.Plot1()
+    #ml.Plot2()
 
 
 
