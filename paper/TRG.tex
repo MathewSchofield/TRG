@@ -149,7 +149,29 @@ The \kep and TESS noise models were used as the PDFs to draw stellar magnitudes 
 
 
 \section{imputing Imag values}
-discuss how machine learning random forest regression is used to get imag values for missing stars from kp, metallicity and teff.
+
+741 of the 1000 \kep stars have measured \imag values \citep{hog_tycho-2_2000}. \imag is needed for every star to calculate the TESS shot noise level. In order to keep the remaining stars, the \imag values were imputed.
+
+discuss how machine learning random forest regression is used to get imag values for missing stars from kp, metallicity and teff. score: 0.50. train/test split 70/30.
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.6]{Plot3_Imag_tested_distribution}
+	\caption{.}	
+	\label{fig:imag test}
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.6]{Plot3_Imag_trained_distribution}
+	\caption{.}	
+	\label{fig:imag train}
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.6]{Plot3_Kp_distribution}
+	\caption{The 4-year long Power Spectra of KIC 10587122 is plotted in blue. Overplotted is the 27-day time segment with most coverage (the period with fewest gaps in the data). Reducing the length of observation this drastically will badly hamper mode detectability.}	
+	\label{fig:kp}
+\end{figure}
+
 
 
 \section{Modifying Kepler data to look like TESS}

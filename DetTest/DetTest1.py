@@ -519,6 +519,8 @@ class data_for_ML(object):
 
         headers = ['KIC', 'numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
                    'Vmag', 'B-V', 'V-I', 'Imag', 'Pdet1', 'Pdet2', 'Pdet3']
+        headers = ['KIC', 'numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag',
+                   'Imag', 'Pdet1', 'Pdet2', 'Pdet3']
 
         #print info, mag
 
@@ -532,7 +534,7 @@ class data_for_ML(object):
         # NOTE: Get X data.
         info['Dnu'] = self.dnu  # replace dnu values with the value from average_dnu()
         x_data[x*i+j, 0:6]  = info[headers[0:6]].as_matrix()
-        x_data[x*i+j, 6:11] = mag[headers[6:11]].as_matrix()
+        x_data[x*i+j, 6] = info[headers[6]].as_matrix()
 
 
         # NOTE: Get Y data.
@@ -587,56 +589,42 @@ if __name__ == "__main__":
         """ Loop through the timeseries files. 1 file (1 star) per iteration.
         Within each iteration (i.e each star), perturb the stellar magnitude 'x' times """
 
-        # if fdir != '/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/kplr10847321_llc_concat.dat':
-        #    continue
-        # print fdir
-
-
         sat = 'Kepler'
         #sat = 'TESS'
 
         ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
-        mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
-
-        # print mag
-        # print info['kic_kepmag']
-        #print epic[i], ds.epic
-        #sys.exit()
+        #mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
 
         """ Conditions to skip this star """
         if len(info) == 0:
             """ No APOKASC information given in 'params' file """
-            print 'No APOKASC info for KIC', ds.epic, info
+            #print 'No APOKASC info for KIC', ds.epic#, info
             continue
-
-        #print [ID for ID in modes if ds.epic in ID]
 
         if [ID for ID in modes if ds.epic in ID] == []:
             """ No fitted mode file given for this star (in 'modes'), so it cannot be analysed. """
-            print 'No fitted mode file for KIC', ds.epic
+            #print 'No fitted mode file for KIC', ds.epic
             continue
-        #sys.exit()
 
-        if len(mag) == 0:
-            """ no magnitude values available for the star """
-            print 'No magnitudes for KIC', ds.epic
-            continue
+        # if len(mag) == 0:
+        #     """ no magnitude values available for the star """
+        #     print 'No magnitudes for KIC', ds.epic
+        #     continue
 
         IDfile = [ID for ID in modes if ds.epic in ID][0]  # mode ID file loc
         ds.get_modes(IDfile)
-        #print epic[i]
 
         if len(ds.mode_id) == 0:
             """ length of mode id file is 0 for KIC """
-            print 'no fitted modes available for KIC', ds.epix
+            #print 'no fitted modes available for KIC', ds.epic
             continue
         """ Conditions to skip this star """
 
 
 
-        x = 1  # number of iterations to loop through every star (number of different magnitudes per star)
+        x = 100  # number of iterations to loop through every star (number of different magnitudes per star)
         if sat == 'Kepler':
             pdf_range = [12., 20., 100]  # range of Kp magnitudes for the PDF
         elif sat == 'TESS':
@@ -652,13 +640,13 @@ if __name__ == "__main__":
                 detection probability. Do this x times per star. Save 1 row per
                 perturbed magnitude in save_xy() (each star has x rows). """
 
-            # diff = rand_mags[j]-float(mag['Imag'])  # change magnitudes for this iteration
+            diff = rand_mags[j]-float(info['Imag'])  # change magnitudes for this iteration
+            info[['kic_kepmag', 'Imag']] += diff
             # mag[['Imag', 'Vmag', 'Bmag']] += diff
-            # info['kic_kepmag'] += diff
 
 
             if ds.sat == 'Kepler':  # make the original Kepler PS
-                #info['kic_kepmag'] = rand_mags[j]  # change the magnitude for this iteration
+                info['kic_kepmag'] = rand_mags[j]  # change the magnitude for this iteration
                 ds.ts()
                 ds.Periodogram()
                 ds.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
@@ -682,10 +670,10 @@ if __name__ == "__main__":
             #star.plot4()
             #sys.exit()
 
-            #output = data_for_ML(star)  # save X, Y data for Machine Learning
+            output = data_for_ML(star)  # save X, Y data for Machine Learning
             #output.fit_amplitudes()  # fit Gaussian to modes to get numax
-            #output.average_dnu()  # get dnu value from mode frequencies (only once per star)
-            #output.save_xy()
+            output.average_dnu()  # get dnu value from mode frequencies (only once per star)
+            output.save_xy()
 
 
     stop = timeit.default_timer()
