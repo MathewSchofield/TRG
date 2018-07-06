@@ -517,8 +517,8 @@ class data_for_ML(object):
         """
 
 
-        headers = ['KIC', 'numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
-                   'Vmag', 'B-V', 'V-I', 'Imag', 'Pdet1', 'Pdet2', 'Pdet3']
+        # headers = ['KIC', 'numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
+        #            'Vmag', 'B-V', 'V-I', 'Imag', 'Pdet1', 'Pdet2', 'Pdet3']
         headers = ['KIC', 'numax', 'Dnu', 'Teff', '[M/H]2', 'kic_kepmag',
                    'Imag', 'Pdet1', 'Pdet2', 'Pdet3']
 
@@ -527,8 +527,9 @@ class data_for_ML(object):
         if x*i+j == 0:
             """ On the first iteration, make the X and Y data arrays. """
             global x_data, y_data
-            x_data = np.zeros((len(params)*x, 11))
+            x_data = np.zeros((len(params)*x, 7))
             y_data = np.zeros((len(params)*x, n))
+
 
 
         # NOTE: Get X data.
@@ -550,7 +551,7 @@ class data_for_ML(object):
         if v:  print float(info['numax']), diff, '\n'
 
         # step 3: take the 'n' modes closest to numax, sorted from highest to lowest SNR value
-        # make sure that the mode closest to numax is at the centre of
+        # make sure that the mode closest to numax is at the centre
         idx = np.argpartition(diff, n-1)[:n]
         if v:  print idx
         if v:  print ds.mode_id['f0'].as_matrix()[idx]
@@ -572,6 +573,8 @@ class data_for_ML(object):
             """ After the last star has been processed, save data for all stars. """
 
             d = np.concatenate((x_data, y_data), axis=1)  # put the x and y data into 1 array
+            print d.shape, y_data.shape, x_data.shape
+
             xy = pd.DataFrame(d, columns=headers)  # put x and y data into dataframe
 
             if ds.sat == 'Kepler':
@@ -590,9 +593,9 @@ if __name__ == "__main__":
         Within each iteration (i.e each star), perturb the stellar magnitude 'x' times """
 
         sat = 'Kepler'
-        #sat = 'TESS'
+        sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         #mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
@@ -653,8 +656,8 @@ if __name__ == "__main__":
                 ds.PS_add_noise()  # add noise to the power spectrum
 
             elif ds.sat == 'TESS':  # transform the Kepler PS into TESS PS
-                ds.TESS_noise(imag=mag['Imag'].as_matrix(), exptime=30.*60.,\
-                   teff=info['Teff'].as_matrix(), e_lat=mag['e_lat'].as_matrix(),
+                ds.TESS_noise(imag=info['Imag'].as_matrix(), exptime=30.*60.,\
+                   teff=info['Teff'].as_matrix(), e_lat=info['e_lat'].as_matrix(),
                    sys_limit=0)  # exptime in seconds. noise in ppm
                 ds.timeseries(plot_ts=False, plot_ps=False)
 

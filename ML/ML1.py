@@ -350,7 +350,7 @@ class Machine_Learning(object):
         allstars['KIC'] = 'KIC ' + allstars['KIC'].astype(str)
         training['KIC'] = training['KIC'].str.strip().str.rstrip()
         self.data = pd.merge(left=allstars[['KIC', 'numax', 'dnu', 'Teff', '[M/H]2', 'kic_kepmag']],
-            right=training[['KIC', 'Imag']], left_on='KIC', right_on='KIC', how='left')
+            right=training[['KIC', 'Imag', 'e_lng', 'e_lat']], left_on='KIC', right_on='KIC', how='left')
 
 
         if test == True:
@@ -396,8 +396,10 @@ class Machine_Learning(object):
         self.y_train = y_train
         self.test = test
 
+
         if test == False:
             """ Save the predicted Imags for the stars without them. """
+            #print 'dont save'; sys.exit()
             self.data['Imag'][(self.data['Imag']!=self.data['Imag'])] = y_rf
             self.data['KIC'] = self.data['KIC'].apply(lambda x: x.split(' ')[1])
             self.data.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_2.csv', index=False)
