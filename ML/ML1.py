@@ -13,6 +13,7 @@ import numpy as np
 import os
 import sys
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 TRG = os.getcwd().split('ML')[0]
 sys.path.insert(0, TRG)
@@ -333,7 +334,7 @@ class Machine_Learning(object):
                     'Pres2','Pres3','HL']]  # save the file in this order
                 output.to_csv('ML1_results.csv', index=False)  # make the file
 
-    def random_forest_regression(self, test=False):
+    def random_forest_regression(self, test=True):
         """ Perform Random Forest Regression on the X data (Teff, [M/H], Kp),
             Y data (Imag) to calculate Imag for missing stars.
             RF: Random Forest
@@ -368,7 +369,7 @@ class Machine_Learning(object):
 
         if test == True:
             x_train, x_test, y_train, y_test = train_test_split(x, y,
-                test_size=0.3, random_state=42)
+                test_size=0.8, random_state=42)
         elif test == False:
             x_train = x[(self.data['Imag']==self.data['Imag']).as_matrix()]
             y_train = y[(self.data['Imag']==self.data['Imag']).as_matrix()]
@@ -391,6 +392,9 @@ class Machine_Learning(object):
             rf_test = regr_rf.score(x_test, y_test)
             print 'RF Test: ', rf_test
             self.y_test = y_test
+
+        print 'mean:', np.mean(self.y_test[:,0]-y_rf)
+        print 'sd:', np.std(self.y_test[:,0]-y_rf)
 
         self.y_rf = y_rf
         self.y_train = y_train
@@ -450,8 +454,8 @@ class Machine_Learning(object):
         fig.savefig('Plot2_KpImag.pdf')
 
     def Plot3(self, plot='Imag'):
-        """ Compare the predicted Imags from random_forest_regression() with the
-        known values. """
+        """ Plot a histogram to compare the predicted Imags from
+        random_forest_regression() with the known values. """
 
         plt.rc('font', size=14)
         fig, ax = plt.subplots()
@@ -487,9 +491,37 @@ class Machine_Learning(object):
         plt.show()
         fig.savefig('Plot3_%s_distribution.pdf' % plot)
 
+    def Plot4(self):
+        """ Make a scatter plot of the difference between true and predicted
+        Imag values for the test sample. """
+
+        fig = plt.figure()#figsize=(14, 16))
+        plt.rc('font', size=14)
+        G = gridspec.GridSpec(2, 2, width_ratios=(4,1))
+        line = np.linspace(8, 13, 100)
+
+        ax1 = plt.subplot2grid((2, 2), (0, 0), colspan=2)
+        ax1.scatter(self.y_test[:,0], self.y_rf)
+        ax1.plot(line, line, c='k')
+        ax1.set_ylabel(r'Pred. $I_{\rm mag}$ / mag')
+
+        ax2 = plt.subplot(G[1, 0])
+        ax2.scatter(self.y_test[:,0], self.y_test[:,0]-self.y_rf)
+        ax2.plot(line, np.zeros(100), c='k')
+        ax2.set_xlabel(r'True $I_{\rm mag}$ / mag')
+        ax2.set_ylabel(r'True-Pred. $I_{\rm mag}$ / mag')
+
+        ax3 = plt.subplot(G[1, 1])
+        import seaborn as sns
+        sns.kdeplot(self.y_test[:,0]-self.y_rf, shade=True, vertical=True, \
+                    ax=ax3, bw=0.4)
+        plt.show()
+        fig.savefig('Plot4_Imag_scatter.pdf')
+
+
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='Kepler', Tobs=365,
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=27,
                           plx_source='dr2')
     #ml.get_parallaxes()
     #ml.loadData()
@@ -499,7 +531,7 @@ if __name__ == '__main__':
     #ml.Plot1()
     #ml.Plot2()
     #ml.Plot3()
-
+    ml.Plot4()
 
 
 

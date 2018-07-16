@@ -52,7 +52,7 @@ $^{2}$Stellar Astrophysics Centre (SAC), Department of Physics and Astronomy, Aa
 \begin{abstract}
 For the first time. a classifier was used as a way to select solar-like asteroseismic targets before a future mission. The classifier managed to identify the detectable solar-like oscillations inside \kep Red Giants with a 0.98\% precision. To do this, it used only the global parameters \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}.
 
-The same classifier was also used on the \kep stars after they had been degraded into TESS-like observations. The classifier scored 0.87\% and 0.74\% when made to look like 1-year and 27-days of TESS-like data, respectively. This classifier could be used to select asteroseismic targets for TESS in the Continuous Viewing Zone \citep{ricker_transiting_2014}, and as a way of investigating any target selection bias in previous missions such as K2 and CoRoT.
+The same classifier was also used on the \kep stars after they had been degraded into TESS-like observations. The classifier scored 0.90\% and 0.81\% when made to look like 1-year and 27-days of TESS-like data, respectively. This classifier could be used to select asteroseismic targets for TESS in the Continuous Viewing Zone \citep{ricker_transiting_2014}, and as a way of investigating any target selection bias in previous missions such as K2 and CoRoT.
 \end{abstract}
 
 
@@ -100,7 +100,7 @@ Firstly, Section \ref{sect: dataset} describes how the size of the datasets were
 
 Lastly, Section \ref{sect: classifier} illustrates how the stars were classified. The stars were put into a group with detected modes, and a group without. This was done by giving a supervised classifier photometric and spectroscopic information on every target from APOKASC \citep{pinsonneault_apokasc_2014}. 70\% of the stars were used to train the classifier; 30\% of the sample was kept to test the algorithm. The classifier was given global asteroseismic and spectroscopic information, as well as mode detection probabilities of the stars in the training set. It then made predictions about mode detectability on the testing set.
 
-The classifier recognised patterns between the variables in the training set, and successfully made predictions about mode detectability with a 0.98\% precision for the original \kep data. It achieved a precision of 0.87 for 1 year of TESS-like observation, and 0.74 for 27 days of TESS-like observation.
+The classifier recognised patterns between the variables in the training set, and successfully made predictions about mode detectability with a 0.98\% precision for the original \kep data. It achieved a precision of 0.90 for 1 year of TESS-like observation, and 0.81 for 27 days of TESS-like observation.
 \fi
 
 
@@ -110,7 +110,7 @@ The classifier recognised patterns between the variables in the training set, an
 The data to perform Machine Learning on are the 1000 \kep Red Giants from Davies et al. (in prep). These are shown in Figure \ref{fig:dataset}.
 \begin{figure}
 	\centering
-	\includegraphics[scale=0.6]{Plot1_HR.pdf}
+	\includegraphics[scale=0.5]{Plot1_HR.pdf}
 	\caption{The 1000 \kep Red Giants from Davies et al. (in prep). The colourbar shows the relative density of points with Kernel Density Estimation. The evolutionary tracks range from 0.9-1.5\msol.}	
 	\label{fig:dataset}
 \end{figure}
@@ -155,23 +155,31 @@ The \kep and TESS noise models were used as the PDFs to draw stellar magnitudes 
 discuss how machine learning random forest regression is used to get imag values for missing stars from kp, metallicity and teff. score: 0.50. train/test split 70/30.
 \begin{figure}
 	\centering
-	\includegraphics[scale=0.6]{Plot3_Imag_tested_distribution}
+	\includegraphics[scale=0.5]{Plot3_Imag_tested_distribution}
 	\caption{.}	
 	\label{fig:imag test}
 \end{figure}
 \begin{figure}
 	\centering
-	\includegraphics[scale=0.6]{Plot3_Imag_trained_distribution}
+	\includegraphics[scale=0.5]{Plot4_Imag_scatter}
+	\caption{mean=-0.03 mag, sd=0.4mag.}	
+	\label{fig:imag test}
+\end{figure}
+
+\iffalse
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.5]{Plot3_Imag_trained_distribution}
 	\caption{.}	
 	\label{fig:imag train}
 \end{figure}
 \begin{figure}
 	\centering
-	\includegraphics[scale=0.6]{Plot3_Kp_distribution}
-	\caption{The 4-year long Power Spectra of KIC 10587122 is plotted in blue. Overplotted is the 27-day time segment with most coverage (the period with fewest gaps in the data). Reducing the length of observation this drastically will badly hamper mode detectability.}	
+	\includegraphics[scale=0.5]{Plot3_Kp_distribution}
+	\caption{.}	
 	\label{fig:kp}
 \end{figure}
-
+\fi
 
 
 \section{Modifying Kepler data to look like TESS}
@@ -268,7 +276,7 @@ from \citet{mosser_characterization_2012}. The moving median provided an estimat
 Once the SNR spectrum for the star was recovered, the SNR values at the mode frequencies were extracted. To ensure the correct SNR values of every mode were used, a window was fitted around each peak-bagged mode frequency from Davies et al. (in prep). The size of the window was given as the linewidth of the mode. The highest value in the window was taken as the SNR of the mode. An example of this for KIC 10587122 is shown in Figure \ref{snr}.
 \begin{figure}
 	\centering
-	\includegraphics[scale=0.6]{plot4_SNR10587122.pdf}
+	\includegraphics[scale=0.5]{plot4_SNR10587122.pdf}
 	\caption{The SNR spectrum of KIC 10587122 after background subtraction. The SNR values of the radial modes in the star were extracted from this spectrum. The highest SNR value within the linewidth of each mode is taken to be the SNR value of that mode. The mode linewidths are shown as blue lines. The values of every mode in the original Kepler spectrum are plotted as blue points. The overplotted orange points are the SNR values after degrading the signal to 1 year of TESS observation. Similarly, the green points are the SNR values of 27 days of TESS observations. The white noise level and reduced observation time severely reduce the SNR of TESS observations compared to \kep.}	
 	\label{snr}
 \end{figure}
@@ -404,8 +412,8 @@ A Hamming loss score of 0.0 means that Y$_{\rm pred}$ is identical to Y$_{\rm te
 Satellite & \tobs   & Precision & Hamming loss \\
 \hline
 \kep      & 4 years & 0.98      & 0.02         \\
-TESS      & 1 year  & 0.87      & 0.12         \\
-TESS      & 27 days & 0.74      & 0.26         \\
+TESS      & 1 year  & 0.90      & 0.09         \\
+TESS      & 27 days & 0.81      & 0.19         \\
 \end{tabular}
 \end{center}
 \caption{Results of the classifier on the original \kep dataset, and the 1-year and 27-day TESS datasets. The 'Precision' column gives the average weighted precision of the classifier across the 3 classes [0, 1, 2] and 3 features [\pdet(1), \pdet(2), \pdet(3)].}
@@ -509,9 +517,9 @@ The classifier used the global stellar parameters (the X-data) to make predictio
 
 The classifier successfully made predictions about the original 4 years of Kepler data; the algorithm had a weighted precision 0.98 across the 3 \pdet features. This confirms the proof of concept that classifiers can be used as a way to select solar-like asteroseismic targets before future missions. As well as this, this shows that it can be used to investigate any possible target selection bias, for example in K2 or CoRoT. Classification vastly reduces the computation time required to produce a target selection function, especially when large datasets are involved ($\geq50,000$ stars).  
 
-Degrading the Red Giant data to make predictions for 1 year of TESS observations was also successful. The predicted mode detections scored a weighted precision of 0.87 across the 3 \pdet features. This illustrates that Classification is a valid target selection method for TESS targets in the Continuous Viewing Zone (CVZ, \citep{ricker_transiting_2014}).
+Degrading the Red Giant data to make predictions for 1 year of TESS observations was also successful. The predicted mode detections scored a weighted precision of 0.90 across the 3 \pdet features. This illustrates that Classification is a valid target selection method for TESS targets in the Continuous Viewing Zone (CVZ, \citep{ricker_transiting_2014}).
 
-Using the classifier on 27 days of TESS data returned detection predictions with a precision of 0.74. This is too low for the classifier to be used to select solar-like oscillators for 27 days of TESS observation. The precision is lower when stars are observed by TESS for 27 days because the white noise level is too high and the length of observation is too short to make robust predictions of individual solar-like oscillations. It may be that individual solar-like oscillations cannot be detected in 27 days of TESS data. If this is the case, then the classifier should not be expected to make robust detection predictions for these stars.
+Using the classifier on 27 days of TESS data returned detection predictions with a precision of 0.81. This is too low for the classifier to be used to select solar-like oscillators for 27 days of TESS observation. The precision is lower when stars are observed by TESS for 27 days because the white noise level is too high and the length of observation is too short to make robust predictions of individual solar-like oscillations. It may be that individual solar-like oscillations cannot be detected in 27 days of TESS data. If this is the case, then the classifier should not be expected to make robust detection predictions for these stars.
 
 %It is important to note that there are two sources of noise to consider with this \kep dataset. white noise from equations \ref{eq:kep noise} and \ref{eq:tess noise} and stellar granulation noise. Each star in the dataset has one timeseries with one set of fitted modes available. One realisation of the star. This gives only one value of the stellar shot noise. This is not an issue with 4 years fo Kepler data (where modes are easily detectable). It is also not an issue for 27 days of TESS, when white noise has a much bigger impact on mode detectability. In order to test if this is a significant factor for 1 year of TESS data...
 
