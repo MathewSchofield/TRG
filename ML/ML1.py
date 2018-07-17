@@ -42,6 +42,60 @@ class Machine_Learning(object):
         self.Tobs = Tobs
         self.plx_source = plx_source
 
+    def JHKtoI(self):
+        """ Convert from Jmag, Hmag and Kmag to Imag for the entire KIC. Use this
+        to train data in random_forest_regression() to predict Imag for
+        remaining stars.
+
+        1. From Bilir+ (2008) eqn 17 & table 7: use J, H and Kmag to get (R-I)
+
+        2. From Jordi+ (2006) eqn 8 & table 3: use (R-I) to get i-Imag
+
+        3. Imag = -(i-Imag)+i
+        """
+
+        kic = pd.read_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC.tsv', nrows=50000, sep=';')
+        #kic = pd.read_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC_top10k.csv', sep=',')
+
+        # NOTE: remove rows without imag values
+        print kic.shape
+        kic['imag'].replace('         ', np.nan, inplace=True)
+        kic['imag'].replace('        ', np.nan, inplace=True)
+        kic['imag'].replace('       ', np.nan, inplace=True)
+        kic['imag'].replace('      ', np.nan, inplace=True)
+        kic['imag'].replace('     ', np.nan, inplace=True)
+        kic['imag'].replace('    ', np.nan, inplace=True)
+        kic['imag'].replace('   ', np.nan, inplace=True)
+        kic['imag'].replace('  ', np.nan, inplace=True)
+        kic['imag'].replace(' ', np.nan, inplace=True)
+        kic['imag'].replace('', np.nan, inplace=True)
+        kic.dropna(axis=0, subset=['imag'], inplace=True)
+
+        kic['Jmag'] = kic['Jmag'].map(lambda x: float(x))
+        kic['Hmag'] = kic['Hmag'].map(lambda x: float(x))
+        kic['Kmag'] = kic['Kmag'].map(lambda x: float(x))
+        kic['imag'] = kic['imag'].map(lambda x: float(x))
+
+
+        kic['J-H'] = kic['Jmag'] - kic['Hmag']
+        kic['H-K'] = kic['Hmag'] - kic['Kmag']
+        kic['R-I'] = 0.0  # overwrite these values
+
+        c1 = (kic['[Fe/H]']>-0.4)
+        c2 = ((kic['[Fe/H]']>-1.2) & (kic['[Fe/H]']<=-0.4))
+        c3 = ((kic['[Fe/H]']>-3.0) & (kic['[Fe/H]']<=-1.2))
+
+        kic['R-I'][c1] = 1.027*kic['J-H'][c1] + 0.658*kic['H-K'][c1] + -0.003
+        kic['R-I'][c2] = 0.521*kic['J-H'][c2] + 0.311*kic['H-K'][c2] + 0.179
+        kic['R-I'][c3] = 0.608*kic['J-H'][c3] + 0.322*kic['H-K'][c3] + 0.172
+        kic = kic[kic['R-I']!=0.0]  # remove rows outside of metallicity range
+
+        kic['i-I'] = 0.247*kic['R-I'] + 0.329
+
+        kic['Imag'] = -kic['i-I'] + kic['imag']
+        kic.to_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC_top50k_withImag.csv', index=False)
+        print kic.shape
+
     def get_parallaxes(self):
         """ Get parallaxes for the 1000 stars from 'tgas' or 'dr2'. """
 
@@ -334,7 +388,7 @@ class Machine_Learning(object):
                     'Pres2','Pres3','HL']]  # save the file in this order
                 output.to_csv('ML1_results.csv', index=False)  # make the file
 
-    def random_forest_regression(self, test=True):
+    def random_forest_regression(self, test=False, dataset='50kstars'):
         """ Perform Random Forest Regression on the X data (Teff, [M/H], Kp),
             Y data (Imag) to calculate Imag for missing stars.
             RF: Random Forest
@@ -342,16 +396,60 @@ class Machine_Learning(object):
 
             Kewargs
             test (bool) True:  Test the algorithm to make sure it is robust.
-                        False: Use the algorithm to calculate Imags for missing stars.
+                        False: Use the algorithm to calculate Imags for missing
+                               stars.
+            dataset (str): '1000stars' - get Imags for missing stars using
+                                         original RG sample.
+                           '50kstars'  - Train the data with 50,000 KIC stars
+                                         made in jhktoI().
             """
 
-        allstars = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars.csv')
-        training = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_simbad4.csv')
+        if dataset == '1000stars':
+            """ Use the 1000star sample to get Imags for missing stars. """
 
-        allstars['KIC'] = 'KIC ' + allstars['KIC'].astype(str)
-        training['KIC'] = training['KIC'].str.strip().str.rstrip()
-        self.data = pd.merge(left=allstars[['KIC', 'numax', 'dnu', 'Teff', '[M/H]2', 'kic_kepmag']],
-            right=training[['KIC', 'Imag', 'e_lng', 'e_lat']], left_on='KIC', right_on='KIC', how='left')
+            allstars = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars.csv')
+            training = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_simbad4.csv')
+
+            allstars['KIC'] = 'KIC ' + allstars['KIC'].astype(str)
+            training['KIC'] = training['KIC'].str.strip().str.rstrip()
+
+            self.data = pd.merge(left=allstars[['KIC', 'numax', 'dnu', 'Teff', '[M/H]2', 'kic_kepmag']],
+                right=training[['KIC', 'Imag']], left_on='KIC', right_on='KIC', how='left')
+
+        elif dataset == '50kstars':
+            """ Calculate Imag for the missing stars in the 'allstars' sample
+            using the 50k stars from the top of the KIC, prepared in jhktoI(). """
+
+            self.data = pd.read_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC_top50k_withImag.csv')
+
+            self.data['KIC'] = self.data['KIC'].map(lambda x: str(x))
+            self.data['KIC'] = self.data['KIC'].str.strip().str.rstrip()
+            self.data['kic_kepmag'] = self.data['kepmag']
+            self.data['[M/H]2'] = self.data['[Fe/H]']
+
+            print self.data.shape
+            self.data.drop(['_RAJ2000', '_DEJ2000', 'Plx', 'logg', '[Fe/H]',
+                'J-H', 'H-K', 'R-I', 'i-I', 'imag', 'Jmag', 'Hmag', 'Kmag', 'kepmag'],
+                inplace=True, axis=1)
+            print self.data.shape
+
+            if test == False:
+                """ Then include the stars without Imags. """
+                allstars = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars.csv')
+                allstars = allstars[['KIC', 'Teff', '[M/H]2', 'kic_kepmag']]
+                allstars['Imag'] = np.NaN
+                print allstars.head()
+
+                self.data = pd.concat([self.data, allstars])
+                print self.data.tail(1005)
+                print self.data.shape
+                #print list(self.data)
+                #print self.data
+
+                #sys.exit()
+
+
+
 
 
         if test == True:
@@ -365,7 +463,9 @@ class Machine_Learning(object):
 
         x = self.data[['Teff', '[M/H]2', 'kic_kepmag']][subset].as_matrix()
         y = self.data[['Imag']][subset].as_matrix()
-
+        print self.data.shape
+        print y.shape
+        #sys.exit()
 
         if test == True:
             x_train, x_test, y_train, y_test = train_test_split(x, y,
@@ -376,6 +476,8 @@ class Machine_Learning(object):
             x_test  = x[(self.data['Imag']!=self.data['Imag']).as_matrix()]
             y_test  = y[(self.data['Imag']!=self.data['Imag']).as_matrix()]
 
+        print y_test.shape
+        # sys.exit()
 
         print 'x training/testing set: ', np.shape(x_train), '/', np.shape(x_test)
         print 'y training/testing set: ', np.shape(y_train), '/', np.shape(y_test)
@@ -386,27 +488,38 @@ class Machine_Learning(object):
         # 3. make predcitions about new y self.data
         regr_rf = RandomForestRegressor(random_state=42, max_depth=3,
             n_estimators=4, min_weight_fraction_leaf=0.01)
+
+
         regr_rf.fit(x_train, y_train)  # create the RF algorithm
         y_rf = regr_rf.predict(x_test)  # predict on new self.data with RF
+
+        # print y_test.shape
+        # sys.exit()
+
         if test == True:
             rf_test = regr_rf.score(x_test, y_test)
             print 'RF Test: ', rf_test
             self.y_test = y_test
 
-        print 'mean:', np.mean(self.y_test[:,0]-y_rf)
-        print 'sd:', np.std(self.y_test[:,0]-y_rf)
+            print 'mean:', np.mean(self.y_test[:,0]-y_rf)
+            print 'sd:', np.std(self.y_test[:,0]-y_rf)
 
         self.y_rf = y_rf
         self.y_train = y_train
         self.test = test
 
 
+
         if test == False:
             """ Save the predicted Imags for the stars without them. """
             #print 'dont save'; sys.exit()
             self.data['Imag'][(self.data['Imag']!=self.data['Imag'])] = y_rf
+
+            print self.data
+            sys.exit()
+
             self.data['KIC'] = self.data['KIC'].apply(lambda x: x.split(' ')[1])
-            self.data.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_2.csv', index=False)
+            #self.data.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_2.csv', index=False)
 
         # 1. make an instance of the MRF algorithm called 'regr_multirf'
         # 2. train it on the training dataset
@@ -523,6 +636,7 @@ if __name__ == '__main__':
 
     ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=27,
                           plx_source='dr2')
+    #ml.JHKtoI()
     #ml.get_parallaxes()
     #ml.loadData()
     #ml.pdet_bins()
@@ -531,7 +645,7 @@ if __name__ == '__main__':
     #ml.Plot1()
     #ml.Plot2()
     #ml.Plot3()
-    ml.Plot4()
+    #ml.Plot4()
 
 
 
