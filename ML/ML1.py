@@ -54,22 +54,15 @@ class Machine_Learning(object):
         3. Imag = -(i-Imag)+i
         """
 
-        kic = pd.read_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC.tsv', nrows=50000, sep=';')
+        kic = pd.read_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC.tsv', nrows=4000000, sep=';')
+        #kic = pd.read_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC.tsv', sep=';')
         #kic = pd.read_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC_top10k.csv', sep=',')
 
-        # NOTE: remove rows without imag values
+        # NOTE: remove rows without imag or Jmag values
         print kic.shape
-        kic['imag'].replace('         ', np.nan, inplace=True)
-        kic['imag'].replace('        ', np.nan, inplace=True)
-        kic['imag'].replace('       ', np.nan, inplace=True)
         kic['imag'].replace('      ', np.nan, inplace=True)
-        kic['imag'].replace('     ', np.nan, inplace=True)
-        kic['imag'].replace('    ', np.nan, inplace=True)
-        kic['imag'].replace('   ', np.nan, inplace=True)
-        kic['imag'].replace('  ', np.nan, inplace=True)
-        kic['imag'].replace(' ', np.nan, inplace=True)
-        kic['imag'].replace('', np.nan, inplace=True)
-        kic.dropna(axis=0, subset=['imag'], inplace=True)
+        kic['Jmag'].replace('      ', np.nan, inplace=True)
+        kic.dropna(axis=0, subset=[['imag', 'Jmag']], inplace=True)
 
         kic['Jmag'] = kic['Jmag'].map(lambda x: float(x))
         kic['Hmag'] = kic['Hmag'].map(lambda x: float(x))
@@ -93,8 +86,55 @@ class Machine_Learning(object):
         kic['i-I'] = 0.247*kic['R-I'] + 0.329
 
         kic['Imag'] = -kic['i-I'] + kic['imag']
-        kic.to_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC_top50k_withImag.csv', index=False)
+
+        # plt.hist(kic['Imag'][kic['Imag']<=12], bins=50)
+        # plt.show()
+
+        kic.to_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC_top500k_withImag.csv', index=False)
         print kic.shape
+
+    def KDE(self):
+        """ Reduce the number of faint stars in the datasets made in JHKtoI(). """
+
+        npts = 60
+        #kde_atl = data.iloc[:25000,:]  # calculate the kde values of a small subset of the ATL
+        kde_atl = data[data['P_mix']>0.5]
+        values = np.vstack([kde_atl['teff'], kde_atl['Lum']])
+
+        t = np.linspace(4300, 7700, npts)
+        l = np.linspace(0.3, 50, npts)
+
+        kde_model = stats.gaussian_kde(values)  # the kernel
+
+        res = kde_model(values)  # the result of the kernel at these teffs and lums
+
+        # normalise the kernel values between 0 and 1
+        normfac=np.max(res)/0.99
+        resnorm=res/normfac
+        if v:  print resnorm
+
+        keep=np.zeros(len(res))
+        x = np.random.uniform(size=len(resnorm))
+        if v:  print x
+
+        cond = (x>resnorm)  # keep stars if the random variable is larger than the KDE value
+        keep[cond] = 1
+        if v:  print keep, len(keep), len(keep[keep==1])
+
+        # re-calculate the KDE using stars more evenly distributed across HR
+        um=np.where(keep)[0]
+        values2 = np.vstack([kde_atl['teff'][um], kde_atl['Lum'][um]])
+        kde_model2 = stats.gaussian_kde(values2)
+        res2 = kde_model2(values2)
+        normfac = np.max(res2)/0.99
+        resnorm2 = res2/normfac  # re-normalise the KDE values between 0 and 1
+        if v:  print len(kde_atl['teff']), len(kde_atl['teff'][keep==1]), len(kde_atl['teff'][um])
+
+        kde_atl['x']    = x
+        kde_atl['KDE1'] = resnorm
+        kde_atl['KDE2'] = -99  # write over these values for the stars where x>KDE1
+        kde_atl['KDE2'][um] = resnorm2
+        if v:  print kde_atl[['x', 'KDE1', 'KDE2']].head(10)
 
     def get_parallaxes(self):
         """ Get parallaxes for the 1000 stars from 'tgas' or 'dr2'. """
@@ -402,25 +442,34 @@ class Machine_Learning(object):
                                          original RG sample.
                            '50kstars'  - Train the data with 50,000 KIC stars
                                          made in jhktoI().
+                           '500kstars' - Train the data with 500,000 KIC stars
+                                         made in jhktoI().
             """
+
+        allstars = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars.csv')
+        training = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_simbad4.csv')
+
+        allstars['KIC'] = 'KIC ' + allstars['KIC'].astype(str)
+        training['KIC'] = training['KIC'].str.strip().str.rstrip()
+
+        allstars = pd.merge(left=allstars[['KIC', 'numax', 'dnu', 'Teff', '[M/H]2', 'kic_kepmag']],
+            right=training[['KIC', 'Imag']], left_on='KIC', right_on='KIC', how='left')
+        allstars = allstars[['KIC', 'Teff', '[M/H]2', 'kic_kepmag', 'Imag']]
+
 
         if dataset == '1000stars':
             """ Use the 1000star sample to get Imags for missing stars. """
+            self.data = allstars
+            self.data['KIC'] = self.data['KIC'].apply(lambda x: x.split(' ')[1])
 
-            allstars = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars.csv')
-            training = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_simbad4.csv')
-
-            allstars['KIC'] = 'KIC ' + allstars['KIC'].astype(str)
-            training['KIC'] = training['KIC'].str.strip().str.rstrip()
-
-            self.data = pd.merge(left=allstars[['KIC', 'numax', 'dnu', 'Teff', '[M/H]2', 'kic_kepmag']],
-                right=training[['KIC', 'Imag']], left_on='KIC', right_on='KIC', how='left')
-
-        elif dataset == '50kstars':
+        else:
             """ Calculate Imag for the missing stars in the 'allstars' sample
             using the 50k stars from the top of the KIC, prepared in jhktoI(). """
 
-            self.data = pd.read_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC_top50k_withImag.csv')
+            if dataset == '50kstars':
+                self.data = pd.read_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC_top50k_withImag.csv')
+            elif dataset == '500kstars':
+                self.data = pd.read_csv('/home/mxs191/Desktop/phd_y2/KIC/KIC_top500k_withImag.csv')
 
             self.data['KIC'] = self.data['KIC'].map(lambda x: str(x))
             self.data['KIC'] = self.data['KIC'].str.strip().str.rstrip()
@@ -433,23 +482,18 @@ class Machine_Learning(object):
                 inplace=True, axis=1)
             print self.data.shape
 
-            if test == False:
-                """ Then include the stars without Imags. """
-                allstars = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars.csv')
-                allstars = allstars[['KIC', 'Teff', '[M/H]2', 'kic_kepmag']]
-                allstars['Imag'] = np.NaN
-                print allstars.head()
+            if test == True:
+                """ When test = True, only include the 1000star sample with Imags.
+                When test = False, include ALL stars in the 1000star sample. """
+                print allstars.shape
+                allstars = allstars[allstars['Imag']==allstars['Imag']]
+                print allstars.shape
 
-                self.data = pd.concat([self.data, allstars])
-                print self.data.tail(1005)
-                print self.data.shape
-                #print list(self.data)
-                #print self.data
+            print self.data.shape
+            self.data = self.data[self.data['Imag']<=12]
+            print self.data.shape
 
-                #sys.exit()
-
-
-
+            self.data = pd.concat([self.data, allstars])
 
 
         if test == True:
@@ -463,21 +507,17 @@ class Machine_Learning(object):
 
         x = self.data[['Teff', '[M/H]2', 'kic_kepmag']][subset].as_matrix()
         y = self.data[['Imag']][subset].as_matrix()
-        print self.data.shape
-        print y.shape
-        #sys.exit()
+
 
         if test == True:
             x_train, x_test, y_train, y_test = train_test_split(x, y,
-                test_size=0.8, random_state=42)
+                test_size=0.3, random_state=42)
         elif test == False:
             x_train = x[(self.data['Imag']==self.data['Imag']).as_matrix()]
             y_train = y[(self.data['Imag']==self.data['Imag']).as_matrix()]
             x_test  = x[(self.data['Imag']!=self.data['Imag']).as_matrix()]
             y_test  = y[(self.data['Imag']!=self.data['Imag']).as_matrix()]
 
-        print y_test.shape
-        # sys.exit()
 
         print 'x training/testing set: ', np.shape(x_train), '/', np.shape(x_test)
         print 'y training/testing set: ', np.shape(y_train), '/', np.shape(y_test)
@@ -486,15 +526,13 @@ class Machine_Learning(object):
         # 1. make an instance of the RF algorithm called 'regr_rf'
         # 2. train it on the training self.dataset
         # 3. make predcitions about new y self.data
-        regr_rf = RandomForestRegressor(random_state=42, max_depth=3,
-            n_estimators=4, min_weight_fraction_leaf=0.01)
+        regr_rf = RandomForestRegressor(random_state=42, max_depth=10,
+            n_estimators=4, min_weight_fraction_leaf=0.01, oob_score=True)
 
 
         regr_rf.fit(x_train, y_train)  # create the RF algorithm
         y_rf = regr_rf.predict(x_test)  # predict on new self.data with RF
 
-        # print y_test.shape
-        # sys.exit()
 
         if test == True:
             rf_test = regr_rf.score(x_test, y_test)
@@ -507,19 +545,15 @@ class Machine_Learning(object):
         self.y_rf = y_rf
         self.y_train = y_train
         self.test = test
+        self.dataset = dataset
 
-
-
+        #print self.data.head()
+        #sys.exit()
         if test == False:
             """ Save the predicted Imags for the stars without them. """
             #print 'dont save'; sys.exit()
             self.data['Imag'][(self.data['Imag']!=self.data['Imag'])] = y_rf
-
-            print self.data
-            sys.exit()
-
-            self.data['KIC'] = self.data['KIC'].apply(lambda x: x.split(' ')[1])
-            #self.data.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_2.csv', index=False)
+            self.data.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_2.csv', index=False)
 
         # 1. make an instance of the MRF algorithm called 'regr_multirf'
         # 2. train it on the training dataset
@@ -599,10 +633,12 @@ class Machine_Learning(object):
             plt.hist(self.data['kic_kepmag'][self.data['Imag']!=self.data['Imag']], label='Predicted', color="k", histtype='step', bins=widths)
             plt.xlabel(r'$K_{p}$ / mag')
 
+        #print 'Plot3_%s_distribution_%s.pdf' % (plot, self.dataset)
+
         plt.ylabel('Number of Stars')
         plt.legend()
         plt.show()
-        fig.savefig('Plot3_%s_distribution.pdf' % plot)
+        fig.savefig('Plot3_%s_distribution_%s.pdf' % (plot, self.dataset))
 
     def Plot4(self):
         """ Make a scatter plot of the difference between true and predicted
@@ -611,7 +647,7 @@ class Machine_Learning(object):
         fig = plt.figure()#figsize=(14, 16))
         plt.rc('font', size=14)
         G = gridspec.GridSpec(2, 2, width_ratios=(4,1))
-        line = np.linspace(8, 13, 100)
+        line = np.linspace(6.5, 13, 100)
 
         ax1 = plt.subplot2grid((2, 2), (0, 0), colspan=2)
         ax1.scatter(self.y_test[:,0], self.y_rf)
@@ -629,7 +665,7 @@ class Machine_Learning(object):
         sns.kdeplot(self.y_test[:,0]-self.y_rf, shade=True, vertical=True, \
                     ax=ax3, bw=0.4)
         plt.show()
-        fig.savefig('Plot4_Imag_scatter.pdf')
+        fig.savefig('Plot4_Imag_scatter_%s.pdf' % self.dataset)
 
 
 if __name__ == '__main__':
