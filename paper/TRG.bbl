@@ -41,6 +41,17 @@ Bellinger E.~P.,  Angelou G.~C.,  Hekker S.,  Basu S.,  Ball W.~H.,
   Guggenberger E.,  2016, \mn@doi [The Astrophysical Journal]
   {10.3847/0004-637X/830/1/31}, 830, 31
 
+\bibitem[\protect\citeauthoryear{Bilir, Ak, Karaali, Cabrera-Lavers, Chonis  \&
+  Gaskell}{Bilir et~al.}{2008}]{bilir_transformations_2008}
+Bilir S.,  Ak S.,  Karaali S.,  Cabrera-Lavers A.,  Chonis T.~S.,   Gaskell
+  C.~M.,  2008, \mn@doi [Monthly Notices of the Royal Astronomical Society]
+  {10.1111/j.1365-2966.2007.12783.x}, 384, 1178
+
+\bibitem[\protect\citeauthoryear{Brown, Latham, Everett  \& Esquerdo}{Brown
+  et~al.}{2011}]{brown_kepler_2011}
+Brown T.~M.,  Latham D.~W.,  Everett M.~E.,   Esquerdo G.~A.,  2011, \mn@doi
+  [The Astronomical Journal] {10.1088/0004-6256/142/4/112}, 142, 112
+
 \bibitem[\protect\citeauthoryear{Campante et~al.,}{Campante
   et~al.}{2016}]{campante_asteroseismic_2016}
 Campante T.~L.,  et~al., 2016, preprint, 1608, arXiv:1608.01138
@@ -101,9 +112,18 @@ Hon M.,  Stello D.,   Yu J.,  2017, \mn@doi [Monthly Notices of the Royal
 Hon M.,  Stello D.,   Yu J.,  2018, \mn@doi [Monthly Notices of the Royal
   Astronomical Society] {10.1093/mnras/sty483}
 
+\bibitem[\protect\citeauthoryear{Jordi, Grebel  \& Ammon}{Jordi
+  et~al.}{2006}]{jordi_empirical_2006}
+Jordi K.,  Grebel E.~K.,   Ammon K.,  2006, \mn@doi [Astronomy and
+  Astrophysics] {10.1051/0004-6361:20066082}, 460, 339
+
 \bibitem[\protect\citeauthoryear{Kjeldsen \& Bedding}{Kjeldsen \&
   Bedding}{1995}]{kjeldsen_amplitudes_1995}
 Kjeldsen H.,  Bedding T.~R.,  1995, Astronomy and Astrophysics, 293, 87
+
+\bibitem[\protect\citeauthoryear{Kollmeier et~al.,}{Kollmeier
+  et~al.}{2017}]{kollmeier_sdss-v:_2017}
+Kollmeier J.~A.,  et~al., 2017, preprint, 1711, arXiv:1711.03234
 
 \bibitem[\protect\citeauthoryear{Lindegren et~al.,}{Lindegren
   et~al.}{2018}]{lindegren_gaia_2018}

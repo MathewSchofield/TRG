@@ -428,7 +428,7 @@ class Machine_Learning(object):
                     'Pres2','Pres3','HL']]  # save the file in this order
                 output.to_csv('ML1_results.csv', index=False)  # make the file
 
-    def random_forest_regression(self, test=False, dataset='50kstars'):
+    def random_forest_regression(self, test=True, dataset='50kstars'):
         """ Perform Random Forest Regression on the X data (Teff, [M/H], Kp),
             Y data (Imag) to calculate Imag for missing stars.
             RF: Random Forest
@@ -454,13 +454,13 @@ class Machine_Learning(object):
 
         allstars = pd.merge(left=allstars[['KIC', 'numax', 'dnu', 'Teff', '[M/H]2', 'kic_kepmag']],
             right=training[['KIC', 'Imag']], left_on='KIC', right_on='KIC', how='left')
-        allstars = allstars[['KIC', 'Teff', '[M/H]2', 'kic_kepmag', 'Imag']]
+        #allstars = allstars[['KIC', 'Teff', '[M/H]2', 'kic_kepmag', 'Imag']]
+        allstars['KIC'] = allstars['KIC'].apply(lambda x: x.split(' ')[1])
 
 
         if dataset == '1000stars':
             """ Use the 1000star sample to get Imags for missing stars. """
             self.data = allstars
-            self.data['KIC'] = self.data['KIC'].apply(lambda x: x.split(' ')[1])
 
         else:
             """ Calculate Imag for the missing stars in the 'allstars' sample
@@ -476,23 +476,19 @@ class Machine_Learning(object):
             self.data['kic_kepmag'] = self.data['kepmag']
             self.data['[M/H]2'] = self.data['[Fe/H]']
 
-            print self.data.shape
             self.data.drop(['_RAJ2000', '_DEJ2000', 'Plx', 'logg', '[Fe/H]',
                 'J-H', 'H-K', 'R-I', 'i-I', 'imag', 'Jmag', 'Hmag', 'Kmag', 'kepmag'],
                 inplace=True, axis=1)
-            print self.data.shape
+
 
             if test == True:
                 """ When test = True, only include the 1000star sample with Imags.
                 When test = False, include ALL stars in the 1000star sample. """
-                print allstars.shape
+
                 allstars = allstars[allstars['Imag']==allstars['Imag']]
-                print allstars.shape
 
-            print self.data.shape
+
             self.data = self.data[self.data['Imag']<=12]
-            print self.data.shape
-
             self.data = pd.concat([self.data, allstars])
 
 
@@ -504,7 +500,7 @@ class Machine_Learning(object):
             """ The training set are all stars with Kp and Imag values.
             The testing set are the stars without Imag values. """
             subset = (self.data==self.data)
-
+        print len(self.data)
         x = self.data[['Teff', '[M/H]2', 'kic_kepmag']][subset].as_matrix()
         y = self.data[['Imag']][subset].as_matrix()
 
@@ -547,22 +543,16 @@ class Machine_Learning(object):
         self.test = test
         self.dataset = dataset
 
-        #print self.data.head()
-        #sys.exit()
+
         if test == False:
-            """ Save the predicted Imags for the stars without them. """
+            """ Save the predicted Imags for the stars without them.
+            Only keep the original 1000 stars. """
+
             #print 'dont save'; sys.exit()
             self.data['Imag'][(self.data['Imag']!=self.data['Imag'])] = y_rf
+            self.data = pd.merge(left=allstars[['KIC']], right=self.data,
+                                 left_on=['KIC'], right_on=['KIC'], how='left')
             self.data.to_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_2.csv', index=False)
-
-        # 1. make an instance of the MRF algorithm called 'regr_multirf'
-        # 2. train it on the training dataset
-        # 3. make predcitions about new y data
-        # regr_multirf = MultiOutputRegressor(RandomForestRegressor(random_state=42))
-        # regr_multirf.fit(x_train, y_train)  # create the MRF algorithm
-        # y_multirf = regr_multirf.predict(x_test)  # predict on new data with MRF
-        # multirf_test = regr_multirf.score(x_test, y_test)  # how well has MRF done?
-        # print 'MRF Test:', rf_test
 
     def Plot1(self):
         """ Make of a plot of the Feature Importance.
@@ -632,8 +622,6 @@ class Machine_Learning(object):
             plt.hist(self.data['kic_kepmag'][self.data['Imag']==self.data['Imag']], label='Trained', bins=widths, alpha=0.5)
             plt.hist(self.data['kic_kepmag'][self.data['Imag']!=self.data['Imag']], label='Predicted', color="k", histtype='step', bins=widths)
             plt.xlabel(r'$K_{p}$ / mag')
-
-        #print 'Plot3_%s_distribution_%s.pdf' % (plot, self.dataset)
 
         plt.ylabel('Number of Stars')
         plt.legend()

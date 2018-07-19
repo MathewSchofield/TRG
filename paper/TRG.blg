@@ -7,45 +7,45 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Warning--empty booktitle in baglin_corot:_2006
 Warning--empty booktitle in thomas_galactic_2017
-You've used 32 entries,
+You've used 36 entries,
             2881 wiz_defined-function locations,
-            956 strings with 33447 characters,
-and the built_in function-call counts, 14681 in all, are:
-= -- 1313
-> -- 969
-< -- 44
-+ -- 455
-- -- 120
-* -- 1823
-:= -- 2222
+            985 strings with 35489 characters,
+and the built_in function-call counts, 16854 in all, are:
+= -- 1523
+> -- 1121
+< -- 50
++ -- 517
+- -- 146
+* -- 2087
+:= -- 2559
 add.period$ -- 0
-call.type$ -- 32
-change.case$ -- 64
-chr.to.int$ -- 32
-cite$ -- 34
-duplicate$ -- 728
-empty$ -- 732
-format.name$ -- 228
-if$ -- 2569
+call.type$ -- 36
+change.case$ -- 72
+chr.to.int$ -- 36
+cite$ -- 38
+duplicate$ -- 819
+empty$ -- 822
+format.name$ -- 264
+if$ -- 2957
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 32
-newline$ -- 109
-num.names$ -- 188
-pop$ -- 171
+missing$ -- 36
+newline$ -- 121
+num.names$ -- 216
+pop$ -- 192
 preamble$ -- 1
-purify$ -- 128
+purify$ -- 144
 quote$ -- 0
-skip$ -- 421
+skip$ -- 471
 stack$ -- 0
-substring$ -- 1001
-swap$ -- 292
-text.length$ -- 130
+substring$ -- 1193
+swap$ -- 338
+text.length$ -- 146
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 288
+type$ -- 324
 warning$ -- 2
-while$ -- 220
+while$ -- 250
 width$ -- 0
-write$ -- 332
+write$ -- 372
 (There were 2 warnings)

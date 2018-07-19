@@ -586,16 +586,16 @@ class data_for_ML(object):
 if __name__ == "__main__":
     start = timeit.default_timer()
 
-    ts, epic, params, mags, modes = getInput()
+    ts, epic, params, modes = getInput()
 
     for i, fdir in enumerate(ts):
         """ Loop through the timeseries files. 1 file (1 star) per iteration.
         Within each iteration (i.e each star), perturb the stellar magnitude 'x' times """
 
         sat = 'Kepler'
-        sat = 'TESS'
+        #sat = 'TESS'
 
-        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
+        ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=27)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         #mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 

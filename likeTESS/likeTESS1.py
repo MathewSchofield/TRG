@@ -54,12 +54,29 @@ def getInput():
     epic = [x.split('kplr')[1].split('_llc')[0] for x in ts]
     params = pd.read_csv(param_file)
     modes = glob.glob(mode_dir + '*.csv')
+    #mags = pd.read_csv(mag_file)
+
+    if run == '1000stars':
+        pos = pd.read_csv(data_dir + '1000stars_ecliptic.csv')
+        params = pd.merge(left = params, right=pos, left_on='KIC', right_on='KIC', how='inner')
+
+
+    # NOTE: get ecliptic positions for every star in 1000star sample
+    """ mag_file = data_dir + '1000stars_simbad2.csv'
     mags = pd.read_csv(mag_file)
 
-    # print mags
-    # sys.exit()
+    e_lat = mags['coord2 (GalJ2000/2000)'].apply(lambda x: x.split(' +')[0])
+    e_lng = mags['coord2 (GalJ2000/2000)'].apply(lambda x: x.split(' +')[1])
+
+    test = pd.DataFrame({'KIC':mags.index.values, 'e_lat':e_lat, 'e_lng':e_lng}).reset_index(drop=True)
+    test['KIC'] = test['KIC'].apply(lambda x: x.split(' ')[1])  # only keep KIC values
+
+    print test.head()
+    test.to_csv(data_dir + '1000stars_ecliptic.csv', index=False)
+    sys.exit() """
 
     # if Imags are not known for the stars, calculate them and save to file
+    """
     if 'Imag' not in mags.columns:
 
         mags.rename(columns={'typed ident ':'KIC', 'Mag B ':'Bmag', \
@@ -90,8 +107,9 @@ def getInput():
 
         mags[['KIC', 'Bmag', 'Vmag', 'e_lng', 'e_lat', 'B-V', 'V-I', 'Imag']].\
             to_csv(mag_file, index=False)
+    """
 
-    return ts, epic, params, mags, modes
+    return ts, epic, params, modes
 
 
 def Plot1():
