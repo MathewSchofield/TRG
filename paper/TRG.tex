@@ -114,7 +114,7 @@ The data to perform Machine Learning on are the 1000 \kep Red Giants from Davies
 	\caption{The 1000 \kep Red Giants from Davies et al. (in prep). The colourbar shows the relative density of points with Kernel Density Estimation. The evolutionary tracks range from 0.9-1.5\msol.}	
 	\label{fig:dataset}
 \end{figure}
-The radial and quadrapole modes of these stars have been fitted by Davies et al. (in prep). The frequency, height, width and background of each mode in the 1000 stars had been peak-bagged. The spectroscopic parameters of these stars (\teff, \logg, [M/H]) were available from APOKASC \citet{pinsonneault_apokasc_2014}. The apparent magnitudes are from the $Tycho$-2 catalogue \citet{hog_tycho-2_2000}. Lastly, the parallaxes are from $Gaia DR2$ \citet{lindegren_gaia_2018}.
+The radial and quadrapole modes of these stars have been fitted by Davies et al. (in prep). The frequency, height, width and background of each mode in the 1000 stars had been individually fitted. The spectroscopic parameters of these stars (\teff, \logg, [M/H]) were available from APOKASC \citet{pinsonneault_apokasc_2014}. The apparent magnitudes are from the $Tycho$-2 catalogue \citet{hog_tycho-2_2000}. Lastly, the parallaxes are from $Gaia DR2$ \citet{lindegren_gaia_2018}.
 
 Machine Learning performs best when a large dataset is available to train the algorithm on. In order to increase the size of the dataset above 1000, the magnitude of each \kep star was perturbed. Each star had its apparent magnitude perturbed 100 times. 
 
@@ -130,7 +130,7 @@ where $c$ is the number of detected electrons per cadence. It is given by
 c = 1.28 \times 10^{0.4(12-K_{p})+7} .
 \end{equation}
 
-The equivalent TESS shot noise model was taken from \citet{sullivan_transiting_2015}, \citet{campante_asteroseismic_2016}. The \texttt{RMS} noise was calculated using photon counting noise, the noise from background stars, the readout noise and the systematic noise. These four noise sources were then summed in quadrature to give the total TESS noise.
+The equivalent TESS shot noise model was taken from \citet{sullivan_transiting_2015}. The \texttt{RMS} noise was calculated using photon counting noise, the noise from background stars, the readout noise and the systematic noise. These four noise sources were then summed in quadrature to give the total TESS noise.
 
 \iffalse
 which depends on the $I_{c}-$band magnitude of the star and the number of pixels in the photometric aperture used when observing the star. This is given by
@@ -149,20 +149,24 @@ The \kep and TESS noise models were used as the PDFs to draw stellar magnitudes 
 
 
 \section{Imputing Imag values}
+\label{sect: impute}
 
 741 of the 1000 \kep stars have measured \imag values from $Tycho-2$ \citep{hog_tycho-2_2000}. \imag is needed for every star to calculate the TESS shot noise level. In order to keep the remaining stars in the dataset, the \imag values were imputed.
 
-\imag values for the missing stars were imputed using random forest regression. Like a random forest classifier, random forest regression is another example of supervised learning: there is a known label to predict (in this case, \imag). The data is separated into training and testing datasets. In classification, the data is grouped by similarity. In regression, the difference between the predicted and 'true' values is evaluated, and iteratively reduced. 
+\imag values for the missing stars were imputed using random forest regression. Like a random forest classifier, random forest regression is another example of supervised learning: in both cases there is a known label to predict (here the label is \imag). Supervised learning involves separating the data into training and testing datasets. In classification, the data is grouped by similarity. In regression, the difference between the regression model and 'true' values is evaluated, and iteratively reduced. This difference is evaluated using the Sum of Squared Errors (SSE);
+\begin{equation}
+{\rm SSE} = \sum_{i=1}^{N} (x_{i} - \bar{x})^{2}.
+\end{equation}
 
-Random forest regression was used to get the missing \imag values. This could have been done using only the 741 available $Kepler$ magnitudes. However, in order to improve the predictions made from the regression, a selection of the brighter stars in the $Kepler$ Input Catalogue (KIC; \citet{brown_kepler_2011}) was used alongside the 741 fitted Red Giants. In total, 2366 stars were used to train and test the regression.
+Random forest regression was used in this way to get the missing \imag values. This could have been done using only the 741 available \imag values of the 1000 stars. However, in order to improve the predictions made from the regression, a selection of the brighter stars in the $Kepler$ Input Catalogue (KIC; \citet{brown_kepler_2011}) were used alongside the 741 fitted Red Giants. In total, 2366 stars were used to train and test the regression.
 
-The KIC provides a variety of magnitudes, but not the 2MASS\footnote{https://www.ipac.caltech.edu/2mass/} \imag. \imag was calculated for the KIC stars using the 2MASS magnitudes $J_{\rm mag}, H_{\rm mag}, K_{\rm mag}$, and the SDSS \citep{kollmeier_sdss-v:_2017} magnitude $i_{\rm mag}$.
+The KIC provides a variety of magnitudes, but not the 2MASS\footnote{https://www.ipac.caltech.edu/2mass/} \imag. \imag was calculated for the KIC stars using the 2MASS magnitudes $J_{\rm mag}, H_{\rm mag}, K_{\rm mag}$, and the SDSS \citep{kollmeier_sdss-v:_2017} magnitude $i_{\rm mag}$. Not all of these magnitudes were available for the 259 fitted $Kepler$ stars from Davies et al. (in prep).
 
 Firstly, an equation from \citet{bilir_transformations_2008} was used to calculate $(R-I)$;
 \begin{equation}
 (R-I) = c_{1}(J-H) +c_{2}(H-K) + c_{3} .
 \end{equation}
-The coefficients $c_{1}, c_{2}$ and $c_{3}$ vary with metallicity, and are given in the paper. Secondly, $(i-I)$ was calculated from $(R-I)$ using an equation from \citet{jordi_empirical_2006};
+The coefficients $c_{1}, c_{2}$ and $c_{3}$ vary with metallicity and are given in the paper. Secondly, $(i-I)$ was calculated from $(R-I)$ using an equation from \citet{jordi_empirical_2006};
 \begin{equation}
 \label{eq: i-I}
 (i-I) = 0.247(R-I) + 0.329 .
@@ -172,25 +176,27 @@ It is then straightforward to calculate \imag for every KIC star,
 \imag = -(i-I) + i_{\rm mag} .
 \end{equation}
 
-Once \imag values were calculated for every KIC star in the dataset, they were used in random forest regression along with [\kp, [M/H], \teff].
+Once \imag values were calculated for every KIC star in the dataset, they were used in random forest regression along with [\kp, [M/H], \teff] to predict \imag value for the 259 $Kepler$ stars.
 
-discuss how machine learning random forest regression is used to get imag values for missing stars from kp, metallicity and teff. score: 0.90. train/test split 70/30. 2366 of the brightest KIC stars were used to train the algorithm. 1656 to train, 710 to test.
+70\% of the dataset was used to train the algorithm; 30\% was used to test it's accuracy. The results of the random forest regression are shown in Figures \ref{fig:imag test hist} and \ref{fig:imag test scatter}. Figure \ref{fig:imag test hist} shows that the distribution of predicted value matches the 'true' \imag values closely. Figure \ref{fig:imag test scatter} shows that there is no offset between the predicted and 'true' values; the mean difference between the two is -0.01 mag. Furthermore, the standard deviation of the difference is only 0.27 mag, and the regression achieves an accuracy of 0.90. To summarise this, random forest regression predicts the \imag values in the test dataset well.
+
+After testing the regression, the algorithm was used to make predictions on the $Kepler$ stars without known \imag values. The distribution of predicted values is shown in Figure \ref{fig:imag train}, along with the entire KIC sample used to train the regression in blue for comparison.
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.5]{Plot3_Imag_tested_distribution_50kstars}
 	\caption{The \imag distribution of the KIC stars used to test the random forest regression. The 'true' values used to test the algorithm are shown in blue. The black histogram shows the distribution of values that the random forest regression predicted for that dataset.}	
-	\label{fig:imag test}
+	\label{fig:imag test hist}
 \end{figure}
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.5]{Plot4_Imag_scatter_50kstars}
 	\caption{The true \imag values of the KIC stars use to test the algorithm, compared to their predicted values. The mean difference between the two sets of values is -0.01 mag, with a standard deviation of just 0.27 mag.}	
-	\label{fig:imag test}
+	\label{fig:imag test scatter}
 \end{figure}
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.5]{Plot3_Imag_trained_distribution_50kstars}
-	\caption{The \imag distribution of the KIC stars used to train the random forest regression is shown in blue. The predicted values for the stars without I-band magnitudes is shown in black.}	
+	\caption{The \imag distribution of the KIC stars used to train the random forest regression is shown in blue. The predicted values for the stars without $I$-band magnitudes is shown in black.}	
 	\label{fig:imag train}
 \end{figure}
 
@@ -287,7 +293,7 @@ from \citet{mosser_characterization_2012}. The moving median provided an estimat
 \label{eq:snr}
 {\rm SNR} = P/B.
 \end{equation}
-Once the SNR spectrum for the star was recovered, the SNR values at the mode frequencies were extracted. To ensure the correct SNR values of every mode were used, a window was fitted around each peak-bagged mode frequency from Davies et al. (in prep). The size of the window was given as the linewidth of the mode. The highest value in the window was taken as the SNR of the mode. An example of this for KIC 10587122 is shown in Figure \ref{snr}.
+Once the SNR spectrum for the star was recovered, the SNR values at the mode frequencies were extracted. To ensure the correct SNR values of every mode were used, a window was fitted around each mode frequency from Davies et al. (in prep). The size of the window was given as the linewidth of the mode. The highest value in the window was taken as the SNR of the mode. An example of this for KIC 10587122 is shown in Figure \ref{snr}.
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.5]{plot4_SNR10587122.pdf}
@@ -295,7 +301,7 @@ Once the SNR spectrum for the star was recovered, the SNR values at the mode fre
 	\label{snr}
 \end{figure}
 
-Once all mode SNR values for the star were calculated, a detection test from \citet{chaplin_predicting_2011} was run on each mode. In \citet{chaplin_predicting_2011}, a detection test was used across the entire oscillation envelope. Here, the detectability of individual modes was assessed. This method is described below.
+Once all mode SNR values for the star were calculated, a detection test from \citet{chaplin_predicting_2011} was run on each mode. In \citet{chaplin_predicting_2011}, a detection test was used across the entire oscillation envelope. Here, the same detection test was instead applied to individual modes. This method is described below.
 
 The probability $P$ that the SNR value of a solar-like mode of oscillation lies above some threshold ${\rm SNR_{thresh}}$ is
 \begin{equation}
@@ -338,7 +344,7 @@ Here, a random forest classifier was used. This is made up of many independent D
 
 \subsection{Preparing the data}
 \label{sect: prep}
-Firstly, the detection probabilities of every mode in the 1000 stars were taken from Section \ref{sect: det_test}. Each probability was put into a discrete bin (or {\it class}) depending on how likely the mode is to be detected. These discrete classes are given in equation \ref{eq:class}.
+Firstly, the detection probabilities of every mode were taken from Section \ref{sect: det_test}. After removing stars without APOKASC information, this left 811 stars. In Section \ref{sect: dataset}, each star had it's \imag value perturbed 100 times. This left 81,100 stars to perform classification upon. Each calculated detection probability from Section \ref{sect: det_test} was put into a discrete bin (or {\it class}) depending on how likely the mode is to be detected. These discrete classes are given in equation \ref{eq:class}.
 \begin{equation}
 \label{eq:class}
 P_{\rm det} = \left\{ \,
@@ -354,7 +360,7 @@ P_{\rm det} = \left\{ \,
 
 Using equation \ref{eq:class}, every mode was assigned a discrete class {\texttt [0, 1 or 2]}, depending on how high the probability of detection was for that mode. The same three radial modes ({\it 3 features}) were used for every star: the mode closest to the centre of the power-excess due to solar-like oscillations $\nu_{\rm max; n}$, the radial mode one overtone below that $\nu_{\rm n-1}$, and one overtone above that, $\nu_{\rm n+1}$ [\pdet(1), \pdet(2), \pdet(3)]. It was important to use the same modes for every star so that the algorithm could be trained on the patterns between the variables.
 
-A classifier is an algorithm that can learn a relationship between variables. The classifier will map from some initial information about the star (the X data), to some unknown information (the Y data). In this work, the X data features were magnitude ($K_{p}$ or $I_{\rm mag}$), log($g$), $\pi$, \teff and [M/H]. \logg, \teff and [M/H] values are from \citet{pinsonneault_apokasc_2014}, $\pi$ is from \citet{lindegren_gaia_2018} and \imag is from \citet{hog_tycho-2_2000}.
+A classifier is an algorithm that can learn a relationship between variables. The classifier will map from some initial information about the star (the X data), to some unknown information (the Y data). In this work, the X data features were magnitude ($K_{p}$ or $I_{\rm mag}$), log($g$), $\pi$, \teff and [M/H]. \logg, \teff and [M/H] values are from \citet{pinsonneault_apokasc_2014}, $\pi$ is from $Gaia$ DR2 \citet{lindegren_gaia_2018} and \imag is from \citet{hog_tycho-2_2000}, with some values imputed using regression (Section \ref{sect: impute}).
 
 The Y data features were the \pdet values of 3 radial modes centred around \numax. An example of the final dataset for 1 year of TESS-like observations are shown in Tables \ref{tab: x dataset} and \ref{tab: y dataset}.
 
@@ -406,7 +412,7 @@ KIC & Iteration & \pdet(1) & \pdet(2) & \pdet(3) \\
 \subsection{Target selection using a classifier}
 \label{sect: class-results}
 
-The 60,000 datasets were separated into a training dataset, and a testing set. 70\% of the datasets were used to train the classifier (46,410 stars); 30\% of the stars were used to test the algorithm (19,890 stars). To train the classifier, the X and Y data in the training set was given to the algorithm (X$_{\rm train}$ and Y$_{\rm train}$). Once the classifier had been trained, the X data from the testing set was given to it (X$_{\rm test}$). The classifier then predicted a set of Y data for the testing set (Y$_{\rm pred}$). This was compared to the actual Y data for the testing set (Y$_{\rm test}$). The more similar Y$_{\rm pred}$ is to Y$_{\rm test}$, the better the classifier replicated the data.
+The 81,100 datasets were separated into a training dataset, and a testing set. 70\% of the datasets were used to train the classifier (46,410 stars); 30\% of the stars were used to test the algorithm (19,890 stars). To train the classifier, the X and Y data in the training set was given to the algorithm (X$_{\rm train}$ and Y$_{\rm train}$). Once the classifier had been trained, the X data from the testing set was given to it (X$_{\rm test}$). The classifier then predicted a set of Y data for the testing set (Y$_{\rm pred}$). This was compared to the actual Y data for the testing set (Y$_{\rm test}$). The more similar Y$_{\rm pred}$ is to Y$_{\rm test}$, the better the classifier replicated the data.
 
 Two metrics were used to measure the performance of the algorithm. The first was the precision of the classifier, weighted across the classes [0, 1, 2] and the detection probability features \pdet(1), \pdet(2) and \pdet(3). This precision $P$ is given as
 \begin{equation}
@@ -516,7 +522,7 @@ Table \ref{tab: evo results} shows that there is a negligible difference in pred
 \section{Conclusion}
 \label{sect: conc}
 
-1000 peak-bagged \kep Red Giant stars from Davies et al. (in prep) were used to determine whether asteroseismic target selection could be done using a classifier. Rather than using Machine Learning to determine the evolutionary state of these stars, a classifier was instead used to predict which individual solar-like oscillations inside the Red Giants could be detected with a future space mission. The mission in question here was TESS, although the same technique can be easily applied to other missions such as PLATO. This tool can also be used to understand target selection bias in previous missions, such as K2 and CoRoT.
+The solar-like oscillations of 1000 \kep Red Giant stars from Davies et al. (in prep) were used to determine whether asteroseismic target selection could be done using a classifier. Rather than using Machine Learning to determine the evolutionary state of these stars, a classifier was instead used to predict which individual solar-like oscillations inside the Red Giants could be detected with a future space mission. The mission in question here was TESS, although the same technique can be easily applied to other missions such as PLATO. This tool can also be used to understand target selection bias in previous missions, such as K2 and CoRoT.
 
 %For the first time, Machine Learning was applied to TESS target selection. 1000 peak-bagged \kep Red Giant stars from \citet{davies_asteroseismology_2016} were used to determine whether target selection could be done using a Classifier. 
 

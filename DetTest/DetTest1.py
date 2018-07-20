@@ -98,11 +98,17 @@ class DetTest(object):
         Takes a moving median around the predicted envelope width at every
         frequency. Then interpolates between median values."""
 
-        # print np.abs(self.ds.freq - 100.)  # the difference between all the freqs and d
-        # print self.set_width(100., factor=1)  # the env width at d
-        # print self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)]  # all the power values inside of the envelope around d
-        # print np.median(self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)])  # the median power in the envelope around d
+        print '1:', self.ds.freq
+        print '2:', np.abs(self.ds.freq - 100.)  # the difference between all the freqs and d
+        print '3:', self.set_width(100., factor=1)  # the env width at d
+        print '4:', self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)]  # all the power values inside of the envelope around d
+        print '5:', np.median(self.ds.power[np.abs(self.ds.freq - 100.) < self.set_width(100., factor=1)])  # the median power in the envelope around d
         med = [np.median(self.ds.power[np.abs(self.ds.freq - d) < self.set_width(d, factor=1)]) for d in self.ds.freq[::skips]]
+
+        # plt.plot(self.ds.freq, self.ds.power, c='gray')
+        # plt.plot(self.ds.freq[::skips], med, c='r')
+        # plt.show()
+        # sys.exit()
 
         # interpolate between skipped freqs in self.ds.freqs using the moving median
         f = interpolate.interp1d(self.ds.freq[::skips], med, bounds_error=False)
@@ -649,7 +655,6 @@ if __name__ == "__main__":
 
 
             if ds.sat == 'Kepler':  # make the original Kepler PS
-                info['kic_kepmag'] = rand_mags[j]  # change the magnitude for this iteration
                 ds.ts()
                 ds.Periodogram()
                 ds.kepler_noise(Kp=info['kic_kepmag'].as_matrix())

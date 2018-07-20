@@ -212,7 +212,7 @@ class Machine_Learning(object):
             both.to_csv('/home/mathew/Desktop/MathewSchofield/TRG/GetData/IDs/1000stars_KICTYC_plx.csv', index=False)
             sys.exit()
 
-    def loadData(self, v=False, add_logg=True, add_parallax=True, clas=True):
+    def loadData(self, v=True, add_logg=True, add_parallax=True, clas=True):
         """ 1.  Load the X and Y data for the Kepler or TESS sample (Note: Kepler
                 file does not have a 'Tobs' time in the filename.)
             2.  Remove rows where all values are zero.
@@ -426,7 +426,7 @@ class Machine_Learning(object):
                 output = pd.DataFrame(data=d, index=[0])
                 output = output[['Sat','Tobs','Subset','Number_of_stars','Pres1',
                     'Pres2','Pres3','HL']]  # save the file in this order
-                output.to_csv('ML1_results.csv', index=False)  # make the file
+                #output.to_csv('ML1_results.csv', index=False)  # make the file
 
     def random_forest_regression(self, test=True, dataset='50kstars'):
         """ Perform Random Forest Regression on the X data (Teff, [M/H], Kp),
@@ -662,10 +662,10 @@ if __name__ == '__main__':
                           plx_source='dr2')
     #ml.JHKtoI()
     #ml.get_parallaxes()
-    #ml.loadData()
-    #ml.pdet_bins()
-    #ml.random_forest_classifier()
-    ml.random_forest_regression()
+    ml.loadData()
+    ml.pdet_bins()
+    ml.random_forest_classifier()
+    #ml.random_forest_regression()
     #ml.Plot1()
     #ml.Plot2()
     #ml.Plot3()
