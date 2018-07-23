@@ -344,7 +344,10 @@ Here, a random forest classifier was used. This is made up of many independent D
 
 \subsection{Preparing the data}
 \label{sect: prep}
-Firstly, the detection probabilities of every mode were taken from Section \ref{sect: det_test}. After removing stars without APOKASC information, this left 811 stars. In Section \ref{sect: dataset}, each star had it's \imag value perturbed 100 times. This left 81,100 stars to perform classification upon. Each calculated detection probability from Section \ref{sect: det_test} was put into a discrete bin (or {\it class}) depending on how likely the mode is to be detected. These discrete classes are given in equation \ref{eq:class}.
+
+After removing stars without APOKASC information, 811 stars were left from the original 1000-star dataset. In Section \ref{sect: dataset}, each star had it's \imag value perturbed 100 times. After perturbing the apparent magnitudes, 81,100 stars were available to perform classification upon. This was done 3 times: when the stars were treated as $Kepler$ targets, when they were treated as TESS targets in the Continuous Viewing Zone (1 year of observation), and when the 81,100 stars were treated as TESS targets observed for 27 days. 
+
+Each calculated detection probability from Section \ref{sect: det_test} was then put into a discrete bin (or {\it class}) depending on how likely the mode is to be detected. These discrete classes are given in equation \ref{eq:class}.
 \begin{equation}
 \label{eq:class}
 P_{\rm det} = \left\{ \,
@@ -412,11 +415,13 @@ KIC & Iteration & \pdet(1) & \pdet(2) & \pdet(3) \\
 \subsection{Target selection using a classifier}
 \label{sect: class-results}
 
-The 81,100 datasets were separated into a training dataset, and a testing set. 70\% of the datasets were used to train the classifier (46,410 stars); 30\% of the stars were used to test the algorithm (19,890 stars). To train the classifier, the X and Y data in the training set was given to the algorithm (X$_{\rm train}$ and Y$_{\rm train}$). Once the classifier had been trained, the X data from the testing set was given to it (X$_{\rm test}$). The classifier then predicted a set of Y data for the testing set (Y$_{\rm pred}$). This was compared to the actual Y data for the testing set (Y$_{\rm test}$). The more similar Y$_{\rm pred}$ is to Y$_{\rm test}$, the better the classifier replicated the data.
+The 81,100 datasets were separated into a training dataset, and a testing set. 70\% of the datasets were used to train the classifier (56,770 stars); 30\% of the stars were used to test the algorithm (24,330 stars). To train the classifier, the X and Y data in the training set was given to the algorithm (X$_{\rm train}$ and Y$_{\rm train}$). Once the classifier had been trained, the X data from the testing set was given to it (X$_{\rm test}$). The classifier then predicted a set of Y data for the testing set (Y$_{\rm pred}$). This was compared to the actual Y data for the testing set (Y$_{\rm test}$). The more similar Y$_{\rm pred}$ is to Y$_{\rm test}$, the better the classifier replicated the data.
 
-Two metrics were used to measure the performance of the algorithm. The first was the precision of the classifier, weighted across the classes [0, 1, 2] and the detection probability features \pdet(1), \pdet(2) and \pdet(3). This precision $P$ is given as
+Two metrics were used to measure the performance of the algorithm. The first was the precision of the classifier. To calculate the precision, the difference between the 'true' values and the values predicted by the classifier were calculated. This was done for each feature [\pdet(1), \pdet(2), \pdet(3)] separately. The mean of these differences was calculated, and weighted by the number of 'true' values in each feature.
+
+This precision $P_{\rm res}$ is given as
 \begin{equation}
-P = t_{\rm p} / (t_{\rm p} + f_{\rm p}), 
+P_{\rm res} = t_{\rm p} / (t_{\rm p} + f_{\rm p}), 
 \end{equation}
 where $t_{\rm p}$ are true-positives and $f_{\rm p}$ are false-positives. The classifier's precision is its ability to not label a negative sample as positive\footnote{http://scikit-learn.org \label{scikit}}.
 
@@ -440,21 +445,21 @@ TESS      & 27 days & 0.81      & 0.19         \\
 \label{tab: results}
 \end{table}
 
-The classifier was adjusted in order to improve the predictions made by the classifier on the \kep and TESS datasets. This was done by varying Equation \ref{eq:class}. It was varied by changing the number of classes and range of \pdet values for each class. The number of classes was varied from 2 (i.e the mode was detected (1) or it was not (0)) to 6. The width of each bin was also varied to ensure that bins were not underpopulated. It was found that the 3 classes and \pdet ranges given in equation \ref{eq:class} gave the best predictions for the 3 \kep and TESS datasets. 
+We also tested the impact of increasing the number of classes in equation \ref{eq:class}, and the range of \pdet values for each class. The number of classes was varied from 2 (i.e the mode was detected (1) or it was not (0)) to 6. The width of each bin was also varied to ensure that bins were not underpopulated. It was found that the 3 classes and \pdet ranges given in equation \ref{eq:class} gave the best predictions for the 3 datasets of 81,100 stars (4 years of $Kepler$ observation, 1 year of TESS observation and 27 days of TESS observation). 
 
 The results for the original \kep dataset and for 1-year of TESS data are very good; the classifier was able to replicate the mode detection predictions of the stars in these cases. This means that a classifier can be used as a tool for target selection for future missions. Once the classifier predicted \pdet values, the stars could be ranked from those with many detected modes, to those with the fewest. In this way, the classifier could be used as the target selection function of solar-like oscillators for TESS. 
 
-For the 27-day TESS dataset, the classifier was only able to correctly predict the \pdet values of 74\% of the modes. This is likely to be because with these TESS targets, the dataset is too short and the white noise level is too high for individual modes to be reliably detected. In this case, the classifier could not be expected to perform better. It is arguably no less reliable than a mode detection test, although it is much faster for large datasets. 
+For the 27-day TESS dataset, the classifier was able to correctly predict the \pdet values of 81\% of the modes. This is likely to be because with these TESS targets, the dataset is too susceptible to the realization noise of the observation for individual modes to be reliably detected. A mode may be clearly detectable in one 27-day observation, and not another.
 
 
 \subsection{Feature Importance}
 \label{sect: feature importance}
 
-Here, a classifier was used to predict the detection probabilities of individual modes in \kep Red Giant stars. As well as being much faster than a conventional mode detection test, an added bonus of the classifier method is that it returns the 'feature importance' of each column in the x-data.
+Here, a classifier was used to predict the detection probabilities of individual modes in \kep Red Giant stars. As well as being much faster than a conventional mode detection test, an added bonus of the classifier method is that it returns the 'feature importance' of each label in the X-data.
 
-As Table \ref{tab: x dataset} shows, the x-data features that are given to the classifier are \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}. Some of these features are more important than others when predicting the detection probability of solar-like modes \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. The relative importance of these columns is known as the feature importance. This feature importance sums to 1.
+As Table \ref{tab: x dataset} shows, the X-data features that are given to the classifier are \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}. Some of these features are more important than others when predicting the detection probability of solar-like modes \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. The relative importance of these columns is known as the feature importance. This feature importance sums to 1.
 
-The feature importances of the x-data columns are given in Figure \ref{fig:feature}. The feature with the highest influence on mode detectability is apparent stellar magnitude \imag. This is not surprising: a higher value of \imag will result in more $\chi^{2}$ 2 Degrees-of-Freedom white noise in the observation. This will make oscillations less likely to be detected above the white noise background.
+The feature importances of the X-data columns are given in Figure \ref{fig:feature}. The feature with the highest influence on mode detectability is apparent stellar magnitude \imag. This is not surprising: a higher value of \imag will result in more $\chi^{2}$ 2 Degrees-of-Freedom white noise in the observation. This will make oscillations less likely to be detected above the white noise background.
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.5]{Plot1_featureimportance.pdf}
@@ -466,7 +471,7 @@ After the apparent stellar magnitude, surface gravity log($g$) also has a heavy 
 
 Comparatively, effective temperature \teff is less useful than \logg when predicting detection probability. It is less closely tied to the oscillation properties of the star than \logg, although it is a property used to estimate \numax with the scaling relations \citep{chaplin_predicting_2011}. 
 
-Lastly, parallax $\pi$ and metallicity $\rm [M/H]$ are the least strongly tied to the oscillation properties of these RG stars. Parallax is connected to apparent magnitude and \teff and $\rm [M/H]$ is connected to log($g$). The feature importances of \teff, $\pi$ and $\rm [M/H]$ highlight the additional information that these values bring, as well as indirectly through \imag and \logg.
+Lastly, parallax $\pi$ and metallicity $\rm [M/H]$ are the least informative features when predicting the detection probabilities of these stars. Parallax is connected to apparent magnitude and \teff, while $\rm [M/H]$ is connected to log($g$). The feature importances of \teff, $\pi$ and $\rm [M/H]$ highlight the additional information that these values bring, as well as indirectly through \imag and \logg.
 
 \iffalse
 \begin{table}
@@ -481,7 +486,7 @@ $\rm [M/H]$  & 0.08               \\
 \imag        & 0.39               \\
 \end{tabular}
 \end{center}
-\caption{The feature importance of each x-data column. The higher the feature importance, the more important the column was in predicting the detectability of modes inside the Red Giants.}
+\caption{The feature importance of each X-data column. The higher the feature importance, the more important the column was in predicting the detectability of modes inside the Red Giants.}
 \label{tab: feature}
 \end{table}
 \fi

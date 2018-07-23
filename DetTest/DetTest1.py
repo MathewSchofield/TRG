@@ -650,9 +650,10 @@ if __name__ == "__main__":
                 perturbed magnitude in save_xy() (each star has x rows). """
 
             diff = rand_mags[j]-float(info['Imag'])  # change magnitudes for this iteration
+            print rand_mags[j], float(info['Imag']), diff
             info[['kic_kepmag', 'Imag']] += diff
             # mag[['Imag', 'Vmag', 'Bmag']] += diff
-
+            sys.exit()
 
             if ds.sat == 'Kepler':  # make the original Kepler PS
                 ds.ts()

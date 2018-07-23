@@ -227,6 +227,17 @@ class Machine_Learning(object):
         else:
             self.xy = pd.read_csv(self.data_loc + '_' + self.sat + '_XY.csv')
 
+        #self.xy = pd.read_csv('/home/mxs191/Desktop/1000Stars_TESS27_XY.csv')
+        #print self.xy, list(self.xy)
+        #self.xy = pd.read_csv('/home/mxs191/Desktop/1000Stars_TESS365_XY.csv')
+        #self.xy = pd.read_csv('/home/mxs191/Desktop/1000Stars_Kepler_XY.csv')
+        #plt.hist(self.xy['Imag'], bins=100)
+        # plt.hist(self.xy['Pdet1'], bins=100)
+        # plt.hist(self.xy['Pdet2'], bins=100)
+        # plt.hist(self.xy['Pdet3'], bins=100)
+        # plt.show()
+        #sys.exit()
+
         if v:  print self.xy.shape
 
         self.xy = self.xy.loc[(self.xy!=0).any(axis=1)]
@@ -264,6 +275,13 @@ class Machine_Learning(object):
                 plx = pd.read_csv(plx_floc)
                 self.xy = pd.merge(left=self.xy, right=plx[['kic', 'tyc', 'parallax']], left_on='KIC', right_on='kic', how='inner')
         if v:  print self.xy.shape
+
+        #miss = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/KIC_ID_withoutImag.csv', names=['KIC_bad'])
+        #print miss.shape, self.xy.head(), miss.head()
+        #both = pd.merge(left=self.xy, right=miss, left_on='KIC', right_on='KIC_bad', how='left')
+        #print both.shape, len(both[both['KIC_bad']!=both['KIC_bad']])
+        #self.xy = both[both['KIC_bad']!=both['KIC_bad']]
+        #sys.exit()
 
     def pdet_bins(self, n=3, v=False, plot=False):
         """ Assign discrete bins (i.e 0, 1, 2...) for the continuous Pdet values
@@ -372,6 +390,9 @@ class Machine_Learning(object):
                                                             test_size=0.3,
                                                             random_state=42)
         print self.sat, '; Tobs:', self.Tobs, ';', 'subset:', subset, self.n, 'Y-data classes', '\n'
+
+        print 'x training/testing set: ', np.shape(x_train), '/', np.shape(x_test)
+        print 'y training/testing set: ', np.shape(y_train), '/', np.shape(y_test)
 
         rfc = RandomForestClassifier(random_state=42, max_depth=100,
                                      min_samples_leaf=5)#, max_features=5)
