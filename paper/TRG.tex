@@ -17,6 +17,7 @@
 \newcommand{\kp}{\ensuremath{K_{p}\:}}
 \newcommand{\tobs}{\ensuremath{T_{\textrm{obs}}\:}} 
 \newcommand{\imag}{\ensuremath{I_{\textrm{mag}}\:}} 
+\newcommand{\vmag}{\ensuremath{V_{\textrm{mag}}\:}}
 \newcommand{\msol}{\ensuremath{M_{\odot}\:}} 
 \newcommand{\logg}{\ensuremath{{\rm log}(g)\:}} 
 
@@ -444,21 +445,50 @@ For the 27-day TESS dataset, the classifier was able to correctly predict the \p
 
 Here, a classifier was used to predict the detection probabilities of individual modes in \kep Red Giant stars. As well as being much faster than a conventional mode detection test, an added bonus of the classifier is that it returns the 'feature importance' of each label in the X-data.
 
-As Table \ref{tab: x dataset} shows, the X-data labels (or features) that are given to the classifier are \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}. Some of these labels are more important than others when predicting the detection probability of solar-like modes \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. The relative importance of these columns is known as the feature importance. This feature importance sums to 1.
+As Table \ref{tab: x dataset} shows, the X-data labels (or features) that are given to the classifier are \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}. Some of these X-data labels are more important than others when predicting the detection probability of solar-like modes \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. The feature importance of an X-data label is a measure of how informative that label is when predicting \texttt{[\pdet(1), \pdet(2), \pdet(3)]}.
 
-The feature importances of the X-data columns are given in Figure \ref{fig:feature}. The feature with the highest influence on mode detectability is apparent stellar magnitude \imag. This is not surprising: a higher value of \imag will result in more $\chi^{2}$ 2 Degrees-of-Freedom white noise in the observation. This will make oscillations less likely to be detected above the white noise background.
+The feature importance of an X-data label is calculated as the number of splits in the decision trees that include that label, divided by the total number of splits in all of the decision trees. For example, if parallax is used in 10\% of all the splits made across all of the decision trees, then parallax will have a feature importance of 0.1. The feature importance of all 5 X-data labels sums to 1.
+
+The feature importances of the X-data labels are given in Figure \ref{fig:feature}. The feature with the highest influence on mode detectability is apparent stellar magnitude \imag. This is not surprising: fainter stars have higher shot-noise levels. This will reduce the Signal-to-Noise ratio (equation \ref{eq:snr}) of the modes in those stars, making them less likely to be detected.
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.5]{Plot1_featureimportance.pdf}
-	\caption{The feature importance of the 5 X-data columns.}	
+	\caption{The feature importance of the 5 X-data labels.}	
 	\label{fig:feature}
 \end{figure}
 
-After the apparent stellar magnitude, surface gravity log($g$) also has a heavy influence on \pdet value. This is because \logg is a proxy for the central frequency of the solar-like mode envelope \numax \:(\numax $\: \propto\logg$). As a star evolves from the Main-Sequence and up the Red Giant Branch, the radius of the star increases. This decreases the \logg and \numax values of the star. \citet{kjeldsen_amplitudes_1995} showed that oscillation amplitude is proportional to bolometric luminosity divided by mass ($A_{\rm osc} \propto L/M$). As a star evolves 'up' the Hertzsprung-Russell diagram, its bolometric luminosity increases while it's mass stays roughly the same. This leads to larger oscillation amplitudes which are more likely to be detected. \citet{mathur_granulation_2011} also gives a good explanation of how the granulation properties (and hence the oscillation profile) change as a star evolves. 
+After the apparent stellar magnitude, surface gravity log($g$) also has a heavy influence on \pdet value. This can be explained in terms of the oscillation amplitude of stars. \citet{kjeldsen_amplitudes_1995} showed that the oscillation amplitude observed in intensity is proportional to the bolometric luminosity, mass and effective temperature of the star;
+\begin{equation}
+A_{\rm osc} \propto \frac{L}{MT_{\rm eff}^{0.5}}.
+\label{eq:Aosc}
+\end{equation}
+By making substitutions into equation \ref{eq:Aosc}, the oscillation amplitude can be shown to be proportional to \logg and \teff alone. Using $\logg \propto M/R^{2}$ and $L \propto R^{2}\teff^{4}$, equation \ref{eq:Aosc} becomes
+\begin{equation}
+A_{\rm osc} \propto \frac{\teff^{3.5}}{\logg} .
+\end{equation}
 
-Comparatively, effective temperature \teff is less useful than \logg when predicting detection probability. It is less closely tied to the oscillation properties of the star than \logg, although it is a property used to estimate \numax with the scaling relations \citep{chaplin_predicting_2011}. 
+As a star evolves 'up' the Hertzsprung-Russell diagram, its surface gravity decreases while its effective temperature stays roughly the same (see the evolutionary tracks in Figure \ref{fig:dataset}). This leads to larger oscillation amplitudes which are more likely to be detected. \citet{mathur_granulation_2011} also gives a good explanation of how the granulation properties (and hence the oscillation profile) change as a star evolves. 
+
+%This is because \logg is a proxy for the central frequency of the solar-like mode envelope \numax \:(\numax $\: \propto\logg$). As a star evolves from the Main-Sequence and up the Red Giant Branch, the radius of the star increases. This decreases the \logg and \numax values of the star. \citet{kjeldsen_amplitudes_1995} showed that oscillation amplitude is proportional to bolometric luminosity divided by mass ($A_{\rm osc} \propto L/M$). As a star evolves 'up' the Hertzsprung-Russell diagram, its bolometric luminosity increases while it's mass stays roughly the same. This leads to larger oscillation amplitudes which are more likely to be detected. \citet{mathur_granulation_2011} also gives a good explanation of how the granulation properties (and hence the oscillation profile) change as a star evolves.  
+
+Equation \ref{eq:Aosc} shows that oscillation amplitude has a larger dependence on effective temperature than on surface gravity. \teff might therefore be expected to have a higher feature importance than \logg when predicting \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. Despite this, Figure \ref{fig:feature} shows that \teff is less informative than \logg when predicting detection probability. This is because \teff varies very little for Red Giant stars, see Figure \ref{fig:dataset}.
+
+If an X-data label has a low feature importance, this leads to two conclusions; either the label is {\it irrelevant}, or it is {\it redundant}. An irrelevant label is completely unrelated to the features that are being predicted. A redundant label is relevant to the feature being predicted, but is very similar to one or more other X-data labels in the training dataset. For example, including both \imag and \vmag X-data labels would result in one magnitude being disregarded by the classifier, and having a low feature importance score. Although Figure \ref{fig:feature} shows that apparent magnitude is an important feature when predicting detection probability, including both \imag and \vmag would not give the classifier more information to predict detection probability compared to only including \imag. \vmag would be a redundant label. 
+
+Parallax $\pi$ has a relatively low feature importance when predicting detection probability. Parallax is proportional to the inverse distance to the star, which is related to the apparent magnitude of the star. This makes parallax a partly redundant label: when an apparent magnitude is also included in the list of X-data labels, adding parallax provides less extra information than if \imag were not included.
+
+As well as apparent magnitude, parallax is also related to luminosity (for example, see \citet{torres_accurate_2010}). Luminosity is proportional to oscillation amplitude, so including parallax does provide a small amount of extra information to the classifier.
+
+Metallicity $\rm [M/H]$ is the least informative label when predicting \pdet. Oscillation amplitude does not have a large dependence on metallicity; metallicity is less relevant than the other X-data labels when predicting detection probability.
+
 
 Lastly, parallax $\pi$ and metallicity $\rm [M/H]$ are the least informative features when predicting the detection probabilities of these stars. Parallax is connected to apparent magnitude and \teff, while $\rm [M/H]$ is connected to log($g$). The feature importances of \teff, $\pi$ and $\rm [M/H]$ highlight the additional information that these values bring, as well as indirectly through \imag and \logg.
+
+
+
+
+ 
+
 
 \iffalse
 \begin{table}
@@ -473,7 +503,7 @@ $\rm [M/H]$  & 0.08               \\
 \imag        & 0.39               \\
 \end{tabular}
 \end{center}
-\caption{The feature importance of each X-data column. The higher the feature importance, the more important the column was in predicting the detectability of modes inside the Red Giants.}
+\caption{The feature importance of each X-data label. The higher the feature importance, the more important the label was in predicting the detectability of modes inside the Red Giants.}
 \label{tab: feature}
 \end{table}
 \fi
@@ -481,7 +511,7 @@ $\rm [M/H]$  & 0.08               \\
 \subsection{Comparing results between different evolutionary states}
 \label{sect: evo states}
 
-So far in this paper, the the evolutionary state of the Red Giant population from Davies et al. (in prep) has been ignored when predicting mode detection probability \pdet. In reality, the 1000 \kep Red Giants used in this work are a mixture of Red Giant Branch (RGB), Red Clump (RC) and Secondary Clump (2CL) stars. This Section investigates whether there is any difference in the predictions if the stars are first separated into RGB, RC and 2CL groups. The evolutionary states of the stars in the sample were taken from \citet{elsworth_new_2017}. 
+So far in this paper, the evolutionary state of the Red Giant population from Davies et al. (in prep) has been ignored when predicting mode detection probability \pdet. In reality, the 1000 \kep Red Giants used in this work are a mixture of Red Giant Branch (RGB), Red Clump (RC) and Secondary Clump (2CL) stars. This Section investigates whether there is any difference in the predictions if the stars are first separated into RGB, RC and 2CL groups. The evolutionary states of the stars in the sample were taken from \citet{elsworth_new_2017}. 
 
 If a Red Giant Branch is massive enough, it will undergo the Helium flash and become a Red Clump star. Red Clump stars are Helium-core burning stars, and all have very similar core masses to each other. These stars have very different $g-$mode period spacings to RGB stars, but are otherwise difficult to differentiate (\citet{chaplin_asteroseismology_2013}, \citet{bedding_solar-like_2011}, \citet{beck_kepler_2011}). If a star is more massive than $\gtrapprox1.8\msol$, it will instead become a Secondary Clump star. This means that it will undergo Helium-core burning without the Helium flash.
 
@@ -491,17 +521,17 @@ The Red Giant dataset was separated into 3 subsets; the RGB, RC and 2CL stars. E
 \begin{tabular}{ |c|c|c|c|c| }
 Evolution & Satellite & \tobs   & Precision & Hamming loss \\
 \hline
-RGB       & \kep      & 4 years & 0.98      & 0.03         \\
-RGB       & TESS      & 1 year  & 0.83      & 0.16         \\
-RGB       & TESS      & 27 days & 0.75      & 0.25         \\
+RGB       & \kep      & 4 years & 0.99      & 0.01         \\
+RGB       & TESS      & 1 year  & 0.88      & 0.11         \\
+RGB       & TESS      & 27 days & 0.82      & 0.18         \\
 \hline
-RC        & \kep      & 4 years & 0.96      & 0.04         \\
-RC        & TESS      & 1 year  & 0.90      & 0.09         \\
-RC        & TESS      & 27 days & 0.77      & 0.24         \\
+RC        & \kep      & 4 years & 0.98      & 0.02         \\
+RC        & TESS      & 1 year  & 0.92      & 0.07         \\
+RC        & TESS      & 27 days & 0.82      & 0.19         \\
 \hline
-2CL       & \kep      & 4 years & 0.97      & 0.03         \\
-2CL       & TESS      & 1 year  & 0.83      & 0.14         \\
-2CL       & TESS      & 27 days & 0.69      & 0.30         \\
+2CL       & \kep      & 4 years & 0.98      & 0.02         \\
+2CL       & TESS      & 1 year  & 0.85      & 0.13         \\
+2CL       & TESS      & 27 days & 0.75      & 0.26         \\
 \end{tabular}
 \end{center}
 \caption{Results of the classifier when RGB, RC and 2CL stars are separated. Results are shown when the data are treated like \kep stars, and when they are degraded to look like 1-year and 27-day TESS observation. The 'Precision' column gives the average weighted precision of the classifier across the 3 classes [0, 1, 2] and 3 features [\pdet(1), \pdet(2), \pdet(3)].}

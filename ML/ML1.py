@@ -254,7 +254,7 @@ class Machine_Learning(object):
             info['kic_kepmag'] += diff
         sys.exit()
 
-    def random_forest_classifier(self, subset='all', save=False):
+    def random_forest_classifier(self, subset='2CL', save=False, v=False):
         """ Perform a Random Forest Classifier (made up of many decision trees)
         on the XY data. Y data must be given as discrete values
         e.g 0 or 1 for each mode (detected or not).
@@ -300,10 +300,11 @@ class Machine_Learning(object):
 
         print 'Hamming loss:', hl
         print 'Precision', (p1+p2+p3)*100/3.
-        # print 'Feature importance:', rfc.feature_importances_
-        # print 'Precision1:', p1
-        # print 'Precision2:', p2
-        # print 'Precision3:', p3
+        if v: print 'Precision1:', p1
+        if v: print 'Precision2:', p2
+        if v: print 'Precision3:', p3
+        if v: print 'Feature importance:', rfc.feature_importances_
+
 
         self.rfc = rfc  # to use in Plot1()
         if save:
@@ -521,7 +522,7 @@ class Machine_Learning(object):
 
 if __name__ == '__main__':
 
-    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=27,
+    ml = Machine_Learning(data_loc=ML_data_dir, sat='TESS', Tobs=365,
                           plx_source='dr2')
     #ml.get_parallaxes()
     ml.loadData()
