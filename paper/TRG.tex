@@ -151,55 +151,42 @@ The \kep and TESS noise models were used as the PDFs to draw stellar magnitudes 
 \section{Imputing Imag values}
 \label{sect: impute}
 
-741 of the 1000 \kep stars have measured \imag values from $Tycho-2$ \citep{hog_tycho-2_2000}. \imag is needed for every star to calculate the TESS shot noise level. In order to keep the remaining stars in the dataset, the \imag values were imputed.
+741 of the 1000 \kep stars have measured \imag values from $Tycho-2$ \citep{hog_tycho-2_2000}. \imag is needed for every star to calculate the TESS shot noise level. In order to keep the remaining stars in the dataset, the \imag values that are missing from the dataset were imputed.
 
 \imag values for the missing stars were imputed using random forest regression. Like a random forest classifier, random forest regression is another example of supervised learning: in both cases there is a known label to predict (here the label is \imag). Supervised learning involves separating the data into training and testing datasets. In classification, the data is grouped by similarity. In regression, the difference between the regression model and 'true' values is evaluated, and iteratively reduced. This difference is evaluated using the Sum of Squared Errors (SSE);
 \begin{equation}
 {\rm SSE} = \sum_{i=1}^{N} (x_{i} - \bar{x})^{2}.
 \end{equation}
 
-Random forest regression was used in this way to get the missing \imag values. This could have been done using only the 741 available \imag values of the 1000 stars. However, in order to improve the predictions made from the regression, a selection of the brighter stars in the $Kepler$ Input Catalogue (KIC; \citet{brown_kepler_2011}) were used alongside the 741 fitted Red Giants. In total, 2366 stars were used to train and test the regression.
+The random forest regression was done in 3 stages: the algorithm was trained, tested, and used to calculate \imag values where they are missing in the 1000-star dataset. To train and test the algorithm, the 741 $Kepler$ stars with [\kp, [M/H], \teff] and known \imag values were used. These 741 stars were split into a training dataset, and a testing dataset.
 
-The KIC provides a variety of magnitudes, but not the 2MASS\footnote{https://www.ipac.caltech.edu/2mass/} \imag. \imag was calculated for the KIC stars using the 2MASS magnitudes $J_{\rm mag}, H_{\rm mag}, K_{\rm mag}$, and the SDSS \citep{kollmeier_sdss-v:_2017} magnitude $i_{\rm mag}$. Not all of these magnitudes were available for the 259 fitted $Kepler$ stars from Davies et al. (in prep).
+70\% of the 741-star dataset was used to train the algorithm; 30\% was used to test it's accuracy. The results of this random forest regression are shown in Figures \ref{fig:imag test hist} and \ref{fig:imag test scatter}. Figure \ref{fig:imag test hist} shows that the distribution of predicted value matches the 'true' \imag values closely. Figure \ref{fig:imag test scatter} shows that there is no offset between the predicted and 'true' values; the mean difference between the two is 0.05 mag. Furthermore, the standard deviation of the difference is only 0.40 mag, and the regression achieves an accuracy of 0.90. To summarise this, random forest regression predicts the \imag values in the test dataset well.
 
-Firstly, an equation from \citet{bilir_transformations_2008} was used to calculate $(R-I)$;
-\begin{equation}
-(R-I) = c_{1}(J-H) +c_{2}(H-K) + c_{3} .
-\end{equation}
-The coefficients $c_{1}, c_{2}$ and $c_{3}$ vary with metallicity and are given in the paper. Secondly, $(i-I)$ was calculated from $(R-I)$ using an equation from \citet{jordi_empirical_2006};
-\begin{equation}
-\label{eq: i-I}
-(i-I) = 0.247(R-I) + 0.329 .
-\end{equation}
-It is then straightforward to calculate \imag for every KIC star,
-\begin{equation}
-\imag = -(i-I) + i_{\rm mag} .
-\end{equation}
-
-Once \imag values were calculated for every KIC star in the dataset, they were used in random forest regression along with [\kp, [M/H], \teff] to predict \imag value for the 259 $Kepler$ stars.
-
-70\% of the dataset was used to train the algorithm; 30\% was used to test it's accuracy. The results of the random forest regression are shown in Figures \ref{fig:imag test hist} and \ref{fig:imag test scatter}. Figure \ref{fig:imag test hist} shows that the distribution of predicted value matches the 'true' \imag values closely. Figure \ref{fig:imag test scatter} shows that there is no offset between the predicted and 'true' values; the mean difference between the two is -0.01 mag. Furthermore, the standard deviation of the difference is only 0.27 mag, and the regression achieves an accuracy of 0.90. To summarise this, random forest regression predicts the \imag values in the test dataset well.
-
-After testing the regression, the algorithm was used to make predictions on the $Kepler$ stars without known \imag values. The distribution of predicted values is shown in Figure \ref{fig:imag train}, along with the entire KIC sample used to train the regression in blue for comparison.
+After the algorithm was trained and tested, it was used to calculate the \imag values of the 259 stars where they are unavailable. The $Kepler$ apparent magnitudes, \kp, of the stars with known and unknown \imag values are shown in Figure \ref{fig:Kp}. Similarly, the distribution of the known, and predicted (previously unknown) \imag values is shown in Figure \ref{fig:imag train}. In both Figures \ref{fig:Kp} and \ref{fig:imag train}, the stars with unknown \imag values lie toward the fainter end of the distribution. This implies that the random forest regression is making correct inferences about the \imag values of the stars.
 \begin{figure}
 	\centering
-	\includegraphics[scale=0.5]{Plot3_Imag_tested_distribution_50kstars}
-	\caption{The \imag distribution of the KIC stars used to test the random forest regression. The 'true' values used to test the algorithm are shown in blue. The black histogram shows the distribution of values that the random forest regression predicted for that dataset.}	
+	\includegraphics[scale=0.5]{Plot3_Imag_tested_distribution}
+	\caption{The \imag distribution of the $Kepler$ stars used to test the random forest regression. The 'true' values used to test the algorithm are shown in blue. The black histogram shows the distribution of values that the random forest regression predicted for those stars. A scatter plot of the differences between these distributions is shown in Figure \ref{fig:imag test scatter}.}	
 	\label{fig:imag test hist}
 \end{figure}
 \begin{figure}
 	\centering
-	\includegraphics[scale=0.5]{Plot4_Imag_scatter_50kstars}
-	\caption{The true \imag values of the KIC stars use to test the algorithm, compared to their predicted values. The mean difference between the two sets of values is -0.01 mag, with a standard deviation of just 0.27 mag.}	
+	\includegraphics[scale=0.5]{Plot4_Imag_scatter}
+	\caption{The true \imag values of the $Kepler$ stars use to test the algorithm, compared to their predicted values. The mean difference between the two sets of values is 0.06 mag, with a standard deviation of just 0.40 mag.}	
 	\label{fig:imag test scatter}
 \end{figure}
 \begin{figure}
 	\centering
-	\includegraphics[scale=0.5]{Plot3_Imag_trained_distribution_50kstars}
-	\caption{The \imag distribution of the KIC stars used to train the random forest regression is shown in blue. The predicted values for the stars without $I$-band magnitudes is shown in black.}	
+	\includegraphics[scale=0.5]{Plot3_Kp_distribution}
+	\caption{The \kp distribution of the $Kepler$ stars with known \imag values (741 stars) is shown in blue. The \kp values of the stars without $I$-band magnitudes (259 stars) are shown in black. The majority of these stars are fainter.}	
+	\label{fig:Kp}
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.5]{Plot3_Imag_trained_distribution}
+	\caption{The \imag distribution of the $Kepler$ stars with known values (741 stars) is shown in blue. The \imag values predicted by the regression (259 stars) are shown in black. Like in Figure \ref{fig:Kp}, the predicted magnitudes are fainter than the majority of known values.}	
 	\label{fig:imag train}
 \end{figure}
-
 
 
 \section{Modifying Kepler data to look like TESS}
@@ -455,9 +442,9 @@ For the 27-day TESS dataset, the classifier was able to correctly predict the \p
 \subsection{Feature Importance}
 \label{sect: feature importance}
 
-Here, a classifier was used to predict the detection probabilities of individual modes in \kep Red Giant stars. As well as being much faster than a conventional mode detection test, an added bonus of the classifier method is that it returns the 'feature importance' of each label in the X-data.
+Here, a classifier was used to predict the detection probabilities of individual modes in \kep Red Giant stars. As well as being much faster than a conventional mode detection test, an added bonus of the classifier is that it returns the 'feature importance' of each label in the X-data.
 
-As Table \ref{tab: x dataset} shows, the X-data features that are given to the classifier are \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}. Some of these features are more important than others when predicting the detection probability of solar-like modes \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. The relative importance of these columns is known as the feature importance. This feature importance sums to 1.
+As Table \ref{tab: x dataset} shows, the X-data labels (or features) that are given to the classifier are \texttt{[log($g$), $\pi$, \teff, [M/H], \imag]}. Some of these labels are more important than others when predicting the detection probability of solar-like modes \texttt{[\pdet(1), \pdet(2), \pdet(3)]}. The relative importance of these columns is known as the feature importance. This feature importance sums to 1.
 
 The feature importances of the X-data columns are given in Figure \ref{fig:feature}. The feature with the highest influence on mode detectability is apparent stellar magnitude \imag. This is not surprising: a higher value of \imag will result in more $\chi^{2}$ 2 Degrees-of-Freedom white noise in the observation. This will make oscillations less likely to be detected above the white noise background.
 \begin{figure}
