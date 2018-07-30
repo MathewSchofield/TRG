@@ -254,7 +254,7 @@ class Machine_Learning(object):
             info['kic_kepmag'] += diff
         sys.exit()
 
-    def random_forest_classifier(self, subset='2CL', save=False, v=False):
+    def random_forest_classifier(self, subset='all', save=False, v=False):
         """ Perform a Random Forest Classifier (made up of many decision trees)
         on the XY data. Y data must be given as discrete values
         e.g 0 or 1 for each mode (detected or not).
@@ -335,7 +335,7 @@ class Machine_Learning(object):
                     'Pres2','Pres3','HL']]  # save the file in this order
                 output.to_csv('ML1_results.csv', index=False)  # make the file
 
-    def random_forest_regression(self, test=False):
+    def random_forest_regression(self, test=True):
         """ Perform Random Forest Regression on the X data (Teff, [M/H], Kp),
             Y data (Imag) to calculate Imag for missing stars.
             RF: Random Forest

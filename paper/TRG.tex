@@ -60,7 +60,7 @@ The same classifier was also used on the \kep stars after they had been degraded
 
 \section{Introduction}
 
-In this work, a classifier was used to make predictions about the detectability of solar-like modes of oscillation. Specifically, predictions of mode detectability for $Kepler$ Red Giant Branch stars were made. After this, these $Kepler$ Red Giant stars were degraded to produce a TESS-like dataset. Mode detectability predictions were then made using the same classifier on these TESS-like observations.
+In this work, a classifier was used to make predictions about the detectability of solar-like modes of oscillation. Specifically, predictions of mode detectability for $Kepler$ Red Giant Branch stars were made. After this, these $Kepler$ Red Giants were degraded to produce a TESS-like dataset. Mode detectability predictions were then made using the same classifier on these TESS-like observations.
 
 In the past, supervised classifiers have been used to determine the evolutionary state of variable stars: \citet{debosscher_automated_2007}, \citet{sarro_automated_2009}, \citet{nun_supervised_2014}, \citet{elorrieta_machine_2016}. Similarly, unsupervised classifiers \citep{valenzuela_unsupervised_2018} and regression \citep{ness_cannon_2015} have also been used to determine evolutionary stages. As well as with classifiers, a neural network has been used to identify the evolutionary stage of Red Giant stars (\citet{hon_deep_2017}, \citet{hon_deep_2018}).
 
@@ -118,14 +118,14 @@ The classifier recognised patterns between the variables in the training set, an
 \section{The dataset}
 \label{sect: dataset}
 
-The data to perform Machine Learning on are the 1000 \kep Red Giants from Davies et al. (in prep). These are shown in Figure \ref{fig:dataset}.
+The data to perform Machine Learning on are the 1000 \kep Red Giants from Davies et al. (in prep).
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.5]{Plot1_HR.pdf}
 	\caption{The 1000 \kep Red Giants from Davies et al. (in prep). The colourbar shows the relative density of points with Kernel Density Estimation. The evolutionary tracks range from 0.9-1.5\msol. The dashed line shows the $Kepler$ Nyquist frequency for Full Frame Images (278Hz).}	
 	\label{fig:dataset}
 \end{figure}
-The radial and quadrapole modes of these stars have been fitted by Davies et al. (in prep). The frequency, height, width and background of each mode in the 1000 stars had been individually fitted. The spectroscopic parameters of these stars (\teff, \logg, [M/H]) were available from APOKASC \citet{pinsonneault_apokasc_2014}. The apparent magnitudes are from the $Tycho$-2 catalogue \citet{hog_tycho-2_2000}. Lastly, the parallaxes are from $Gaia$ DR2 \citet{lindegren_gaia_2018}.
+In that work, the radial and quadrapole modes of these stars were fitted. Specifically, Davies et al. (in prep) provided the frequency, height, width and background of each mode in the 1000 stars. The spectroscopic parameters of these stars (\teff, \logg, [M/H]) were available from APOKASC \citet{pinsonneault_apokasc_2014}. The apparent magnitudes are from the $Tycho$-2 catalogue \citet{hog_tycho-2_2000}. Lastly, the parallaxes are from $Gaia$ DR2 \citet{lindegren_gaia_2018}. These stars are shown in Figure \ref{fig:dataset}.
 
 Machine Learning performs best when a large dataset is available to train the algorithm on. In order to increase the size of the dataset above 1000, the magnitude of each \kep star was perturbed. Each star had its apparent magnitude perturbed 100 times. 
 
@@ -141,7 +141,7 @@ where $c$ is the number of detected electrons per cadence. It is given by
 c = 1.28 \times 10^{0.4(12-K_{p})+7} .
 \end{equation}
 
-The equivalent TESS shot noise model was taken from \citet{sullivan_transiting_2015}. The \texttt{RMS} noise was calculated using photon counting noise, the noise from background stars, the readout noise and the systematic noise. These four noise sources were then summed in quadrature to give the total TESS noise.
+The equivalent TESS shot noise model was taken from \citet{sullivan_transiting_2015}. This \texttt{RMS} noise model takes into account photon counting noise, the noise from background stars, the readout noise and the systematic noise. These four noise sources were then summed in quadrature to give the total TESS noise.
 
 \iffalse
 which depends on the $I_{c}-$band magnitude of the star and the number of pixels in the photometric aperture used when observing the star. This is given by
@@ -164,14 +164,16 @@ The \kep and TESS noise models were used as the PDFs to draw stellar magnitudes 
 
 741 of the 1000 \kep stars have measured \imag values from $Tycho-2$ \citep{hog_tycho-2_2000}. \imag is needed for every star to calculate the TESS shot noise level. In order to keep the remaining stars in the dataset, the \imag values that are missing from the dataset were imputed.
 
-\imag values for the missing stars were imputed using random forest regression. Like a random forest classifier, random forest regression is another example of supervised learning: in both cases there is a known label to predict (here the label is \imag). Supervised learning involves separating the data into training and testing datasets. In classification, the data is grouped by similarity. In regression, the difference between the regression model and 'true' values is evaluated, and iteratively reduced. This difference is evaluated using the Sum of Squared Errors (SSE);
+\imag values for the missing stars were imputed using random forest regression. Like a random forest classifier, random forest regression is another example of supervised learning: in both cases there is a known label to predict. In this case, the label to predict is \imag.
+
+Supervised learning involves separating the data into training and testing datasets. In classification, the data is grouped by similarity. In regression, the difference between the regression model and 'true' values is evaluated, and iteratively reduced. This difference is evaluated using the Sum of Squared Errors (SSE);
 \begin{equation}
 {\rm SSE} = \sum_{i=1}^{N} (x_{i} - \bar{x})^{2}.
 \end{equation}
 
 The random forest regression was done in 3 stages: the algorithm was trained, tested, and used to calculate \imag values where they are missing in the 1000-star dataset. To train and test the algorithm, the 741 $Kepler$ stars with [\kp, [M/H], \teff] and known \imag values were used. These 741 stars were split into a training dataset, and a testing dataset.
 
-70\% of the 741-star dataset was used to train the algorithm; 30\% was used to test its accuracy. The results of this random forest regression are shown in Figures \ref{fig:imag test hist} and \ref{fig:imag test scatter}. Figure \ref{fig:imag test hist} shows that the distribution of predicted value matches the 'true' \imag values closely. Figure \ref{fig:imag test scatter} shows that there is no offset between the predicted and 'true' values; the mean difference between the two is 0.05 mag. Furthermore, the standard deviation of the difference is only 0.40 mag, and the regression achieves an accuracy of 0.90. To summarise this, random forest regression predicts the \imag values in the test dataset well.
+70\% of the 741-star dataset was used to train the algorithm; 30\% was used to test its accuracy. The results of this random forest regression are shown in Figures \ref{fig:imag test hist} and \ref{fig:imag test scatter}. Figure \ref{fig:imag test hist} shows that the distribution of predicted value matches the 'true' \imag values closely. Figure \ref{fig:imag test scatter} shows that there is no offset between the predicted and 'true' values; the mean difference between the two is 0.06 mag. Furthermore, the standard deviation of the difference is only 0.40 mag, and the regression achieves an accuracy of 0.53. To summarise this, random forest regression predicts the \imag values in the test dataset without introducing bias or adding a large uncertainty.
 
 After the algorithm was trained and tested, it was used to calculate the \imag values of the 259 stars where they are unavailable. The $Kepler$ apparent magnitudes, \kp, of the stars with known and unknown \imag values are shown in Figure \ref{fig:Kp}. Similarly, the distribution of the known, and predicted (previously unknown) \imag values is shown in Figure \ref{fig:imag train}. In both Figures \ref{fig:Kp} and \ref{fig:imag train}, the stars with unknown \imag values lie toward the fainter end of the distribution. This implies that the random forest regression is making correct inferences about the \imag values of the stars.
 \begin{figure}
@@ -199,7 +201,7 @@ After the algorithm was trained and tested, it was used to calculate the \imag v
 	\label{fig:imag train}
 \end{figure}
 
-Using regression, the \imag values of the entire $Kepler$ dataset were evaluated. After this, the lightcurves of these stars were then degraded to mimic observations by TESS.
+The majority of $Kepler$ stars in the Davies et al. (in prep) dataset had measured \imag values. Using regression, the \imag values of the remaining stars were evaluated. After this, the lightcurves of these stars were then degraded to replicate observation by TESS.
 
 
 \section{Modifying Kepler data to look like TESS}
@@ -230,16 +232,16 @@ As well as reducing the dataset length, the bandpass of observation needed to be
 \fi
 
 Thirdly, the noise level for a given star in \kep \ is lower than the noise level in TESS. %The noise level for the \kep \ satellite depends on the \kep \ magnitude of the star, equation \ref{eq:kep noise}. 
-Noise from TESS was calculated for each star and added to the timeseries (see Section \ref{sect: dataset}).
+Noise from TESS was calculated for each star using the model from \citet{sullivan_transiting_2015} and added to the timeseries.
 
 These three adjustments - the length of observation, the bandpass, and the noise level - were performed in the time domain. From the original \kep timeseries, the following adjustments were made:
 \begin{enumerate}
 \item Apply a 4-$\sigma$ clip to the dataset to remove spurious points.
 \item Shorten the 4 years of timeseries data down to the reduced dataset length (either 27 days or 1 year). When reducing the length of the timeseries, take the section (27 days or 1 year) with the fewest gaps in observation out of the 4 year $Kepler$ data.%, see Figure \ref{fig:ts plot}.
 \item Adjust the bandpass by multiplying the flux by 0.85.
-\item Add TESS instrumental noise to the timeseries. For each flux value in the $Kepler$ timeseries ($\mathcal{F_{\rm Kepler}}$) draw a random number from the normal distribution ($\mathcal{R}$). Multiply the TESS \texttt{RMS} noise level ($\sigma_{\rm TESS}$, Section \ref{sect: dataset}) by the random numbers. Add these to the original flux values in the $Kepler$ timeseries to get the TESS flux:
+\item Add TESS instrumental noise to the timeseries. For each flux value in the $Kepler$ timeseries ($F_{\rm Kepler}$) draw a random number from the normal distribution ($N$). Multiply the TESS \texttt{RMS} noise level ($\sigma_{\rm TESS}$, Section \ref{sect: dataset}) by the random numbers. Add these to the original flux values in the $Kepler$ timeseries to get the TESS flux:
 \begin{equation}
-\mathcal{F_{\rm TESS}} = \mathcal{F_{\rm Kepler}} + \sigma_{\rm TESS} \mathcal{R}
+F_{\rm TESS} = F_{\rm Kepler} + N\sigma_{\rm TESS}
 \end{equation}
 
 \item Use the Lomb-Scargle periodogram to convert the signal from the time to the frequency domain.
@@ -305,7 +307,7 @@ Once the SNR spectrum for the star was recovered, the SNR values at the mode fre
 	\label{snr}
 \end{figure}
 
-Once all mode SNR values for the star were calculated, a detection test from \citet{chaplin_predicting_2011} was run on each mode. In \citet{chaplin_predicting_2011}, a detection test was used across the entire oscillation envelope. Here, the same detection test was instead applied to individual modes. This method is described below.
+Once all mode SNR values for the star were calculated, a detection test from \citet{chaplin_predicting_2011} was run on each mode. The detection test from \citet{chaplin_predicting_2011} was used across the entire oscillation envelope. Here, the same detection test was instead applied to individual modes. This method is described below.
 
 The probability $P$ that the SNR value of a solar-like mode of oscillation lies above some threshold ${\rm SNR_{thresh}}$ is
 \begin{equation}
@@ -349,7 +351,7 @@ Here, a random forest classifier was used. This is made up of many independent D
 \subsection{Preparing the data}
 \label{sect: prep}
 
-After removing stars without APOKASC information, 811 stars were left from the original 1000-star dataset. In Section \ref{sect: dataset}, each star had it's \imag value perturbed 100 times. After perturbing the apparent magnitudes, 81,100 stars were available to perform classification upon. This was done 3 times: when the stars were treated as $Kepler$ targets, when they were treated as TESS targets in the Continuous Viewing Zone (1 year of observation), and when the 81,100 stars were treated as TESS targets observed for 27 days. 
+After removing stars without APOKASC information, 811 stars were left from the original 1000-star dataset. In Section \ref{sect: dataset}, each star had it's \imag value perturbed 100 times. After perturbing the apparent magnitudes, 81,100 stars were available to perform classification upon. This was done 3 times: when the stars were treated as $Kepler$ targets, when they were treated as TESS targets in the Continuous Viewing Zone (1 year of observation), and when the 81,100 datasets were treated as TESS targets observed for 27 days. 
 
 Each calculated detection probability from Section \ref{sect: det_test} was then put into a discrete bin (or {\it class}) depending on how likely the mode is to be detected. These discrete classes are given in equation \ref{eq:class}.
 \begin{equation}
@@ -419,13 +421,21 @@ KIC & Iteration & \pdet(1) & \pdet(2) & \pdet(3) \\
 \subsection{Target selection using a classifier}
 \label{sect: class-results}
 
-The 81,100 datasets were separated into a training dataset, and a testing set. 70\% of the datasets were used to train the classifier (56,770 stars); 30\% of the stars were used to test the algorithm (24,330 stars). To train the classifier, the X and Y data in the training set was given to the algorithm (X$_{\rm train}$ and Y$_{\rm train}$). Once the classifier had been trained, the X data from the testing set was given to it (X$_{\rm test}$). The classifier then predicted a set of Y data for the testing set (Y$_{\rm pred}$). This was compared to the actual Y data for the testing set (Y$_{\rm test}$). The more similar Y$_{\rm pred}$ is to Y$_{\rm test}$, the better the classifier replicated the data.
+The random forest classification was done in 3 stages: the data was separated, the classifier was trained, and it was tested. These 3 stages of classification were each done 3 times (each time with 81,000 datasets). First, the stars were treated as $Kepler$ targets. Then they were treated as TESS targets observed for 1 year. Lastly the 81,100 datasets were treated as TESS targets observed for 27 days. The data for the classifier was sampled, trained upon and tested with in the same way each time.
 
-Two metrics were used to measure the performance of the algorithm. The first was the precision of the classifier. To calculate the precision, the difference between the 'true' values and the values predicted by the classifier were calculated. This was done for each feature [\pdet(1), \pdet(2), \pdet(3)] separately. The mean of these differences was calculated, and weighted by the number of 'true' values in each feature.
+Firstly, the 81,100 datasets (from 811 stars) were separated into a training dataset and a testing set. 70\% of the data were used to train the classifier (56,770 datasets); 30\% of the stars were used to test the algorithm (24,330 datasets).
 
-This precision $P_{\rm res}$ is given as
+%Firstly, the 81,100 datasets (from 811 stars) were separated into a training dataset and a testing set using cross-validation. Cross-validation was used to ensure that both the training and testing datasets contained a broad range of \texttt{log($g$), $\pi$, \teff, [M/H] {\rm and} \imag}values. In cross-validation, the data is separated $n$ times into $n$ equally-sized sub-datasets. This is repeated $n$ times. Each time, one sub-sample is used to test the validity of the split. For this cross-validation, $n$ was set to 10. The data was separated in this way into the training and testing datasets. 70\% of the data were used to train the classifier (56,770 datasets); 30\% of the stars were used to test the algorithm (24,330 datasets).
+
+Secondly, the classifier was trained using the 56,770 datasets. The X and Y data in the training set were given to the algorithm (X$_{\rm train}$ and Y$_{\rm train}$). X$_{\rm train}$ comprises 56,770 sets of \texttt{log($g$), $\pi$, \teff,\:[M/H]\:{\rm and}\:\imag}values. This is accompanied by Y$_{\rm train}$ with the corresponding 56,770 detection probabilities (Tables \ref{tab: x dataset} and \ref{tab: y dataset}). The classifier trained itself by using X$_{\rm train}$ and Y$_{\rm train}$ to define distinct groups of \texttt{log($g$), $\pi$, \teff{\rm and} [M/H]} in the data\footnote{https://docs.marklogic.com/}.
+
+Thirdly, the classifier was tested with X$_{\rm test}$ and Y$_{\rm test}$.  X$_{\rm test}$ comprises 24,330 sets of \texttt{log($g$), $\pi$, \teff,\:[M/H]\:{\rm and}\:\imag}values which the classifier is given. Without having access to the corresponding \pdet(1), \pdet(2) and \pdet(3) values in Y$_{\rm test}$, the classifier predicted a set of Y data (Y$_{\rm pred}$). This was compared to the actual Y data for the testing set (Y$_{\rm test}$). The more similar Y$_{\rm pred}$ is to Y$_{\rm test}$, the better the classifier has replicated the data.
+
+Two metrics were used to measure the performance of the algorithm. The first was the precision of the classifier. To calculate the precision, the differences between the 'true' detection probabilities (Y$_{\rm test}$) and the values predicted by the classifier (Y$_{\rm pred}$) were calculated. This was done for each feature (\pdet(1), \pdet(2) and \pdet(3)) separately. The mean of these differences was calculated, and weighted by the number of true-positive values in each feature.
+
+This weighted precision $\mathcal{P}$ is given as
 \begin{equation}
-P_{\rm res} = t_{\rm p} / (t_{\rm p} + f_{\rm p}), 
+\mathcal{P} = t_{\rm p} / (t_{\rm p} + f_{\rm p}), 
 \end{equation}
 where $t_{\rm p}$ are true-positives and $f_{\rm p}$ are false-positives. The classifier's precision is its ability to not label a negative sample as positive\footnote{http://scikit-learn.org \label{scikit}}.
 
@@ -434,7 +444,7 @@ The second was the Hamming loss$^{\ref{scikit}}$
 \begin{equation}
 H_{\rm loss}(Y_{\rm test}, Y_{\rm pred}) = \frac{1}{n_{\rm classes}} \sum_{j=0}^{n_{\rm classes}-1} 1(Y_{\rm pred} \neq Y_{\rm test}) \: . 
 \end{equation}
-A Hamming loss score of 0.0 means that Y$_{\rm pred}$ is identical to Y$_{\rm test}$. A score of 1.0 means that there are no similar values between Y$_{\rm pred}$ and Y$_{\rm test}$. Precision and Hamming loss are similar (but not identical) measures of the success of a classifier. By using both metrics, the usefulness of the classifier can be better assessed. The precision and Hamming loss of the classifier on the \kep and TESS datasets are shown in Table \ref{tab: results}.
+A Hamming loss score of 0.0 means that Y$_{\rm pred}$ is identical to Y$_{\rm test}$. A score of 1.0 means that there are no similar values between Y$_{\rm pred}$ and Y$_{\rm test}$. Precision and Hamming loss are similar (but not identical) measures of the success of a classifier. By using both metrics, the usefulness of the classifier can be better gauged. The precision and Hamming loss of the classifier on the \kep and TESS datasets are shown in Table \ref{tab: results}.
 \begin{table}
 \begin{center}
 \begin{tabular}{ |c|c|c|c| }
@@ -449,7 +459,7 @@ TESS      & 27 days & 0.81      & 0.19         \\
 \label{tab: results}
 \end{table}
 
-We also tested the impact of increasing the number of classes in equation \ref{eq:class}, and the range of \pdet values for each class. The number of classes was varied from 2 (i.e the mode was detected (1) or it was not (0)) to 6. The width of each bin was also varied to ensure that bins were not underpopulated. It was found that the 3 classes and \pdet ranges given in equation \ref{eq:class} gave the best predictions for the 3 datasets of 81,100 stars (4 years of $Kepler$ observation, 1 year of TESS observation and 27 days of TESS observation). 
+We also tested the impact of increasing the number of classes in equation \ref{eq:class}, and the range of \pdet values for each class. The number of classes was varied from 2 (i.e the mode was detected (1) or it was not (0)) to 6. The width of each bin was also varied to ensure that bins were not underpopulated. It was found that the 3 classes and \pdet ranges given in equation \ref{eq:class} gave the best predictions for the 3 datasets of 81,100 values (4 years of $Kepler$ observation, 1 year of TESS observation and 27 days of TESS observation). 
 
 The results for the original \kep dataset and for 1-year of TESS data are very good; the classifier was able to replicate the mode detection predictions of the stars in these cases. This means that a classifier can be used as a tool for target selection for future missions. Once the classifier predicted \pdet values, the stars could be ranked from those with many detected modes, to those with the fewest. In this way, the classifier could be used as the target selection function of solar-like oscillators for TESS. 
 
