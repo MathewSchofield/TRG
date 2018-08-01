@@ -122,7 +122,7 @@ The data to perform Machine Learning on are the 1000 \kep Red Giants from Davies
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.5]{Plot1_HR.pdf}
-	\caption{The 1000 \kep Red Giants from Davies et al. (in prep). The colourbar shows the relative density of points with Kernel Density Estimation. The evolutionary tracks range from 0.9-1.5\msol. The dashed line shows the $Kepler$ Nyquist frequency for Full Frame Images (278Hz).}	
+	\caption{The 1000 \kep Red Giants from Davies et al. (in prep). The colourbar shows the relative density of points with Kernel Density Estimation. The dashed line shows the $Kepler$ Nyquist frequency for Full Frame Images (278Hz). The evolutionary tracks range from 0.9-1.5\msol. These tracks were generated using CL\'ES \citep{scuflaire_cles_2008}.}	
 	\label{fig:dataset}
 \end{figure}
 In that work, the radial and quadrapole modes of these stars were fitted. Specifically, Davies et al. (in prep) provided the frequency, height, width and background of each mode in the 1000 stars. The spectroscopic parameters of these stars (\teff, \logg, [M/H]) were available from APOKASC \citet{pinsonneault_apokasc_2014}. The apparent magnitudes are from the $Tycho$-2 catalogue \citet{hog_tycho-2_2000}. Lastly, the parallaxes are from $Gaia$ DR2 \citet{lindegren_gaia_2018}. These stars are shown in Figure \ref{fig:dataset}.
@@ -244,10 +244,10 @@ These three adjustments - the length of observation, the bandpass, and the noise
 F_{\rm TESS} = F_{\rm Kepler} + N\sigma_{\rm TESS}
 \end{equation}
 
-\item Use the Lomb-Scargle periodogram to convert the signal from the time to the frequency domain.
+\item Compute the power spectrum from the timeseries.
 \end{enumerate}
 
-Examples of the TESS-like power spectra are shown in Figures \ref{Power Spectra} and \ref{overplotted PS}. Power spectra were generated for the original 4-year \kep sample, 1 year of TESS observations and 27 days of TESS observations. Once the timeseries had been made to look like TESS observations, a detection test was then run on the radial modes of every star in these 3 datasets. 
+The results from the original $Kepler$ observation are compared to TESS-like power spectra of the same stars in Figures \ref{Power Spectra} and \ref{overplotted PS}. Power spectra were generated for the original 4-year \kep sample, 1 year of TESS observations and 27 days of TESS observations. Once the timeseries had been made to look like TESS observations, a detection test was then run on the radial modes of every star in these 3 datasets. 
 
 \begin{figure}
 	\centering
@@ -351,9 +351,11 @@ Here, a random forest classifier was used. This is made up of many independent D
 \subsection{Preparing the data}
 \label{sect: prep}
 
-After removing stars without APOKASC information, 811 stars were left from the original 1000-star dataset. In Section \ref{sect: dataset}, each star had it's \imag value perturbed 100 times. After perturbing the apparent magnitudes, 81,100 stars were available to perform classification upon. This was done 3 times: when the stars were treated as $Kepler$ targets, when they were treated as TESS targets in the Continuous Viewing Zone (1 year of observation), and when the 81,100 datasets were treated as TESS targets observed for 27 days. 
+After removing stars without APOKASC information, 811 stars were left from the original 1000-star dataset. In Section \ref{sect: dataset}, each star had it's \imag value perturbed 100 times. After perturbing the apparent magnitudes, 81,100 datasets were available. In Section \ref{sect: tess-like}, these 81,100 datasets were treated in 3 ways: as $Kepler$ targets (observed for up to 4 years), as TESS targets in the Continuous Viewing Zone (1 year of observation), and as TESS targets observed in 1 sector (for 27 days). This produced 3 sets of 81,100 datasets.
 
-Each calculated detection probability from Section \ref{sect: det_test} was then put into a discrete bin (or {\it class}) depending on how likely the mode is to be detected. These discrete classes are given in equation \ref{eq:class}.
+In Section \ref{sect: det_test}, a mode-detectability test was performed on all 3 sets of 81,100 datasets. After this, the same classification method was performed once on each set of 81,100 datasets. Before a classifier could be used, the data needed to be prepared. That preparation is described in this Section.
+
+Each calculated detection probability from Section \ref{sect: det_test} was put into a discrete bin (or {\it class}) depending on how likely the mode is to be detected. These discrete classes are given in equation \ref{eq:class}.
 \begin{equation}
 \label{eq:class}
 P_{\rm det} = \left\{ \,
@@ -391,7 +393,7 @@ KIC     & Iteration & log($g$) & $\pi$ & \teff & [M/H] & \imag \\
 \hline
 \end{tabular}
 \end{center}
-\caption{An example of the X-dataset for 1 year of TESS-like observations. Every star has it's magnitude perturbed 100 times. See Table \ref{tab: y dataset} for the equivalent Y-dataset.}
+\caption{An example of the X-dataset for 1 year of TESS-like observations. Every star has it's magnitude perturbed 100 times. See Table \ref{tab: y dataset} for the equivalent Y-dataset. There are 81,100 rows in the X-dataset.}
 \label{tab: x dataset}
 \end{table}
 
@@ -412,7 +414,7 @@ KIC & Iteration & \pdet(1) & \pdet(2) & \pdet(3) \\
 \hline
 \end{tabular}
 \end{center}
-\caption{An example of the Y-dataset for 1 year of TESS-like observations. Every star has it's magnitude perturbed 100 times. White noise is then added to the timeseries and mode detection probabilities are calculated for 3 radial modes centred around \numax. Lastly, these probabilities are put into discrete classes [0, 1 or 2]. The radial mode closest to \numax is \pdet(2). See Table \ref{tab: x dataset} for the equivalent X-dataset.}
+\caption{An example of the Y-dataset for 1 year of TESS-like observations. Every star has it's magnitude perturbed 100 times. White noise is then added to the timeseries and mode detection probabilities are calculated for 3 radial modes centred around \numax. Lastly, these probabilities are put into discrete classes [0, 1 or 2]. The radial mode closest to \numax is \pdet(2).  There are 81,100 rows in the Y-dataset. See Table \ref{tab: x dataset} for the equivalent X-dataset.}
 \label{tab: y dataset}
 \end{table}
 
@@ -421,9 +423,9 @@ KIC & Iteration & \pdet(1) & \pdet(2) & \pdet(3) \\
 \subsection{Target selection using a classifier}
 \label{sect: class-results}
 
-The random forest classification was done in 3 stages: the data was separated, the classifier was trained, and it was tested. These 3 stages of classification were each done 3 times (each time with 81,000 datasets). First, the stars were treated as $Kepler$ targets. Then they were treated as TESS targets observed for 1 year. Lastly the 81,100 datasets were treated as TESS targets observed for 27 days. The data for the classifier was sampled, trained upon and tested with in the same way each time.
+The 3 sets of 81,100 datasets were prepared in Section \ref{sect: prep} by assigning bins to every mode detection probability in each dataset. The first set consisted of $Kepler$ targets (observed for up to 4 years) The second set comprised TESS targets that were observed in the Continuous Viewing Zone (1 year of observation). The third set contained the TESS targets that were observed in 1 sector (for 27 days). After this, the same random forest classification was performed once on each of the 3 sets of 81,100 datasets. The classifier was given 1 set of data at a time.
 
-Firstly, the 81,100 datasets (from 811 stars) were separated into a training dataset and a testing set. 70\% of the data were used to train the classifier (56,770 datasets); 30\% of the stars were used to test the algorithm (24,330 datasets).
+The random forest classification was done in 3 stages: the data was separated, the classifier was trained, and it was tested. Firstly, the 81,100 datasets (from 811 stars) were separated into a training dataset and a testing set. 70\% of the data were used to train the classifier (56,770 datasets); 30\% of the stars were used to test the algorithm (24,330 datasets).
 
 %Firstly, the 81,100 datasets (from 811 stars) were separated into a training dataset and a testing set using cross-validation. Cross-validation was used to ensure that both the training and testing datasets contained a broad range of \texttt{log($g$), $\pi$, \teff, [M/H] {\rm and} \imag}values. In cross-validation, the data is separated $n$ times into $n$ equally-sized sub-datasets. This is repeated $n$ times. Each time, one sub-sample is used to test the validity of the split. For this cross-validation, $n$ was set to 10. The data was separated in this way into the training and testing datasets. 70\% of the data were used to train the classifier (56,770 datasets); 30\% of the stars were used to test the algorithm (24,330 datasets).
 
@@ -459,11 +461,9 @@ TESS      & 27 days & 0.81      & 0.19         \\
 \label{tab: results}
 \end{table}
 
-We also tested the impact of increasing the number of classes in equation \ref{eq:class}, and the range of \pdet values for each class. The number of classes was varied from 2 (i.e the mode was detected (1) or it was not (0)) to 6. The width of each bin was also varied to ensure that bins were not underpopulated. It was found that the 3 classes and \pdet ranges given in equation \ref{eq:class} gave the best predictions for the 3 sets of 81,100 values (4 years of $Kepler$ observation, 1 year of TESS observation and 27 days of TESS observation). 
+We also tested the impact of increasing the number of classes in equation \ref{eq:class}, and the range of \pdet values for each class. The number of classes was varied from 2 (i.e the mode was detected (1) or it was not (0)) to 6. The width of each bin was also varied to ensure that bins were not underpopulated. The 3 classes and \pdet ranges given in equation \ref{eq:class} gave the best predictions for the 3 sets of 81,100 datasets (4 years of $Kepler$ observation, 1 year of TESS observation and 27 days of TESS observation). 
 
-The results for the original \kep dataset and for 1-year of TESS data are very good; the classifier was able to replicate the mode detection predictions of the stars robustly. This means that a classifier can be used as a tool for target selection for future missions. Once the classifier predicted \pdet values, the stars could be ranked from those with many detected modes, to those with the fewest. In this way, the classifier could be used as the target selection function of solar-like oscillators for TESS. 
-
-For the 27-day TESS dataset, the classifier was able to correctly predict the \pdet values of 81\% of the modes. This is because with these briefly-observed TESS targets, the data is very susceptible to the realization noise of the observation. While an individual mode may be detectable in one 27-day observation, the high realisation noise may render it undetectable in another.
+The results for the original \kep dataset and for 1-year of TESS data are very good; the classifier was able to replicate the mode detection predictions of the stars robustly. For the 27-day TESS dataset, the classifier was able to correctly predict the \pdet values of 81\% of the modes. This is because with these briefly-observed TESS targets, the data is very susceptible to the realization noise of the observation. While an individual mode may be detectable in one 27-day observation, the high realisation noise may render it undetectable in another.
 
 
 \subsection{Feature Importance}
@@ -537,9 +537,9 @@ $\rm [M/H]$  & 0.08               \\
 \subsection{Comparing results between different evolutionary states}
 \label{sect: evo states}
 
-So far in this paper, the evolutionary state of the Red Giant population from Davies et al. (in prep) has been ignored when predicting mode detection probability \pdet. In reality, the 1000 \kep Red Giants used in this work are a mixture of Red Giant Branch (RGB), Red Clump (RC) and Secondary Clump (2CL) stars. This Section investigates whether there is any difference in the predictions if the stars are first separated into RGB, RC and 2CL groups. The evolutionary states of the stars in the sample were taken from \citet{elsworth_new_2017}. 
+So far in this paper, the evolutionary state of the Red Giant population from Davies et al. (in prep) has been ignored when predicting mode detection probability \pdet. In reality, the 1000 \kep Red Giants used in this work are a mixture of Red Giant Branch (RGB), Red Clump (RC) and Secondary Clump (2CL) stars. This Section investigates whether there is any difference in the predictions if the stars are first separated into RGB, RC and 2CL groups.
 
-If a Red Giant Branch is massive enough, it will undergo the Helium flash and become a Red Clump star. Red Clump stars are Helium-core burning stars, and all have very similar core masses to each other. These stars have very different $g-$mode period spacings to RGB stars, but are otherwise difficult to differentiate (\citet{chaplin_asteroseismology_2013}, \citet{bedding_solar-like_2011}, \citet{beck_kepler_2011}). If a star is more massive than $\gtrapprox1.8\msol$, it will instead become a Secondary Clump star. This means that it will undergo Helium-core burning without the Helium flash.
+If a Red Giant Branch is massive enough, it will undergo the Helium flash and become a Red Clump star. If a star is more massive than $\gtrapprox1.8\msol$, it will instead become a Secondary Clump star. The evolutionary states of the stars in the sample were taken from \citet{elsworth_new_2017}.
 
 The Red Giant dataset was separated into 3 subsets; the RGB, RC and 2CL stars. Each subset was treated in the same way as in Table \ref{tab: results}. Table \ref{tab: evo results} gives the full list of results when the RGB, RC and 2CL stars are separated. 
 \begin{table}
@@ -570,11 +570,9 @@ Table \ref{tab: evo results} shows that there is a negligible difference in pred
 \section{Conclusion}
 \label{sect: conc}
 
-The solar-like oscillations of 1000 \kep Red Giant stars from Davies et al. (in prep) were used to show that asteroseismic target selection can be done using a classifier. A classifier was used here to predict which individual solar-like oscillations inside the Red Giants could be detected with a future space mission. The mission in question here was TESS, although the same technique can be easily applied to other missions such as PLATO. This tool can also be used to understand target selection bias in previous missions, such as K2 and CoRoT.
+The solar-like oscillations of 1000 \kep Red Giant stars from Davies et al. (in prep) were used to show that asteroseismic target selection can be done using a classifier. A classifier was used here to predict which individual solar-like oscillations inside the Red Giants could be detected with a future space mission. The mission in question here was TESS, although the same technique can be easily applied to other missions such as PLATO. This classifier can also be used to understand target selection bias in previous missions, such as K2 and CoRoT.
 
-%For the first time, Machine Learning was applied to TESS target selection. 1000 peak-bagged \kep Red Giant stars from \citet{davies_asteroseismology_2016} were used to determine whether target selection could be done using a Classifier. 
-
-Firstly, the number of samples was increased by perturbing stellar magnitudes 100 times for each star. These perturbed magnitudes were drawn from a PDF of the noise function (Section \ref{sect: dataset}). After removing stars where global parameters or fitted modes were unavailable, this left 60,000 \kep samples. 
+Firstly, the number of datasets was increased by perturbing the stellar magnitudes 100 times for each star. These perturbed magnitudes were drawn from a PDF of the $Kepler$n and TESS shot noise models (Section \ref{sect: dataset}). After removing stars where global parameters or fitted modes were unavailable, this left 60,000 \kep samples. 
 
 Once the number of samples was increased, the timeseries' were degraded to transform them into TESS-like observations (Section \ref{sect: tess-like}). The dataset length was reduced, white noise was added to the signal, and the bandpass of observation was reddened. A moving median was calculated for the power spectra of these TESS-like Red Giants to estimate the total background in the signal. This was divided out of the spectra, leaving a signal-to-noise ratio at every frequency bin (equation \ref{eq:snr}).
 
@@ -587,7 +585,7 @@ The classifier successfully made predictions about the original 4 years of Keple
 
 Degrading the Red Giant data to make predictions for 1 year of TESS observations was also successful. When the different evolutionary states were kept together, the predicted mode detections scored a weighted precision of 0.90 across the 3 \pdet features (Table \ref{tab: results}). This illustrates that classification is a valid target selection method for TESS targets in the Continuous Viewing Zone (CVZ, \citep{ricker_transiting_2014}).
 
-Using the classifier on 27 days of TESS data returned detection predictions with a precision of 0.81. This is too low for the classifier to be used to select solar-like oscillators for 27 days of TESS observation. The precision is lower when stars are observed by TESS for 27 days because the white noise level is too high and the length of observation is too short to make robust predictions of individual solar-like oscillations. It may be that individual solar-like oscillations cannot be detected in 27 days of TESS data. If this is the case, then the classifier should not be expected to make robust detection predictions for these stars.
+Using the classifier on 27 days of TESS data returned detection predictions with a precision of 0.81. This is too low for the classifier to be used to select solar-like oscillators for 27 days of TESS observation. The precision is lower when stars are observed by TESS for 27 days because the white noise level is too high and the length of observation is too short to make robust predictions of individual solar-like oscillations. While individual modes may be detectable in one observation, a different 27-day observation (and noise realisation) may render the modes undetectable. It may be that individual solar-like oscillations cannot be detected in 27 days of TESS data. If this is the case, then the classifier should not be expected to make robust detection predictions for these stars.
 
 %It is important to note that there are two sources of noise to consider with this \kep dataset. white noise from equations \ref{eq:kep noise} and \ref{eq:tess noise} and stellar granulation noise. Each star in the dataset has one timeseries with one set of fitted modes available. One realisation of the star. This gives only one value of the stellar shot noise. This is not an issue with 4 years fo Kepler data (where modes are easily detectable). It is also not an issue for 27 days of TESS, when white noise has a much bigger impact on mode detectability. In order to test if this is a significant factor for 1 year of TESS data...
 

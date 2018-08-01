@@ -27,14 +27,6 @@ Baglin A.,  et~al., 2006. p.~3749, \url
 Ballot J.,  Barban C.,   van't Veer-Menneret C.,  2011, \mn@doi [Astronomy and
   Astrophysics] {10.1051/0004-6361/201016230}, 531, A124
 
-\bibitem[\protect\citeauthoryear{Beck et~al.,}{Beck
-  et~al.}{2011}]{beck_kepler_2011}
-Beck P.~G.,  et~al., 2011, \mn@doi [Science] {10.1126/science.1201939}, 332,
-  205
-
-\bibitem[\protect\citeauthoryear{Bedding}{Bedding}{2011}]{bedding_solar-like_2011}
-Bedding T.~R.,  2011, arXiv:1107.1723 [astro-ph]
-
 \bibitem[\protect\citeauthoryear{Bellinger, Angelou, Hekker, Basu, Ball  \&
   Guggenberger}{Bellinger et~al.}{2016}]{bellinger_fundamental_2016}
 Bellinger E.~P.,  Angelou G.~C.,  Hekker S.,  Basu S.,  Ball W.~H.,
@@ -44,11 +36,6 @@ Bellinger E.~P.,  Angelou G.~C.,  Hekker S.,  Basu S.,  Ball W.~H.,
 \bibitem[\protect\citeauthoryear{Campante et~al.,}{Campante
   et~al.}{2016}]{campante_asteroseismic_2016}
 Campante T.~L.,  et~al., 2016, preprint, 1608, arXiv:1608.01138
-
-\bibitem[\protect\citeauthoryear{Chaplin \& Miglio}{Chaplin \&
-  Miglio}{2013}]{chaplin_asteroseismology_2013}
-Chaplin W.~J.,  Miglio A.,  2013, \mn@doi [Annual Review of Astronomy and
-  Astrophysics] {10.1146/annurev-astro-082812-140938}, 51, 353
 
 \bibitem[\protect\citeauthoryear{Chaplin et~al.,}{Chaplin
   et~al.}{2011}]{chaplin_predicting_2011}
@@ -153,6 +140,13 @@ Ricker G.~R.,  et~al., 2014, \mn@doi [Journal of Astronomical Telescopes,
   et~al.}{2009}]{sarro_automated_2009}
 Sarro L.~M.,  Debosscher J.,  López M.,   Aerts C.,  2009, \mn@doi [Astronomy
   and Astrophysics] {10.1051/0004-6361:200809918}, 494, 739
+
+\bibitem[\protect\citeauthoryear{Scuflaire, Théado, Montalbán, Miglio,
+  Bourge, Godart, Thoul  \& Noels}{Scuflaire
+  et~al.}{2008}]{scuflaire_cles_2008}
+Scuflaire R.,  Théado S.,  Montalbán J.,  Miglio A.,  Bourge P.-O.,  Godart
+  M.,  Thoul A.,   Noels A.,  2008, \mn@doi [Astrophysics and Space Science]
+  {10.1007/s10509-007-9650-1}, 316, 83
 
 \bibitem[\protect\citeauthoryear{Sullivan et~al.,}{Sullivan
   et~al.}{2015}]{sullivan_transiting_2015}

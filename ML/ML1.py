@@ -254,7 +254,7 @@ class Machine_Learning(object):
             info['kic_kepmag'] += diff
         sys.exit()
 
-    def random_forest_classifier(self, subset='all', save=False, v=False):
+    def random_forest_classifier(self, subset='RC', save=False, v=False):
         """ Perform a Random Forest Classifier (made up of many decision trees)
         on the XY data. Y data must be given as discrete values
         e.g 0 or 1 for each mode (detected or not).
