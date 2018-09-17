@@ -599,7 +599,11 @@ if __name__ == "__main__":
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
         #mag = mags[mags['KIC'].str.rstrip()=='KIC ' + str(epic[i])]  # magnitudes from Simbad
 
-
+        #print t.__dict__.keys()
+        #print dir(ds)
+        #print ds.__dict__
+        #print list(vars(ds))
+        sys.exit()
         """ Conditions to skip this star """
         if len(info) == 0:
             """ No APOKASC information given in 'params' file """

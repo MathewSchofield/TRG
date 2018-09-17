@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 def generalPlot(title=None, xaxis=None, yaxis=None):
 
-    plt.rc('font', size=24)
-    gfig, ax = plt.subplots(figsize=(12.0, 14.0))
+    plt.rc('font', size=14)
+    gfig, ax = plt.subplots()
 
     if title != None:
         plt.title(title)

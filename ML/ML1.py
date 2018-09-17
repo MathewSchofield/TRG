@@ -28,8 +28,9 @@ from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.metrics import classification_report, confusion_matrix,\
-    accuracy_score, precision_score
-
+    accuracy_score, precision_score, explained_variance_score, mean_absolute_error
+#import sklearn.metrics
+#from sklearn.metrics import explained_variance_score
 
 class Machine_Learning(object):
 
@@ -43,7 +44,7 @@ class Machine_Learning(object):
         self.plx_source = plx_source
 
     def get_parallaxes(self):
-        """ Get parallaxes for the 1000 stars from 'tgas' or 'dr2'. """
+        """ Save parallaxes for the 1000 stars from 'tgas' or 'dr2'. """
 
         if self.plx_source == 'dr2':
             plx = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_simbad_DR2.csv', sep=';', skipinitialspace=True)
@@ -268,11 +269,19 @@ class Machine_Learning(object):
             self.xy = self.xy[self.xy['Classification']==subset]
             print self.xy.shape
 
+
         # x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'Bmag',
         #             'Vmag', 'B-V', 'V-I', 'Imag', 'log.g1', 'parallax']
         x_labels = ['Teff', '[M/H]2', 'kic_kepmag', 'log.g1', 'parallax']
         x = self.xy[x_labels].as_matrix()
         y = self.xy[['Pdet1', 'Pdet2', 'Pdet3']].as_matrix()
+
+
+        print self.xy[['KIC_number', 'log.g1', 'parallax', 'Teff', '[M/H]2', 'kic_kepmag']].iloc[::100].head()
+        # print list(self.xy)
+        # print x[::100]
+        sys.exit()
+
 
         x_train, x_test, y_train, y_test = train_test_split(x, y,
                                                             test_size=0.3,
@@ -335,19 +344,34 @@ class Machine_Learning(object):
                     'Pres2','Pres3','HL']]  # save the file in this order
                 output.to_csv('ML1_results.csv', index=False)  # make the file
 
-    def random_forest_regression(self, test=True):
+    def random_forest_regression(self, test=True, plot_VI_comparison=False):
         """ Perform Random Forest Regression on the X data (Teff, [M/H], Kp),
             Y data (Imag) to calculate Imag for missing stars.
             RF: Random Forest
             MRF: Multi Random Forest
 
             Kewargs
-            test (bool) True:  Test the algorithm to make sure it is robust.
-                        False: Use the algorithm to calculate Imags for missing stars.
+            test (bool)  True:  Test the algorithm to make sure it is robust.
+                         False: Use the algorithm to calculate Imags for missing stars.
+            plot_VI_comparison: plot a histogram of Vmags and Imags to compare
+            (bool)              mean difference.
             """
 
         allstars = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars.csv')
         training = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/1000Stars/1000stars_simbad4.csv')
+
+        if plot_VI_comparison == True:
+            print list(allstars), allstars.shape
+            print list(training), training.shape
+            print training[['Vmag', 'V-I']].head(10)
+            training['Imag'] = training['Vmag']-training['V-I']
+            print np.mean(training['Vmag']), np.std(training['Vmag'])
+            print np.mean(training['Imag']), np.std(training['Imag'])
+            print np.mean(training['V-I']), np.std(training['V-I'])  # the difference between mags
+            plt.hist(training['Imag'], bins=100)
+            plt.hist(training['Vmag'], color='c', bins=100)
+            plt.show()
+            sys.exit()
 
         allstars['KIC'] = 'KIC ' + allstars['KIC'].astype(str)
         training['KIC'] = training['KIC'].str.strip().str.rstrip()
@@ -392,9 +416,14 @@ class Machine_Learning(object):
         if test == True:
             rf_test = regr_rf.score(x_test, y_test)
             print 'RF Test: ', rf_test
+            print 'Explained Variance: ', explained_variance_score(y_test, y_rf)
             print 'mean:', np.mean(y_test[:,0]-y_rf)
             print 'sd:', np.std(y_test[:,0]-y_rf)
+            #print mean_absolute_error(y_test, y_rf)
             self.y_test = y_test
+
+
+
 
         self.y_rf = y_rf
         self.y_train = y_train
@@ -519,6 +548,21 @@ class Machine_Learning(object):
         plt.show()
         fig.savefig('Plot4_Imag_scatter.pdf')
 
+    def Plot5(self):
+        """ Make a histogram of Imag of the red giant sample.
+        Overplot the sample with 1+ detected modes """
+
+        # Subsample of the stars with 1+ detected oscillations. The condition is:
+        cond = (self.xy['Pdet1']!=0) | (self.xy['Pdet2']!=0) | (self.xy['Pdet3']!=0)
+
+        fig, ax = generalPlot(xaxis='Imag / mag', yaxis='Number of Stars')
+        plt.hist(self.xy['Imag'], bins=50, label='Full sample')
+        plt.hist(self.xy['Imag'][cond], histtype='step', color='k', bins=50,
+            label='Stars with 1+ detections')
+        plt.legend()
+        plt.show()
+        fig.savefig('Plot5_magHist.pdf')
+
 
 if __name__ == '__main__':
 
@@ -527,13 +571,13 @@ if __name__ == '__main__':
     #ml.get_parallaxes()
     ml.loadData()
     ml.pdet_bins()
-    ml.random_forest_classifier()
+    #ml.random_forest_classifier()
     #ml.random_forest_regression()
     #ml.Plot1()
     #ml.Plot2()
     #ml.Plot3()
     #ml.Plot4()
-
+    ml.Plot5()
 
 
 

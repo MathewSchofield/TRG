@@ -55,9 +55,9 @@ def getInput():
     params = pd.read_csv(param_file)
     modes = glob.glob(mode_dir + '*.csv')
     mags = pd.read_csv(mag_file)
-
-    # print mags
-    # sys.exit()
+    print mag_file
+    #print mags
+    sys.exit()
 
     # if Imags are not known for the stars, calculate them and save to file
     if 'Imag' not in mags.columns:
