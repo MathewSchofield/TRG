@@ -20,6 +20,9 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from astropy.convolution import Gaussian1DKernel, convolve
 
+sys.path.insert(0, '/home/mxs191/Desktop/MathewSchofield/ATL/')
+from DR import granulation  # in plot_ps()
+
 TRG = os.getcwd().split('DetTest')[0]
 sys.path.insert(0, TRG)
 from plotTemplates import generalPlot
@@ -240,12 +243,36 @@ class DetTest(object):
     def plot_ps(self, smoo=0, plog=True):
         ''' Plots the power spectrum and the fitted background '''
 
+        # calculate granulation
+        numax = info['numax'].as_matrix()  # mu Hz
+        dilution = 1
+        vnyq = 277.8  # mu Hz
+        a_nomass = 3382*numax**-0.609 # multiply by 0.85 to convert to redder TESS bandpass.
+        b1 = 0.317 * numax**0.970
+        b2 = 0.948 * numax**0.992
+        Pgran, eta = granulation(self.ds.freq, dilution, a_nomass, b1, b2, vnyq)
+
+        # calculate Kepler noise
+        Kp = info['kic_kepmag'].as_matrix()
+        c = 1.28 * 10**(0.4*(12.-Kp) + 7.)  # detections per cadence, (5) eqn 17.
+        noise_func = 1e6/c * np.sqrt(c + 9.5 * 1e5*(14./Kp)**5) # in ppm
+
+
+
         if len(self.ds.freq) < 0:
             self.ds.power_spectrum()
 
+        plt.rc('font', size=18)
         fig, ax = plt.subplots()
-        ax.plot(self.ds.freq, self.ds.power, 'k-', alpha=0.5)
-        ax.plot(self.ds.freq, self.bkg, 'k-')
+        ax.plot(self.ds.freq, self.ds.power)#, 'k-', alpha=0.5)
+        #ax.plot(self.ds.freq, self.bkg, 'k-')
+
+        subset = self.ds.freq[(self.ds.freq<46.9)]
+
+        ax.plot(self.ds.freq, Pgran, c='k')
+        plt.axhline(y=45., c='k', linestyle='--')
+        plt.plot(subset, 18004*np.exp( -( (subset-23.1)**2 / (2*7.**2) ) ), c='cyan')
+
 
         if plog:
             ax.set_xscale('log')
@@ -253,14 +280,15 @@ class DetTest(object):
         ax.set_xlabel(r'Frequency ($\rm \mu Hz$)')
         ax.set_ylabel(r'Power ($\rm ppm^{2} \, \mu Hz^{-1}$)')
         ax.set_xlim([self.ds.freq.min(),self.ds.freq.max()])
-        ax.set_title('KIC ' + str(self.ds.epic))
+        #ax.set_title('KIC ' + str(self.ds.epic))
 
         if smoo > 0:
             self.ds.rebin_quick(smoo)
             ax.plot(self.ds.smoo_freq, self.ds.smoo_power, 'k-', linewidth=4)
 
+        plt.tight_layout()
         plt.show()
-        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +'ps_' + str(self.ds.epic) + '.png')
+        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +'ps_' + str(self.ds.epic) + '.pdf')
 
     def plot_snr(self, plog=True):
         ''' Plots the SNR '''
@@ -458,6 +486,31 @@ class DetTest(object):
         fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +\
             'plot4_SNR' + self.ds.epic + '.pdf')
 
+    def plot5(self):
+        """ Plot the power spectrum around the modes. Label each mode. """
+
+        cond = ((self.ds.freq<32.6) & (self.ds.freq>17))
+        freq = self.ds.freq[cond]
+        power = self.ds.power[cond]
+
+        # the modes for KIC 9205705
+        m = pd.read_csv('/home/mxs191/Desktop/MathewSchofield/TRG/GetData/Modes/modes_9205705.csv')
+        m1 = [17.65, 20.6, 23.7, 26.9, 30.1]  # l=1
+
+        plt.rc('font', size=18)
+        fig, ax = plt.subplots()
+        plt.plot(freq, power, zorder=1)
+        plt.scatter(m['f0'].as_matrix(), np.full(len(m), 150000), c='k', zorder=2, s=80)
+        plt.scatter(m['f2'].as_matrix(), np.full(len(m), 130000), c='cyan', zorder=2, s=80, marker='^')
+        plt.scatter(m1, np.full(len(m1), 140000), c='grey', zorder=2, s=80, marker='v')
+        ax.set_xlabel(r'Frequency ($\rm \mu Hz$)')
+        ax.set_ylabel(r'Power ($\rm ppm^{2} \, \mu Hz^{-1}$)')
+        plt.xlim(17, 32.6)
+        plt.ylim(17, 195181)
+        #ax.set_yscale('log')
+        plt.tight_layout()
+        plt.show()
+        fig.savefig(os.getcwd() + '/DetTest1_plots/Plot5_ps_' + str(self.ds.epic) + '.pdf')
 
 class data_for_ML(object):
     """ Prepare and save the X, Y data to be used in ML.py """
@@ -593,7 +646,7 @@ if __name__ == "__main__":
         Within each iteration (i.e each star), perturb the stellar magnitude 'x' times """
 
         sat = 'Kepler'
-        sat = 'TESS'
+        #sat = 'TESS'
 
         ds = Dataset(epic[i], fdir, sat=sat, bandpass=0.85, Tobs=365)  # Tobs in days
         info = params[params['KIC']==int(epic[i])]  # info on the object, for TESS_noise
@@ -603,7 +656,7 @@ if __name__ == "__main__":
         #print dir(ds)
         #print ds.__dict__
         #print list(vars(ds))
-        sys.exit()
+        #sys.exit()
         """ Conditions to skip this star """
         if len(info) == 0:
             """ No APOKASC information given in 'params' file """
@@ -631,7 +684,7 @@ if __name__ == "__main__":
 
 
 
-        x = 100  # number of iterations to loop through every star (number of different magnitudes per star)
+        x = 1  # number of iterations to loop through every star (number of different magnitudes per star)
         if sat == 'Kepler':
             pdf_range = [12., 20., 100]  # range of Kp magnitudes for the PDF
         elif sat == 'TESS':
@@ -647,17 +700,18 @@ if __name__ == "__main__":
                 detection probability. Do this x times per star. Save 1 row per
                 perturbed magnitude in save_xy() (each star has x rows). """
 
-            diff = rand_mags[j]-float(info['Imag'])  # change magnitudes for this iteration
-            info[['kic_kepmag', 'Imag']] += diff
+            # NOTE: if running this scripts before ML1.py, uncomment these lines
+            #diff = rand_mags[j]-float(info['Imag'])  # change magnitudes for this iteration
+            #info[['kic_kepmag', 'Imag']] += diff
             # mag[['Imag', 'Vmag', 'Bmag']] += diff
 
 
             if ds.sat == 'Kepler':  # make the original Kepler PS
-                info['kic_kepmag'] = rand_mags[j]  # change the magnitude for this iteration
+                #info['kic_kepmag'] = rand_mags[j]  # change the magnitude for this iteration
                 ds.ts()
                 ds.Periodogram()
                 ds.kepler_noise(Kp=info['kic_kepmag'].as_matrix())
-                ds.PS_add_noise()  # add noise to the power spectrum
+                #ds.PS_add_noise()  # add noise to the power spectrum
 
             elif ds.sat == 'TESS':  # transform the Kepler PS into TESS PS
                 ds.TESS_noise(imag=info['Imag'].as_matrix(), exptime=30.*60.,\
@@ -675,12 +729,13 @@ if __name__ == "__main__":
             #star.Diagnostic_plot2()
             #star.Diagnostic_plot3()
             #star.plot4()
-            #sys.exit()
+            star.plot5()
+            sys.exit()
 
-            output = data_for_ML(star)  # save X, Y data for Machine Learning
+            #output = data_for_ML(star)  # save X, Y data for Machine Learning
             #output.fit_amplitudes()  # fit Gaussian to modes to get numax
-            output.average_dnu()  # get dnu value from mode frequencies (only once per star)
-            output.save_xy()
+            #output.average_dnu()  # get dnu value from mode frequencies (only once per star)
+            #output.save_xy()
 
 
     stop = timeit.default_timer()
