@@ -264,22 +264,22 @@ class DetTest(object):
 
         plt.rc('font', size=18)
         fig, ax = plt.subplots()
-        ax.plot(self.ds.freq, self.ds.power)#, 'k-', alpha=0.5)
+        ax.plot(self.ds.freq, self.ds.power)
         #ax.plot(self.ds.freq, self.bkg, 'k-')
-
-        subset = self.ds.freq[(self.ds.freq<46.9)]
-
         ax.plot(self.ds.freq, Pgran, c='k')
         plt.axhline(y=45., c='k', linestyle='--')
-        plt.plot(subset, 18004*np.exp( -( (subset-23.1)**2 / (2*7.**2) ) ), c='cyan')
+
+        subset = self.ds.freq[(self.ds.freq<46.9) & (self.ds.freq>8.1)]
+        Pgran_subset, eta = granulation(subset, dilution, a_nomass, b1, b2, vnyq)
+        plt.plot(subset, Pgran_subset + (18004*np.exp( -( (subset-23.1)**2 / (2*7.**2) ) )), c='cyan')
 
 
         if plog:
             ax.set_xscale('log')
             ax.set_yscale('log')
         ax.set_xlabel(r'Frequency ($\rm \mu Hz$)')
-        ax.set_ylabel(r'Power ($\rm ppm^{2} \, \mu Hz^{-1}$)')
-        ax.set_xlim([self.ds.freq.min(),self.ds.freq.max()])
+        ax.set_ylabel(r'PSD ($\rm ppm^{2} \, \mu Hz^{-1}$)')
+        ax.set_xlim([1,self.ds.freq.max()])
         #ax.set_title('KIC ' + str(self.ds.epic))
 
         if smoo > 0:
@@ -499,15 +499,32 @@ class DetTest(object):
 
         plt.rc('font', size=18)
         fig, ax = plt.subplots()
-        plt.plot(freq, power, zorder=1)
+        plt.plot(freq, power, zorder=1, alpha=0.4)
+
+        # NOTE: annotate mode angular degrees
         plt.scatter(m['f0'].as_matrix(), np.full(len(m), 150000), c='k', zorder=2, s=80)
-        plt.scatter(m['f2'].as_matrix(), np.full(len(m), 130000), c='cyan', zorder=2, s=80, marker='^')
+        plt.scatter(m['f2'].as_matrix(), np.full(len(m), 130000), c='mediumseagreen', zorder=2, s=80, marker='^')
         plt.scatter(m1, np.full(len(m1), 140000), c='grey', zorder=2, s=80, marker='v')
+
+        # NOTE: plot envelope
+        numax = info['numax'].as_matrix()  # mu Hz
+        env_width = 0.66 * numax**0.88
+        plt.plot(freq, 40004*np.exp( -( (freq-24.7)**2 / (2*7.**2) ) ), c='k', linestyle='--')
+
+        # NOTE: annotate envelope
+        style = dict(size=16, color='k')
+        ax.text(24.1, 49167, r"$\nu_{\rm max}$", color='k', size=18)
+        ax.text(24.1, 20994, r"$\Gamma_{\rm env}$", color='k', size=18)
+        ax.text(23, 162944, r"$\Delta \nu$", **style)
+        plt.annotate(s='', xy=(25.3, 158610), xytext=(21.91, 158610),
+            arrowprops=dict(arrowstyle='<->'))  # dnu
+        plt.annotate(s='', xy=((24.7-env_width/2.), 15861), xytext=((24.7+env_width/2.), 15861),
+            arrowprops=dict(arrowstyle='<->'))  # env width
+
         ax.set_xlabel(r'Frequency ($\rm \mu Hz$)')
-        ax.set_ylabel(r'Power ($\rm ppm^{2} \, \mu Hz^{-1}$)')
+        ax.set_ylabel(r'PSD ($\rm ppm^{2} \, \mu Hz^{-1}$)')
         plt.xlim(17, 32.6)
         plt.ylim(17, 195181)
-        #ax.set_yscale('log')
         plt.tight_layout()
         plt.show()
         fig.savefig(os.getcwd() + '/DetTest1_plots/Plot5_ps_' + str(self.ds.epic) + '.pdf')
@@ -721,7 +738,7 @@ if __name__ == "__main__":
 
 
             star = DetTest(ds)   # apply a detection test on every mode of the star
-            star.get_snr(plt_PS=False, plt_SNR=False)  # calculate SNR values for every freq bin
+            star.get_snr(plt_PS=True, plt_SNR=False)  # calculate SNR values for every freq bin
             star.mode_snrs()  # SNR value at each mode
             star.Det_Prob(snrthresh=1.0, fap=0.05)  # detection probability value for each mode
             #star.Info2Save()
