@@ -256,7 +256,7 @@ class DetTest(object):
         Kp = info['kic_kepmag'].as_matrix()
         c = 1.28 * 10**(0.4*(12.-Kp) + 7.)  # detections per cadence, (5) eqn 17.
         noise_func = 1e6/c * np.sqrt(c + 9.5 * 1e5*(14./Kp)**5) # in ppm
-
+        #print noise_func
 
 
         if len(self.ds.freq) < 0:
@@ -288,7 +288,7 @@ class DetTest(object):
 
         plt.tight_layout()
         plt.show()
-        fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +'ps_' + str(self.ds.epic) + '.pdf')
+        #fig.savefig(os.getcwd() + os.sep + 'DetTest1_plots' + os.sep +'ps_' + str(self.ds.epic) + '.pdf')
 
     def plot_snr(self, plog=True):
         ''' Plots the SNR '''
@@ -746,7 +746,7 @@ if __name__ == "__main__":
             #star.Diagnostic_plot2()
             #star.Diagnostic_plot3()
             #star.plot4()
-            star.plot5()
+            #star.plot5()
             sys.exit()
 
             #output = data_for_ML(star)  # save X, Y data for Machine Learning
